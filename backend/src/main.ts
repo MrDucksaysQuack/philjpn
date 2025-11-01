@@ -19,10 +19,46 @@ async function bootstrap() {
   // CORS
   const config = appConfig();
   const corsOrigin = process.env.CORS_ORIGIN || config.corsOrigin || '*';
+  
+  // CORS 설정 개선: 여러 도메인 지원 및 디버깅 로그
+  // Railway에서 환경 변수가 제대로 읽히지 않을 경우를 대비한 fallback
+  let allowedOrigins: string[] | boolean;
+  
+  if (corsOrigin === '*') {
+    allowedOrigins = true;
+  } else {
+    // 쉼표로 구분된 도메인 목록 처리
+    const origins = corsOrigin
+      .split(',')
+      .map(origin => origin.trim())
+      .filter(origin => origin.length > 0);
+    
+    // 프로덕션 환경에서는 Vercel 도메인 추가 (안전장치)
+    if (process.env.NODE_ENV === 'production') {
+      const vercelDomains = [
+        'https://philjpn.vercel.app',
+        'https://philjpn-git-main-kangs-projects-bf0b6774.vercel.app',
+      ];
+      vercelDomains.forEach(domain => {
+        if (!origins.includes(domain)) {
+          origins.push(domain);
+        }
+      });
+    }
+    
+    allowedOrigins = origins;
+  }
+  
   app.enableCors({
-    origin: corsOrigin === '*' ? true : corsOrigin.split(','), // 여러 도메인 지원
+    origin: allowedOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-License-Key'],
   });
+
+  // CORS 설정 로그 (항상 출력하여 디버깅)
+  console.log('🔒 CORS 설정:', allowedOrigins === true ? '*' : allowedOrigins);
+  console.log('🔍 CORS_ORIGIN 환경 변수:', corsOrigin);
 
   // Swagger API Documentation
   const swaggerConfig = new DocumentBuilder()
