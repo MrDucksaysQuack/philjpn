@@ -14,7 +14,7 @@ export default function TemplatesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
-  const { data: templates, isLoading } = useQuery({
+  const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ["admin-templates"],
     queryFn: async () => {
       const response = await adminAPI.getTemplates();
@@ -22,6 +22,8 @@ export default function TemplatesPage() {
     },
     enabled: user?.role === "admin",
   });
+
+  const templates = templatesResponse?.data || [];
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
