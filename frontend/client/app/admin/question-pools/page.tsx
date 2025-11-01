@@ -16,7 +16,7 @@ export default function QuestionPoolsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPool, setEditingPool] = useState<QuestionPool | null>(null);
 
-  const { data: pools, isLoading } = useQuery({
+  const { data: poolsResponse, isLoading } = useQuery({
     queryKey: ["admin-question-pools"],
     queryFn: async () => {
       const response = await adminAPI.getQuestionPools();
@@ -24,6 +24,8 @@ export default function QuestionPoolsPage() {
     },
     enabled: user?.role === "admin",
   });
+
+  const pools = poolsResponse?.data || [];
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
