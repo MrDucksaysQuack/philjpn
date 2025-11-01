@@ -19,24 +19,37 @@ async function bootstrap() {
   // CORS
   const config = appConfig();
   
-  // 🔍 CORS_ORIGIN 환경 변수 상세 분석 로그
+  // 🔍 CORS_ORIGIN 환경 변수 상세 분석 로그 (본질 원인 파악용)
   console.log('═══════════════════════════════════════════════════');
-  console.log('🔍 CORS 환경 변수 분석 시작');
+  console.log('🔍 CORS 환경 변수 본질 분석');
   console.log('═══════════════════════════════════════════════════');
-  console.log('📌 process.env.CORS_ORIGIN:', process.env.CORS_ORIGIN || '(undefined)');
-  console.log('📌 config.corsOrigin:', config.corsOrigin || '(undefined)');
+  console.log('📌 process.env.CORS_ORIGIN (타입):', typeof process.env.CORS_ORIGIN);
+  console.log('📌 process.env.CORS_ORIGIN (값):', JSON.stringify(process.env.CORS_ORIGIN));
+  console.log('📌 process.env.CORS_ORIGIN (길이):', process.env.CORS_ORIGIN?.length || 0);
+  console.log('📌 config.corsOrigin:', JSON.stringify(config.corsOrigin));
+  console.log('📌 process.env.NODE_ENV:', process.env.NODE_ENV);
   
-  // ✅ 핵심: CORS_ORIGIN을 쉼표로 분리하여 배열로 처리
-  // "https://philjpn.vercel.app,https://railway.com" → ["https://philjpn.vercel.app", "https://railway.com"]
-  const allowedOriginsArray = process.env.CORS_ORIGIN
-    ?.split(',')
-    .map(o => o.trim())
-    .filter(o => o.length > 0 && o !== 'https://railway.com') // railway.com 자동 필터링
-    || config.corsOrigin
-      ?.split(',')
+  // ✅ 핵심: 환경 변수에서 직접 읽기 (app.config 우회)
+  // Railway에서 CORS_ORIGIN이 제대로 설정되었는지 확인
+  const rawCorsOrigin = process.env.CORS_ORIGIN;
+  console.log('📌 원본 CORS_ORIGIN 값:', JSON.stringify(rawCorsOrigin));
+  
+  // 빈 문자열이나 undefined 처리
+  let allowedOriginsArray: string[] = [];
+  
+  if (rawCorsOrigin && rawCorsOrigin.trim().length > 0) {
+    allowedOriginsArray = rawCorsOrigin
+      .split(',')
       .map(o => o.trim())
-      .filter(o => o.length > 0 && o !== 'https://railway.com')
-    || [];
+      .filter(o => {
+        // railway.com 완전히 제거
+        if (o === 'https://railway.com' || o === 'railway.com') {
+          console.log('⚠️  제거됨:', o);
+          return false;
+        }
+        return o.length > 0;
+      });
+  }
   
   console.log('📋 파싱된 도메인 목록:', allowedOriginsArray);
   
@@ -57,36 +70,44 @@ async function bootstrap() {
   console.log('✅ 최종 허용 도메인 목록:', allowedOriginsArray);
   console.log('═══════════════════════════════════════════════════');
   
-  // CORS 설정: origin 함수 사용 (제안된 방식)
+  // CORS 설정: origin 함수 사용 (실제 요청마다 로그 출력)
   app.enableCors({
     origin: (origin, callback) => {
+      // 실제 요청마다 로그 출력 (본질 원인 파악)
+      console.log(`🔍 CORS 요청 수신 - Origin: ${origin || '(none)'}`);
+      console.log(`🔍 허용 목록:`, allowedOriginsArray);
+      
       // Origin이 없는 경우 (동일 출처 요청, Postman 등)
       if (!origin) {
+        console.log('✅ Origin 없음 - 허용');
         callback(null, true);
         return;
       }
       
       // 1. 환경 변수에 명시된 도메인 목록 확인
       if (allowedOriginsArray.includes(origin)) {
+        console.log(`✅ 허용 목록에 있음 - 허용: ${origin}`);
         callback(null, true);
         return;
       }
       
       // 2. 프로덕션: Vercel 프리뷰 도메인 패턴 자동 허용
       if (process.env.NODE_ENV === 'production' && isVercelDomain(origin)) {
-        console.log(`✅ Vercel 프리뷰 도메인 자동 허용: ${origin}`);
+        console.log(`✅ Vercel 프리뷰 도메인 패턴 매칭 - 허용: ${origin}`);
         callback(null, true);
         return;
       }
       
       // 3. 개발 환경: localhost 허용
       if (origin.startsWith('http://localhost:')) {
+        console.log(`✅ Localhost - 허용: ${origin}`);
         callback(null, true);
         return;
       }
       
       // 4. 차단된 도메인
-      console.warn(`❌ Blocked CORS request from: ${origin}`);
+      console.warn(`❌ 차단됨: ${origin}`);
+      console.warn(`❌ 허용 목록:`, allowedOriginsArray);
       callback(new Error('Not allowed by CORS'), false);
     },
     credentials: true,
