@@ -33,7 +33,8 @@ export class LicenseKeyService {
    * 라이선스 키 목록 조회
    */
   async findAll(userId: string, role: string, query: LicenseKeyQueryDto) {
-    const { keyType, isActive } = query;
+    const { page = 1, limit = 20, keyType, isActive } = query;
+    const skip = (page - 1) * limit;
 
     const where: any = {};
 
@@ -45,19 +46,24 @@ export class LicenseKeyService {
     if (keyType) where.keyType = keyType;
     if (isActive !== undefined) where.isActive = isActive;
 
-    const licenseKeys = await this.prisma.licenseKey.findMany({
-      where,
-      orderBy: { issuedAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
+    const [licenseKeys, total] = await Promise.all([
+      this.prisma.licenseKey.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { issuedAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.licenseKey.count({ where }),
+    ]);
 
     return {
       data: licenseKeys.map((key) => ({
@@ -73,6 +79,12 @@ export class LicenseKeyService {
         issuedAt: key.issuedAt,
         user: key.user,
       })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 

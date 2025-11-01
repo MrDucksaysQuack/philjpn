@@ -21,8 +21,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         // PgBouncer 호환 설정 추가
         // Prisma가 prepared statements를 사용하지 않도록 함
         urlObj.searchParams.set('pgbouncer', 'true');
-        urlObj.searchParams.set('connection_limit', '1');
-        urlObj.searchParams.set('connect_timeout', '10');
+        // connection_limit을 늘려서 동시 요청 처리 능력 향상
+        // PgBouncer를 사용할 때는 연결 풀 크기를 적절히 설정해야 함
+        urlObj.searchParams.set('connection_limit', '10');
+        urlObj.searchParams.set('connect_timeout', '20');
+        // Pool 타임아웃 증가 (초)
+        urlObj.searchParams.set('pool_timeout', '20');
         
         dbUrl = urlObj.toString();
       } catch (error) {
@@ -121,8 +125,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         const isConnectionError =
           error?.code === 'P1017' || // Server has closed the connection
           error?.code === 'P1001' || // Can't reach database server
+          error?.code === 'P2024' || // Timed out fetching a new connection from the connection pool
           error?.message?.includes('Server has closed') ||
-          error?.message?.includes('Can\'t reach database');
+          error?.message?.includes('Can\'t reach database') ||
+          error?.message?.includes('Timed out fetching a new connection');
 
         // 재시도 가능한 에러인 경우
         if ((isPreparedStatementError || isConnectionError) && i < retries - 1) {
