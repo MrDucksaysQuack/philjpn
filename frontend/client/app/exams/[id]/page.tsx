@@ -124,7 +124,7 @@ export default function ExamDetailPage() {
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4">섹션 구성</h2>
               <div className="space-y-2">
-                {sections.map((section) => (
+                {sections.map((section: { id: string; title: string; description?: string; questionCount?: number }) => (
                   <div
                     key={section.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded"

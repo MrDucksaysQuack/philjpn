@@ -12,6 +12,7 @@ import {
   UpdateLicenseKeyPayload,
   LicenseKey,
   Exam,
+  PaginatedResponse,
 } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 
@@ -30,12 +31,15 @@ export default function AdminLicenseKeysPage() {
     validUntil: "",
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<PaginatedResponse<LicenseKey>>({
     queryKey: ["admin-license-keys", page],
-    queryFn: async () => {
-      const response = await apiClient.get("/license-keys", {
-        params: { page, limit: 20 },
-      });
+    queryFn: async (): Promise<PaginatedResponse<LicenseKey>> => {
+      const response = await apiClient.get<PaginatedResponse<LicenseKey>>(
+        "/license-keys",
+        {
+          params: { page, limit: 20 },
+        },
+      );
       return response.data;
     },
     enabled: user?.role === "admin",
@@ -50,10 +54,10 @@ export default function AdminLicenseKeysPage() {
     enabled: user?.role === "admin",
   });
 
-  const { data: exams } = useQuery({
+  const { data: exams } = useQuery<Exam[]>({
     queryKey: ["exams-list"],
-    queryFn: async () => {
-      const response = await apiClient.get("/exams", {
+    queryFn: async (): Promise<Exam[]> => {
+      const response = await apiClient.get<PaginatedResponse<Exam>>("/exams", {
         params: { limit: 100 },
       });
       return response.data.data || [];
@@ -330,13 +334,15 @@ export default function AdminLicenseKeysPage() {
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       {key.usageLimit
-                        ? `${key.usageCount}/${key.usageLimit}`
-                        : key.usageCount}
+                        ? `${key.usedCount}/${key.usageLimit}`
+                        : key.usedCount}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
-                      {key.validUntil
-                        ? `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ ${new Date(key.validUntil).toLocaleDateString("ko-KR")}`
-                        : `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ 무제한`}
+                      {key.validFrom
+                        ? key.validUntil
+                          ? `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ ${new Date(key.validUntil).toLocaleDateString("ko-KR")}`
+                          : `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ 무제한`
+                        : "-"}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span

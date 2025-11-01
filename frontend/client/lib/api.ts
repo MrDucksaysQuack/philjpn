@@ -97,6 +97,8 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  isActive?: boolean;
+  lastLoginAt?: string;
 }
 
 export interface LoginResponse {

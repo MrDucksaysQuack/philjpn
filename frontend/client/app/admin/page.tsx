@@ -199,7 +199,7 @@ export default function AdminDashboardPage() {
               <div className="space-y-2">
                 {dashboard.recentActivity
                   .slice(0, 5)
-                  .map((activity, idx) => (
+                  .map((activity: { user?: { name: string }; exam?: { title: string }; timestamp: string }, idx: number) => (
                     <div
                       key={idx}
                       className="flex justify-between items-center py-2 border-b"

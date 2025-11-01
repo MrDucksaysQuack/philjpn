@@ -18,9 +18,9 @@ export default function AdminExamsPage() {
   // const [isCreating, setIsCreating] = useState(false);
   // const [editingExam, setEditingExam] = useState<Exam | null>(null);
 
-  const { data, isLoading } = useQuery<PaginatedResponse<Exam>>({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-exams", page, search],
-    queryFn: async () => {
+    queryFn: async (): Promise<PaginatedResponse<Exam>> => {
       const response = await examAPI.getExams({
         page,
         limit: 20,
