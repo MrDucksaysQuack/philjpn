@@ -268,7 +268,7 @@ export default function AnalysisPage() {
                           주요 약점 영역
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {weakness.weaknessAreas.map((area, index) => (
+                          {(weakness.weaknessAreas || []).map((area, index) => (
                             <div
                               key={index}
                               className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 border border-red-200 hover:shadow-lg transition-all"

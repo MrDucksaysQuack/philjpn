@@ -503,7 +503,7 @@ export default function ResultDetailPage() {
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <div className="text-xs font-semibold text-gray-500 mb-2">관련 단어</div>
                         <div className="flex flex-wrap gap-2">
-                          {question.relatedWords.map((word: string, i: number) => (
+                          {(question.relatedWords || []).map((word: string, i: number) => (
                             <span
                               key={i}
                               className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs"
@@ -534,7 +534,7 @@ export default function ResultDetailPage() {
                 >
                   <h3 className="text-xl font-bold text-gray-900 mb-6">{section.sectionTitle}</h3>
                   
-                  {section.strengths.length > 0 && (
+                  {section.strengths && section.strengths.length > 0 && (
                     <div className="mb-6">
                       <div className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,7 +543,7 @@ export default function ResultDetailPage() {
                         강점
                       </div>
                       <ul className="space-y-2">
-                        {section.strengths.map((strength: string, i: number) => (
+                        {(section.strengths || []).map((strength: string, i: number) => (
                           <li key={i} className="text-gray-700 flex items-start gap-2">
                             <span className="text-green-500">✓</span>
                             {strength}
@@ -553,7 +553,7 @@ export default function ResultDetailPage() {
                     </div>
                   )}
 
-                  {section.weaknesses.length > 0 && (
+                  {section.weaknesses && section.weaknesses.length > 0 && (
                     <div className="mb-6">
                       <div className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -562,7 +562,7 @@ export default function ResultDetailPage() {
                         약점
                       </div>
                       <ul className="space-y-2">
-                        {section.weaknesses.map((weakness: string, i: number) => (
+                        {(section.weaknesses || []).map((weakness: string, i: number) => (
                           <li key={i} className="text-gray-700 flex items-start gap-2">
                             <span className="text-red-500">⚠</span>
                             {weakness}
@@ -623,7 +623,7 @@ export default function ResultDetailPage() {
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-200">
                 <div className="text-lg font-semibold text-blue-900 mb-4">📊 학습 인사이트</div>
                 <ul className="space-y-3">
-                  {detailedFeedback.detailedFeedback?.overall?.learningInsights?.map(
+                  {(detailedFeedback.detailedFeedback?.overall?.learningInsights || []).map(
                     (insight: string, index: number) => (
                       <li key={index} className="flex items-start gap-3">
                         <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -642,7 +642,7 @@ export default function ResultDetailPage() {
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-200">
                 <div className="text-lg font-semibold text-green-900 mb-4">🎯 다음 학습 단계</div>
                 <ul className="space-y-3">
-                  {detailedFeedback.detailedFeedback?.overall?.nextSteps?.map(
+                  {(detailedFeedback.detailedFeedback?.overall?.nextSteps || []).map(
                     (step: string, index: number) => (
                       <li key={index} className="flex items-start gap-3">
                         <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">

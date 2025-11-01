@@ -144,7 +144,7 @@ export default function AdminExamResultsPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {data?.data.map((result) => (
+                      {(data?.data || []).map((result) => (
                         <tr key={result.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">

@@ -89,10 +89,10 @@ export default function RecommendedExamsPage() {
                   <div className="text-2xl font-bold text-pink-900 capitalize">{adaptivePath.nextMilestone}</div>
                 </div>
               </div>
-              {adaptivePath.recommendedSequence.length > 0 && (
+              {adaptivePath?.recommendedSequence && adaptivePath.recommendedSequence.length > 0 && (
                 <div className="space-y-3">
                   <div className="text-sm font-semibold text-gray-700 mb-3">추천 순서:</div>
-                  {adaptivePath.recommendedSequence.map((item: any, index: number) => (
+                  {(adaptivePath.recommendedSequence || []).map((item: any, index: number) => (
                     <div key={item.examId} className="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
                       <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
                         {item.order}
