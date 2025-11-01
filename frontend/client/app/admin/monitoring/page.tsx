@@ -46,7 +46,7 @@ export default function MonitoringPage() {
     return null;
   }
 
-  const sessions = data?.data || [];
+  const sessions = data || [];
 
   return (
     <>
@@ -105,7 +105,7 @@ export default function MonitoringPage() {
             <div className="text-3xl font-bold text-purple-700">
               {sessions.length > 0
                 ? Math.round(
-                    sessions.reduce((sum, s) => sum + s.duration, 0) /
+                    sessions.reduce((sum: number, s: ActiveSession) => sum + s.duration, 0) /
                       sessions.length
                   )
                 : 0}
@@ -115,14 +115,14 @@ export default function MonitoringPage() {
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-600 mb-2">탭 전환 경고</div>
             <div className="text-3xl font-bold text-orange-700">
-              {sessions.filter((s) => s.tabSwitches > 3).length}
+              {sessions.filter((s: ActiveSession) => s.tabSwitches > 3).length}
             </div>
           </div>
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-600 mb-2">정상 진행</div>
             <div className="text-3xl font-bold text-green-700">
               {sessions.filter(
-                (s) => s.tabSwitches <= 3 && s.duration > 5
+                (s: ActiveSession) => s.tabSwitches <= 3 && s.duration > 5
               ).length}
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function MonitoringPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sessions.map((session) => {
+                  {sessions.map((session: ActiveSession) => {
                     const hasWarning =
                       session.tabSwitches > 3 || session.duration < 5;
                     return (
