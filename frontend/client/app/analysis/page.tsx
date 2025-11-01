@@ -286,11 +286,11 @@ export default function AnalysisPage() {
                                 <div className="text-xs text-gray-500 mb-2">
                                   예상 개선 시간: {area.predictedImprovementTime}
                                 </div>
-                                {area.mistakePattern.commonErrors.length > 0 && (
+                                {area.mistakePattern?.commonErrors && area.mistakePattern.commonErrors.length > 0 && (
                                   <div className="text-sm text-gray-600">
                                     <div className="font-semibold mb-1">흔한 오류:</div>
                                     <div className="flex flex-wrap gap-2">
-                                      {area.mistakePattern.commonErrors.map((error, i) => (
+                                      {(area.mistakePattern.commonErrors || []).map((error, i) => (
                                         <span
                                           key={i}
                                           className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
