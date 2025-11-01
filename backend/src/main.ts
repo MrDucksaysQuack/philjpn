@@ -22,31 +22,82 @@ async function bootstrap() {
   
   // CORS 설정 개선: 여러 도메인 지원 및 디버깅 로그
   // Railway에서 환경 변수가 제대로 읽히지 않을 경우를 대비한 fallback
-  let allowedOrigins: string[] | boolean;
+  let allowedOrigins: string[] | boolean | ((origin: string, callback: (err: Error | null, allow?: boolean) => void) => void);
+  
+  // Vercel 도메인 패턴 검증 함수
+  const isVercelDomain = (origin: string): boolean => {
+    return /^https:\/\/philjpn(-[a-z0-9-]+)?(-[a-z0-9-]+)?\.vercel\.app$/.test(origin);
+  };
+  
+  // 🔍 CORS_ORIGIN 환경 변수 상세 분석 로그
+  console.log('═══════════════════════════════════════════════════');
+  console.log('🔍 CORS 환경 변수 분석 시작');
+  console.log('═══════════════════════════════════════════════════');
+  console.log('📌 process.env.CORS_ORIGIN:', process.env.CORS_ORIGIN || '(undefined)');
+  console.log('📌 config.corsOrigin:', config.corsOrigin || '(undefined)');
+  console.log('📌 최종 사용값 (corsOrigin):', corsOrigin);
   
   if (corsOrigin === '*') {
     allowedOrigins = true;
   } else {
-    // 쉼표로 구분된 도메인 목록 처리
-    const origins = corsOrigin
+    // 쉼표로 구분된 도메인 목록 처리 (원본)
+    const rawOrigins = corsOrigin
       .split(',')
       .map(origin => origin.trim())
       .filter(origin => origin.length > 0);
     
-    // 프로덕션 환경에서는 Vercel 도메인 추가 (안전장치)
+    console.log('📋 원본 도메인 목록:', rawOrigins);
+    
+    // railway.com 제거
+    const hasRailway = rawOrigins.includes('https://railway.com');
+    if (hasRailway) {
+      console.log('⚠️  감지됨: https://railway.com 제거 중...');
+    }
+    
+    const origins = rawOrigins.filter(origin => origin !== 'https://railway.com');
+    
+    console.log('✅ 필터링 후 도메인 목록:', origins);
+    console.log('═══════════════════════════════════════════════════');
+    
+    // 프로덕션 환경에서는 Vercel 도메인 자동 허용 (동적 처리)
     if (process.env.NODE_ENV === 'production') {
-      const vercelDomains = [
+      // 정적 도메인 목록
+      const staticVercelDomains = [
         'https://philjpn.vercel.app',
-        'https://philjpn-git-main-kangs-projects-bf0b6774.vercel.app',
       ];
-      vercelDomains.forEach(domain => {
+      
+      staticVercelDomains.forEach(domain => {
         if (!origins.includes(domain)) {
           origins.push(domain);
         }
       });
+      
+      // 동적 처리: Vercel 프리뷰 도메인 패턴 허용
+      allowedOrigins = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        if (!origin) {
+          return callback(null, false);
+        }
+        
+        // 정적 도메인 목록에 있으면 허용
+        if (origins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        // Vercel 프리뷰 도메인 패턴이면 허용
+        if (isVercelDomain(origin)) {
+          return callback(null, true);
+        }
+        
+        // 개발 환경에서는 localhost 허용
+        if (origin.startsWith('http://localhost:')) {
+          return callback(null, true);
+        }
+        
+        callback(null, false);
+      };
+    } else {
+      allowedOrigins = origins;
     }
-    
-    allowedOrigins = origins;
   }
   
   app.enableCors({
@@ -57,8 +108,17 @@ async function bootstrap() {
   });
 
   // CORS 설정 로그 (항상 출력하여 디버깅)
-  console.log('🔒 CORS 설정:', allowedOrigins === true ? '*' : allowedOrigins);
-  console.log('🔍 CORS_ORIGIN 환경 변수:', corsOrigin);
+  console.log('═══════════════════════════════════════════════════');
+  console.log('🔒 최종 CORS 설정');
+  console.log('═══════════════════════════════════════════════════');
+  if (typeof allowedOrigins === 'function') {
+    console.log('🔒 CORS 모드: 동적 검증 함수 (Vercel 프리뷰 도메인 자동 허용)');
+  } else {
+    console.log('🔒 CORS 모드: 정적 도메인 목록');
+    console.log('🔒 허용된 도메인:', allowedOrigins === true ? '*' : allowedOrigins);
+  }
+  console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+  console.log('═══════════════════════════════════════════════════');
 
   // Swagger API Documentation
   const swaggerConfig = new DocumentBuilder()
