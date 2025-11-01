@@ -1,7 +1,32 @@
 import axios from "axios";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+// ✅ API URL 자동 정규화: /api 접두사가 없으면 자동 추가
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+  
+  // 이미 /api로 끝나면 그대로 사용
+  if (envUrl.endsWith("/api")) {
+    return envUrl;
+  }
+  
+  // localhost인 경우
+  if (envUrl.includes("localhost")) {
+    return envUrl.endsWith("/") ? `${envUrl}api` : `${envUrl}/api`;
+  }
+  
+  // 프로덕션 URL인 경우 (Railway 등)
+  // 마지막에 /가 있으면 제거 후 /api 추가
+  const cleanUrl = envUrl.replace(/\/$/, "");
+  return `${cleanUrl}/api`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// ✅ 디버깅: 프로덕션에서 실제 사용되는 API URL 확인
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
+  console.log("🔍 API Base URL:", API_BASE_URL);
+  console.log("🔍 NEXT_PUBLIC_API_URL (env):", process.env.NEXT_PUBLIC_API_URL);
+}
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
