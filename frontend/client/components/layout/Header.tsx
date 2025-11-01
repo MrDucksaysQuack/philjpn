@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useAuthStore } from '@/lib/store';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { useAuthStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const { user, clearAuth } = useAuthStore();
@@ -10,7 +10,7 @@ export default function Header() {
 
   const handleLogout = () => {
     clearAuth();
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
@@ -85,4 +85,3 @@ export default function Header() {
     </header>
   );
 }
-

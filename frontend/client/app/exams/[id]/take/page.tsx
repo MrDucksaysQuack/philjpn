@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
-import Header from '@/components/layout/Header';
-import { sessionAPI } from '@/lib/api';
-import { socketClient } from '@/lib/socket';
-import { useAuthStore } from '@/lib/store';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import Header from "@/components/layout/Header";
+import { sessionAPI } from "@/lib/api";
+import { socketClient } from "@/lib/socket";
+import { useAuthStore } from "@/lib/store";
 
 export default function TakeExamPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const examId = params.id as string;
-  const sessionId = searchParams.get('sessionId') || '';
+  const sessionId = searchParams.get("sessionId") || "";
   const user = useAuthStore((state) => state.user);
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const socketConnectedRef = useRef(false);
 
   const { data: session, isLoading } = useQuery({
-    queryKey: ['session', sessionId],
+    queryKey: ["session", sessionId],
     queryFn: async () => {
       const response = await sessionAPI.getSession(sessionId);
       return response.data;
@@ -33,7 +33,7 @@ export default function TakeExamPage() {
   useEffect(() => {
     if (!sessionId || !user || !examId || socketConnectedRef.current) return;
 
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     const socket = socketClient.connect(token);
 
     // 시험 시작 알림
@@ -49,7 +49,7 @@ export default function TakeExamPage() {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // 주기적 활동 업데이트
     const activityInterval = setInterval(() => {
@@ -64,14 +64,14 @@ export default function TakeExamPage() {
       e.preventDefault();
     };
 
-    document.addEventListener('copy', handleCopy);
-    document.addEventListener('paste', handlePaste);
-    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("paste", handlePaste);
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('copy', handleCopy);
-      document.removeEventListener('paste', handlePaste);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("paste", handlePaste);
       clearInterval(activityInterval);
       socketClient.emitExamEnd(sessionId);
       socketClient.disconnect();
@@ -80,7 +80,13 @@ export default function TakeExamPage() {
   }, [sessionId, user, examId]);
 
   const saveAnswerMutation = useMutation({
-    mutationFn: async ({ questionId, answer }: { questionId: string; answer: string }) => {
+    mutationFn: async ({
+      questionId,
+      answer,
+    }: {
+      questionId: string;
+      answer: string;
+    }) => {
       await sessionAPI.saveAnswer(sessionId, { questionId, answer });
     },
   });
@@ -101,7 +107,7 @@ export default function TakeExamPage() {
   };
 
   const handleSubmit = () => {
-    if (confirm('시험을 제출하시겠습니까?')) {
+    if (confirm("시험을 제출하시겠습니까?")) {
       submitMutation.mutate();
     }
   };
@@ -122,7 +128,9 @@ export default function TakeExamPage() {
       <>
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center text-red-600">시험 세션을 찾을 수 없습니다.</div>
+          <div className="text-center text-red-600">
+            시험 세션을 찾을 수 없습니다.
+          </div>
         </div>
       </>
     );
@@ -139,19 +147,19 @@ export default function TakeExamPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">{session.exam?.title}</h1>
             <div className="text-sm text-gray-600">
-              남은 시간: {session.expiresAt ? '계산 필요' : '-'}
+              남은 시간: {session.expiresAt ? "계산 필요" : "-"}
             </div>
           </div>
 
           <div className="mb-8">
             <div className="text-center text-gray-500 mb-2">
-              문제 {currentQuestionNumber} / {session.totalQuestions || '-'}
+              문제 {currentQuestionNumber} / {session.totalQuestions || "-"}
             </div>
             <div className="h-2 bg-gray-200 rounded-full">
               <div
                 className="h-2 bg-blue-600 rounded-full"
                 style={{
-                  width: `${((currentQuestionNumber / (session.totalQuestions || 1)) * 100)}%`,
+                  width: `${(currentQuestionNumber / (session.totalQuestions || 1)) * 100}%`,
                 }}
               />
             </div>
@@ -168,14 +176,18 @@ export default function TakeExamPage() {
 
           <div className="flex justify-between">
             <button
-              onClick={() => setCurrentQuestionNumber(Math.max(1, currentQuestionNumber - 1))}
+              onClick={() =>
+                setCurrentQuestionNumber(Math.max(1, currentQuestionNumber - 1))
+              }
               disabled={currentQuestionNumber === 1}
               className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50"
             >
               이전
             </button>
             <button
-              onClick={() => setCurrentQuestionNumber(currentQuestionNumber + 1)}
+              onClick={() =>
+                setCurrentQuestionNumber(currentQuestionNumber + 1)
+              }
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               다음
@@ -188,7 +200,7 @@ export default function TakeExamPage() {
               disabled={submitMutation.isPending}
               className="w-full bg-red-600 text-white px-6 py-3 rounded-md font-medium hover:bg-red-700 disabled:opacity-50"
             >
-              {submitMutation.isPending ? '제출 중...' : '시험 제출'}
+              {submitMutation.isPending ? "제출 중..." : "시험 제출"}
             </button>
           </div>
         </div>
@@ -196,4 +208,3 @@ export default function TakeExamPage() {
     </>
   );
 }
-

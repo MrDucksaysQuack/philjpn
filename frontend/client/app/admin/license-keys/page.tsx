@@ -1,12 +1,19 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useState } from 'react';
-import Header from '@/components/layout/Header';
-import { adminAPI, apiClient } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react";
+import Header from "@/components/layout/Header";
+import {
+  adminAPI,
+  apiClient,
+  CreateLicenseKeyPayload,
+  UpdateLicenseKeyPayload,
+  LicenseKey,
+  Exam,
+} from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 
 export default function AdminLicenseKeysPage() {
   const router = useRouter();
@@ -15,76 +22,84 @@ export default function AdminLicenseKeysPage() {
   const [page, setPage] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const [newKey, setNewKey] = useState({
-    keyType: 'TEST_KEY',
-    userId: '',
+    keyType: "TEST_KEY",
+    userId: "",
     examIds: [] as string[],
-    usageLimit: '',
-    validFrom: '',
-    validUntil: '',
+    usageLimit: "",
+    validFrom: "",
+    validUntil: "",
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-license-keys', page],
+    queryKey: ["admin-license-keys", page],
     queryFn: async () => {
-      const response = await apiClient.get('/license-keys', {
+      const response = await apiClient.get("/license-keys", {
         params: { page, limit: 20 },
       });
       return response.data;
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === "admin",
   });
 
   const { data: stats } = useQuery({
-    queryKey: ['admin-key-stats'],
+    queryKey: ["admin-key-stats"],
     queryFn: async () => {
       const response = await adminAPI.getLicenseKeyStatistics();
       return response.data;
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === "admin",
   });
 
   const { data: exams } = useQuery({
-    queryKey: ['exams-list'],
+    queryKey: ["exams-list"],
     queryFn: async () => {
-      const response = await apiClient.get('/exams', { params: { limit: 100 } });
+      const response = await apiClient.get("/exams", {
+        params: { limit: 100 },
+      });
       return response.data.data || [];
     },
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await apiClient.post('/license-keys', data);
+    mutationFn: async (data: CreateLicenseKeyPayload) => {
+      await apiClient.post("/license-keys", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-license-keys'] });
+      queryClient.invalidateQueries({ queryKey: ["admin-license-keys"] });
       setIsCreating(false);
       setNewKey({
-        keyType: 'TEST_KEY',
-        userId: '',
+        keyType: "TEST_KEY",
+        userId: "",
         examIds: [],
-        usageLimit: '',
-        validFrom: '',
-        validUntil: '',
+        usageLimit: "",
+        validFrom: "",
+        validUntil: "",
       });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateLicenseKeyPayload;
+    }) => {
       await apiClient.patch(`/license-keys/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-license-keys'] });
+      queryClient.invalidateQueries({ queryKey: ["admin-license-keys"] });
     },
   });
 
-  if (!user || user.role !== 'admin') {
-    router.push('/login');
+  if (!user || user.role !== "admin") {
+    router.push("/login");
     return null;
   }
 
   const handleCreate = () => {
-    const payload: any = {
+    const payload: CreateLicenseKeyPayload = {
       keyType: newKey.keyType,
       examIds: newKey.examIds,
     };
@@ -95,7 +110,7 @@ export default function AdminLicenseKeysPage() {
     createMutation.mutate(payload);
   };
 
-  const toggleKeyStatus = (key: any) => {
+  const toggleKeyStatus = (key: LicenseKey) => {
     updateMutation.mutate({
       id: key.id,
       data: { isActive: !key.isActive },
@@ -107,7 +122,9 @@ export default function AdminLicenseKeysPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">라이선스 키 관리</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            라이선스 키 관리
+          </h1>
           <div className="flex gap-2">
             <Link
               href="/admin"
@@ -119,7 +136,7 @@ export default function AdminLicenseKeysPage() {
               onClick={() => setIsCreating(!isCreating)}
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             >
-              {isCreating ? '취소' : '+ 새 키 생성'}
+              {isCreating ? "취소" : "+ 새 키 생성"}
             </button>
           </div>
         </div>
@@ -133,7 +150,9 @@ export default function AdminLicenseKeysPage() {
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">활성 키</div>
-              <div className="text-2xl font-bold text-green-600">{stats.activeKeys}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {stats.activeKeys}
+              </div>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">총 사용</div>
@@ -141,7 +160,9 @@ export default function AdminLicenseKeysPage() {
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">만료 예정</div>
-              <div className="text-2xl font-bold text-orange-600">{stats.expiringSoon}</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {stats.expiringSoon}
+              </div>
             </div>
           </div>
         )}
@@ -152,10 +173,14 @@ export default function AdminLicenseKeysPage() {
             <h2 className="text-xl font-semibold mb-4">새 라이선스 키 생성</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">키 유형</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  키 유형
+                </label>
                 <select
                   value={newKey.keyType}
-                  onChange={(e) => setNewKey({ ...newKey, keyType: e.target.value })}
+                  onChange={(e) =>
+                    setNewKey({ ...newKey, keyType: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-md"
                 >
                   <option value="TEST_KEY">시험 키</option>
@@ -164,28 +189,45 @@ export default function AdminLicenseKeysPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">사용자 ID (선택)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  사용자 ID (선택)
+                </label>
                 <input
                   type="text"
                   value={newKey.userId}
-                  onChange={(e) => setNewKey({ ...newKey, userId: e.target.value })}
+                  onChange={(e) =>
+                    setNewKey({ ...newKey, userId: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-md"
                   placeholder="UUID (비워두면 일반 키)"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">적용 시험</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  적용 시험
+                </label>
                 <div className="space-y-2 max-h-32 overflow-y-auto border p-2 rounded">
-                  {exams?.map((exam: any) => (
-                    <label key={exam.id} className="flex items-center space-x-2">
+                  {exams?.map((exam) => (
+                    <label
+                      key={exam.id}
+                      className="flex items-center space-x-2"
+                    >
                       <input
                         type="checkbox"
                         checked={newKey.examIds.includes(exam.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setNewKey({ ...newKey, examIds: [...newKey.examIds, exam.id] });
+                            setNewKey({
+                              ...newKey,
+                              examIds: [...newKey.examIds, exam.id],
+                            });
                           } else {
-                            setNewKey({ ...newKey, examIds: newKey.examIds.filter((id) => id !== exam.id) });
+                            setNewKey({
+                              ...newKey,
+                              examIds: newKey.examIds.filter(
+                                (id) => id !== exam.id,
+                              ),
+                            });
                           }
                         }}
                       />
@@ -196,30 +238,42 @@ export default function AdminLicenseKeysPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">사용 제한 (선택)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    사용 제한 (선택)
+                  </label>
                   <input
                     type="number"
                     value={newKey.usageLimit}
-                    onChange={(e) => setNewKey({ ...newKey, usageLimit: e.target.value })}
+                    onChange={(e) =>
+                      setNewKey({ ...newKey, usageLimit: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-md"
                     placeholder="비워두면 무제한"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">유효 기간 시작</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    유효 기간 시작
+                  </label>
                   <input
                     type="date"
                     value={newKey.validFrom}
-                    onChange={(e) => setNewKey({ ...newKey, validFrom: e.target.value })}
+                    onChange={(e) =>
+                      setNewKey({ ...newKey, validFrom: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">유효 기간 종료</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    유효 기간 종료
+                  </label>
                   <input
                     type="date"
                     value={newKey.validUntil}
-                    onChange={(e) => setNewKey({ ...newKey, validUntil: e.target.value })}
+                    onChange={(e) =>
+                      setNewKey({ ...newKey, validUntil: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-md"
                   />
                 </div>
@@ -229,7 +283,7 @@ export default function AdminLicenseKeysPage() {
                 disabled={createMutation.isPending}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {createMutation.isPending ? '생성 중...' : '키 생성'}
+                {createMutation.isPending ? "생성 중..." : "키 생성"}
               </button>
             </div>
           </div>
@@ -243,36 +297,56 @@ export default function AdminLicenseKeysPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">키</th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">유형</th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">사용 횟수</th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">유효 기간</th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">작업</th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    키
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    유형
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    사용 횟수
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    유효 기간
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    상태
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    작업
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data?.data?.map((key: any) => (
+                {data?.data?.map((key) => (
                   <tr key={key.id}>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm">{key.key}</td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs rounded bg-gray-100">{key.keyType}</span>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm">
+                      {key.key}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      {key.usageLimit ? `${key.usageCount}/${key.usageLimit}` : key.usageCount}
+                      <span className="px-2 py-1 text-xs rounded bg-gray-100">
+                        {key.keyType}
+                      </span>
+                    </td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                      {key.usageLimit
+                        ? `${key.usageCount}/${key.usageLimit}`
+                        : key.usageCount}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                       {key.validUntil
-                        ? `${new Date(key.validFrom).toLocaleDateString('ko-KR')} ~ ${new Date(key.validUntil).toLocaleDateString('ko-KR')}`
-                        : `${new Date(key.validFrom).toLocaleDateString('ko-KR')} ~ 무제한`}
+                        ? `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ ${new Date(key.validUntil).toLocaleDateString("ko-KR")}`
+                        : `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ 무제한`}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs rounded ${
-                          key.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          key.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {key.isActive ? '활성' : '비활성'}
+                        {key.isActive ? "활성" : "비활성"}
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -280,11 +354,11 @@ export default function AdminLicenseKeysPage() {
                         onClick={() => toggleKeyStatus(key)}
                         className={`text-sm px-3 py-1 rounded ${
                           key.isActive
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            ? "bg-red-100 text-red-700 hover:bg-red-200"
+                            : "bg-green-100 text-green-700 hover:bg-green-200"
                         }`}
                       >
-                        {key.isActive ? '비활성화' : '활성화'}
+                        {key.isActive ? "비활성화" : "활성화"}
                       </button>
                     </td>
                   </tr>
@@ -320,4 +394,3 @@ export default function AdminLicenseKeysPage() {
     </>
   );
 }
-

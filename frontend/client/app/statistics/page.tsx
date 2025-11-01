@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import Header from '@/components/layout/Header';
-import { statisticsAPI } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import Header from "@/components/layout/Header";
+import { statisticsAPI } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 
 export default function StatisticsPage() {
   const user = useAuthStore((state) => state.user);
-  const [period, setPeriod] = useState<string>('month');
+  const [period, setPeriod] = useState<string>("month");
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['statistics', period],
+    queryKey: ["statistics", period],
     queryFn: async () => {
       const response = await statisticsAPI.getUserStatistics({ period });
       return response.data;
@@ -54,15 +54,21 @@ export default function StatisticsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="text-sm text-gray-500 mb-2">총 시험 수</div>
-                <div className="text-3xl font-bold text-gray-900">{stats.totalExams}</div>
+                <div className="text-3xl font-bold text-gray-900">
+                  {stats.totalExams}
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="text-sm text-gray-500 mb-2">평균 점수</div>
-                <div className="text-3xl font-bold text-blue-600">{stats.averageScore}</div>
+                <div className="text-3xl font-bold text-blue-600">
+                  {stats.averageScore}
+                </div>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="text-sm text-gray-500 mb-2">최고 점수</div>
-                <div className="text-3xl font-bold text-green-600">{stats.bestScore}</div>
+                <div className="text-3xl font-bold text-green-600">
+                  {stats.bestScore}
+                </div>
               </div>
             </div>
 
@@ -71,7 +77,10 @@ export default function StatisticsPage() {
                 <h2 className="text-xl font-semibold mb-4">개선 추이</h2>
                 <div className="space-y-2">
                   {stats.improvementTrend.map((item: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
                       <span className="text-gray-600">{item.date}</span>
                       <div className="flex items-center space-x-4">
                         <div className="w-48 bg-gray-200 rounded-full h-2">
@@ -80,7 +89,9 @@ export default function StatisticsPage() {
                             style={{ width: `${(item.score / 990) * 100}%` }}
                           />
                         </div>
-                        <span className="font-semibold w-16 text-right">{item.score}점</span>
+                        <span className="font-semibold w-16 text-right">
+                          {item.score}점
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -88,33 +99,42 @@ export default function StatisticsPage() {
               </div>
             )}
 
-            {stats.sectionPerformance && stats.sectionPerformance.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">섹션별 성능</h2>
-                <div className="space-y-4">
-                  {stats.sectionPerformance.map((section: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-medium">{section.sectionTitle}</h3>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold">{section.averageScore}점</div>
-                          {section.improvement !== 0 && (
-                            <div
-                              className={`text-sm ${
-                                section.improvement > 0 ? 'text-green-600' : 'text-red-600'
-                              }`}
-                            >
-                              {section.improvement > 0 ? '+' : ''}
-                              {section.improvement}점
+            {stats.sectionPerformance &&
+              stats.sectionPerformance.length > 0 && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-xl font-semibold mb-4">섹션별 성능</h2>
+                  <div className="space-y-4">
+                    {stats.sectionPerformance.map(
+                      (section: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-medium">
+                              {section.sectionTitle}
+                            </h3>
+                            <div className="text-right">
+                              <div className="text-lg font-semibold">
+                                {section.averageScore}점
+                              </div>
+                              {section.improvement !== 0 && (
+                                <div
+                                  className={`text-sm ${
+                                    section.improvement > 0
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }`}
+                                >
+                                  {section.improvement > 0 ? "+" : ""}
+                                  {section.improvement}점
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      ),
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         ) : (
           <div className="text-center py-12 text-gray-500">
@@ -125,4 +145,3 @@ export default function StatisticsPage() {
     </>
   );
 }
-

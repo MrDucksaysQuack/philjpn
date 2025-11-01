@@ -1,19 +1,23 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import Header from '@/components/layout/Header';
-import { wordBookAPI } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import Header from "@/components/layout/Header";
+import { wordBookAPI } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 
 export default function WordBookPage() {
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newWord, setNewWord] = useState({ word: '', meaning: '', example: '' });
+  const [newWord, setNewWord] = useState({
+    word: "",
+    meaning: "",
+    example: "",
+  });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['wordbook'],
+    queryKey: ["wordbook"],
     queryFn: async () => {
       const response = await wordBookAPI.getWords();
       return response.data;
@@ -22,7 +26,7 @@ export default function WordBookPage() {
   });
 
   const { data: reviewList } = useQuery({
-    queryKey: ['wordbook-review'],
+    queryKey: ["wordbook-review"],
     queryFn: async () => {
       const response = await wordBookAPI.getReviewList(20);
       return response.data;
@@ -35,19 +39,25 @@ export default function WordBookPage() {
       await wordBookAPI.createWord(wordData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wordbook'] });
+      queryClient.invalidateQueries({ queryKey: ["wordbook"] });
       setShowAddForm(false);
-      setNewWord({ word: '', meaning: '', example: '' });
+      setNewWord({ word: "", meaning: "", example: "" });
     },
   });
 
   const reviewMutation = useMutation({
-    mutationFn: async ({ id, isCorrect }: { id: string; isCorrect: boolean }) => {
+    mutationFn: async ({
+      id,
+      isCorrect,
+    }: {
+      id: string;
+      isCorrect: boolean;
+    }) => {
       await wordBookAPI.recordReview(id, { isCorrect });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wordbook-review'] });
-      queryClient.invalidateQueries({ queryKey: ['wordbook'] });
+      queryClient.invalidateQueries({ queryKey: ["wordbook-review"] });
+      queryClient.invalidateQueries({ queryKey: ["wordbook"] });
     },
   });
 
@@ -77,7 +87,7 @@ export default function WordBookPage() {
             onClick={() => setShowAddForm(!showAddForm)}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
-            {showAddForm ? '취소' : '단어 추가'}
+            {showAddForm ? "취소" : "단어 추가"}
           </button>
         </div>
 
@@ -89,7 +99,9 @@ export default function WordBookPage() {
                   type="text"
                   placeholder="단어"
                   value={newWord.word}
-                  onChange={(e) => setNewWord({ ...newWord, word: e.target.value })}
+                  onChange={(e) =>
+                    setNewWord({ ...newWord, word: e.target.value })
+                  }
                   className="px-4 py-2 border rounded-md"
                   required
                 />
@@ -97,7 +109,9 @@ export default function WordBookPage() {
                   type="text"
                   placeholder="의미"
                   value={newWord.meaning}
-                  onChange={(e) => setNewWord({ ...newWord, meaning: e.target.value })}
+                  onChange={(e) =>
+                    setNewWord({ ...newWord, meaning: e.target.value })
+                  }
                   className="px-4 py-2 border rounded-md"
                   required
                 />
@@ -105,7 +119,9 @@ export default function WordBookPage() {
                   type="text"
                   placeholder="예문 (선택)"
                   value={newWord.example}
-                  onChange={(e) => setNewWord({ ...newWord, example: e.target.value })}
+                  onChange={(e) =>
+                    setNewWord({ ...newWord, example: e.target.value })
+                  }
                   className="px-4 py-2 border rounded-md"
                 />
               </div>
@@ -136,13 +152,17 @@ export default function WordBookPage() {
                   </div>
                   <div className="flex space-x-2 mt-3">
                     <button
-                      onClick={() => reviewMutation.mutate({ id: word.id, isCorrect: true })}
+                      onClick={() =>
+                        reviewMutation.mutate({ id: word.id, isCorrect: true })
+                      }
                       className="flex-1 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
                     >
                       정답
                     </button>
                     <button
-                      onClick={() => reviewMutation.mutate({ id: word.id, isCorrect: false })}
+                      onClick={() =>
+                        reviewMutation.mutate({ id: word.id, isCorrect: false })
+                      }
                       className="flex-1 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
                     >
                       오답
@@ -164,11 +184,15 @@ export default function WordBookPage() {
                 <div key={word.id} className="bg-white rounded-lg shadow p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div className="font-semibold text-lg">{word.word}</div>
-                    <div className="text-sm text-gray-500">{word.masteryLevel}%</div>
+                    <div className="text-sm text-gray-500">
+                      {word.masteryLevel}%
+                    </div>
                   </div>
                   <div className="text-gray-600 mb-2">{word.meaning}</div>
                   {word.example && (
-                    <div className="text-sm text-gray-500 italic mb-2">{word.example}</div>
+                    <div className="text-sm text-gray-500 italic mb-2">
+                      {word.example}
+                    </div>
                   )}
                   <div className="flex flex-wrap gap-1 mt-2">
                     {word.tags?.map((tag: string, index: number) => (
@@ -194,4 +218,3 @@ export default function WordBookPage() {
     </>
   );
 }
-

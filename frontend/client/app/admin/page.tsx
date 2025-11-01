@@ -1,45 +1,45 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Header from '@/components/layout/Header';
-import { adminAPI } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Header from "@/components/layout/Header";
+import { adminAPI } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
   const { data: dashboard, isLoading } = useQuery({
-    queryKey: ['admin-dashboard'],
+    queryKey: ["admin-dashboard"],
     queryFn: async () => {
       const response = await adminAPI.getDashboard();
       return response.data;
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === "admin",
   });
 
   const { data: examStats } = useQuery({
-    queryKey: ['admin-exam-stats'],
+    queryKey: ["admin-exam-stats"],
     queryFn: async () => {
       const response = await adminAPI.getExamStatistics();
       return response.data;
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === "admin",
   });
 
   const { data: keyStats } = useQuery({
-    queryKey: ['admin-key-stats'],
+    queryKey: ["admin-key-stats"],
     queryFn: async () => {
       const response = await adminAPI.getLicenseKeyStatistics();
       return response.data;
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === "admin",
   });
 
-  if (!user || user.role !== 'admin') {
-    router.push('/login');
+  if (!user || user.role !== "admin") {
+    router.push("/login");
     return null;
   }
 
@@ -58,26 +58,36 @@ export default function AdminDashboardPage() {
     <>
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">관리자 대시보드</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          관리자 대시보드
+        </h1>
 
         {/* 요약 통계 */}
         {dashboard && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-sm text-gray-500 mb-2">전체 사용자</div>
-              <div className="text-3xl font-bold text-gray-900">{dashboard.summary.totalUsers}</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {dashboard.summary.totalUsers}
+              </div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-sm text-gray-500 mb-2">활성 사용자</div>
-              <div className="text-3xl font-bold text-blue-600">{dashboard.summary.activeUsers}</div>
+              <div className="text-3xl font-bold text-blue-600">
+                {dashboard.summary.activeUsers}
+              </div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-sm text-gray-500 mb-2">전체 시험</div>
-              <div className="text-3xl font-bold text-green-600">{dashboard.summary.totalExams}</div>
+              <div className="text-3xl font-bold text-green-600">
+                {dashboard.summary.totalExams}
+              </div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-sm text-gray-500 mb-2">전체 응시</div>
-              <div className="text-3xl font-bold text-purple-600">{dashboard.summary.totalAttempts}</div>
+              <div className="text-3xl font-bold text-purple-600">
+                {dashboard.summary.totalAttempts}
+              </div>
             </div>
           </div>
         )}
@@ -89,19 +99,27 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
                 <div className="text-sm text-gray-500">활성 시험</div>
-                <div className="text-lg font-semibold">{examStats.activeExams}</div>
+                <div className="text-lg font-semibold">
+                  {examStats.activeExams}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">전체 응시</div>
-                <div className="text-lg font-semibold">{examStats.totalAttempts}</div>
+                <div className="text-lg font-semibold">
+                  {examStats.totalAttempts}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">평균 점수</div>
-                <div className="text-lg font-semibold">{examStats.averageScore}</div>
+                <div className="text-lg font-semibold">
+                  {examStats.averageScore}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">완료율</div>
-                <div className="text-lg font-semibold">{examStats.completionRate.toFixed(1)}%</div>
+                <div className="text-lg font-semibold">
+                  {examStats.completionRate.toFixed(1)}%
+                </div>
               </div>
             </div>
           </div>
@@ -114,19 +132,27 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <div className="text-sm text-gray-500">전체 키</div>
-                <div className="text-lg font-semibold">{keyStats.totalKeys}</div>
+                <div className="text-lg font-semibold">
+                  {keyStats.totalKeys}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">활성 키</div>
-                <div className="text-lg font-semibold">{keyStats.activeKeys}</div>
+                <div className="text-lg font-semibold">
+                  {keyStats.activeKeys}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">총 사용</div>
-                <div className="text-lg font-semibold">{keyStats.totalUsage}</div>
+                <div className="text-lg font-semibold">
+                  {keyStats.totalUsage}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">만료 예정</div>
-                <div className="text-lg font-semibold text-orange-600">{keyStats.expiringSoon}</div>
+                <div className="text-lg font-semibold text-orange-600">
+                  {keyStats.expiringSoon}
+                </div>
               </div>
             </div>
           </div>
@@ -165,26 +191,36 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* 최근 활동 */}
-        {dashboard && dashboard.recentActivity && dashboard.recentActivity.length > 0 && (
-          <div className="mt-8 bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">최근 활동</h2>
-            <div className="space-y-2">
-              {dashboard.recentActivity.slice(0, 5).map((activity: any, index: number) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b">
-                  <div>
-                    <span className="font-medium">{activity.user?.name || 'Unknown'}</span>
-                    <span className="text-gray-600 ml-2">- {activity.exam?.title || 'Unknown'}</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(activity.timestamp).toLocaleString('ko-KR')}
-                  </div>
-                </div>
-              ))}
+        {dashboard &&
+          dashboard.recentActivity &&
+          dashboard.recentActivity.length > 0 && (
+            <div className="mt-8 bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">최근 활동</h2>
+              <div className="space-y-2">
+                {dashboard.recentActivity
+                  .slice(0, 5)
+                  .map((activity, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-center py-2 border-b"
+                    >
+                      <div>
+                        <span className="font-medium">
+                          {activity.user?.name || "Unknown"}
+                        </span>
+                        <span className="text-gray-600 ml-2">
+                          - {activity.exam?.title || "Unknown"}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {new Date(activity.timestamp).toLocaleString("ko-KR")}
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </>
   );
 }
-

@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import { resultAPI, ExamResult } from '@/lib/api';
-import { useAuthStore } from '@/lib/store';
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Header from "@/components/layout/Header";
+import { resultAPI, ExamResult } from "@/lib/api";
+import { useAuthStore } from "@/lib/store";
 
 export default function ResultsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['results'],
+    queryKey: ["results"],
     queryFn: async () => {
       const response = await resultAPI.getResults();
       return response.data.data;
@@ -21,7 +21,7 @@ export default function ResultsPage() {
   });
 
   if (!user) {
-    router.push('/login');
+    router.push("/login");
     return null;
   }
 
@@ -41,7 +41,9 @@ export default function ResultsPage() {
       <>
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center text-red-600">결과를 불러오는데 실패했습니다.</div>
+          <div className="text-center text-red-600">
+            결과를 불러오는데 실패했습니다.
+          </div>
         </div>
       </>
     );
@@ -62,9 +64,11 @@ export default function ResultsPage() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">시험 #{result.id.slice(0, 8)}</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    시험 #{result.id.slice(0, 8)}
+                  </h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    {new Date(result.startedAt).toLocaleDateString('ko-KR')}
+                    {new Date(result.startedAt).toLocaleDateString("ko-KR")}
                   </p>
                 </div>
                 <div className="text-right">
@@ -74,18 +78,20 @@ export default function ResultsPage() {
                         {result.totalScore} / {result.maxScore}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {result.percentage ? `${parseFloat(result.percentage.toString()).toFixed(1)}%` : '-'}
+                        {result.percentage
+                          ? `${parseFloat(result.percentage.toString()).toFixed(1)}%`
+                          : "-"}
                       </div>
                     </>
                   )}
                   <div className="mt-2">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        result.status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : result.status === 'in_progress'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
+                        result.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : result.status === "in_progress"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {result.status}
@@ -106,4 +112,3 @@ export default function ResultsPage() {
     </>
   );
 }
-
