@@ -527,7 +527,7 @@ export default function ResultDetailPage() {
                 <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
                 섹션별 분석 및 개선 계획
               </h2>
-              {detailedFeedback.detailedFeedback?.sectionLevel?.map((section: any) => (
+              {(detailedFeedback.detailedFeedback?.sectionLevel || []).map((section: any) => (
                 <div
                   key={section.sectionId}
                   className="bg-white rounded-xl p-8 border-2 border-purple-200"
