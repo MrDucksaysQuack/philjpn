@@ -208,7 +208,7 @@ export default function ResultDetailPage() {
                   섹션별 분석
                 </h2>
                 <div className="space-y-4">
-                  {report.sectionAnalysis?.map(
+                  {(report.sectionAnalysis || []).map(
                     (section: any, index: number) => (
                       <div key={index} className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all">
                         <div className="flex justify-between items-center mb-4">
@@ -264,7 +264,7 @@ export default function ResultDetailPage() {
                     약점 분석
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {report.weakPoints.map((weak: any, index: number) => (
+                    {(report.weakPoints || []).map((weak: any, index: number) => (
                       <div
                         key={index}
                         className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-5 border border-red-200 shadow-md hover:shadow-lg transition-all"
@@ -301,7 +301,7 @@ export default function ResultDetailPage() {
                   </h2>
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 shadow-md">
                     <ul className="space-y-3">
-                      {report.recommendations.map(
+                      {(report.recommendations || []).map(
                         (rec: string, index: number) => (
                           <li key={index} className="flex items-start gap-3">
                             <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -370,7 +370,7 @@ export default function ResultDetailPage() {
                           {extractedWords.suggestedWords.length}개의 단어를 추출했습니다
                         </div>
                         <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
-                          {extractedWords.suggestedWords.map((word: any, index: number) => (
+                          {(extractedWords.suggestedWords || []).map((word: any, index: number) => (
                             <div
                               key={index}
                               className="bg-white rounded-lg p-4 border border-gray-200"
@@ -438,7 +438,7 @@ export default function ResultDetailPage() {
                 문제별 상세 분석
               </h2>
               <div className="space-y-4">
-                {detailedFeedback.detailedFeedback?.questionLevel?.map((question: any, index: number) => (
+                {(detailedFeedback.detailedFeedback?.questionLevel || []).map((question: any, index: number) => (
                   <div
                     key={question.questionId}
                     className={`bg-white rounded-xl p-6 border-2 ${
