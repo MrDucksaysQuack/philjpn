@@ -70,73 +70,50 @@ async function bootstrap() {
   console.log('✅ 최종 허용 도메인 목록:', allowedOriginsArray);
   console.log('═══════════════════════════════════════════════════');
   
-  // CORS 설정: 미들웨어 방식으로 직접 처리 (NestJS enableCors 대신)
-  // enableCors의 origin 함수가 프리플라이트에서 제대로 작동하지 않을 수 있어서
-  app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    
-    // 모든 요청에 대해 로그 출력
-    console.log(`🔍 [${req.method}] 요청 - Origin: ${origin || '(none)'}`);
-    
-    // OPTIONS 프리플라이트 요청 처리
-    if (req.method === 'OPTIONS') {
-      console.log('🔍 OPTIONS 프리플라이트 요청 처리 중...');
-      
-      if (!origin) {
-        console.log('✅ Origin 없음 - 허용');
-        res.header('Access-Control-Allow-Origin', '*');
-      } else {
-        // 허용 목록 확인
-        if (allowedOriginsArray.includes(origin)) {
-          console.log(`✅ 허용 목록에 있음 - 허용: ${origin}`);
-          res.header('Access-Control-Allow-Origin', origin);
-        } else if (process.env.NODE_ENV === 'production' && isVercelDomain(origin)) {
-          console.log(`✅ Vercel 프리뷰 도메인 패턴 매칭 - 허용: ${origin}`);
-          res.header('Access-Control-Allow-Origin', origin);
-        } else if (origin.startsWith('http://localhost:')) {
-          console.log(`✅ Localhost - 허용: ${origin}`);
-          res.header('Access-Control-Allow-Origin', origin);
-        } else {
-          console.warn(`❌ 차단됨: ${origin}`);
-          console.warn(`❌ 허용 목록:`, allowedOriginsArray);
-          return res.status(403).json({ error: 'Not allowed by CORS' });
-        }
-      }
-      
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
-      res.header('Access-Control-Allow-Credentials', 'true');
-      return res.sendStatus(200);
-    }
-    
-    // 일반 요청 처리
-    if (origin) {
-      if (allowedOriginsArray.includes(origin) || 
-          (process.env.NODE_ENV === 'production' && isVercelDomain(origin)) ||
-          origin.startsWith('http://localhost:')) {
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Access-Control-Allow-Credentials', 'true');
-      }
-    }
-    
-    next();
-  });
-  
-  // NestJS 기본 CORS도 활성화 (중복이지만 안전장치)
+  // CORS 설정: 함수 방식 (프리플라이트 요청도 처리)
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || 
-          allowedOriginsArray.includes(origin) || 
-          (process.env.NODE_ENV === 'production' && isVercelDomain(origin)) ||
-          origin.startsWith('http://localhost:')) {
+      // 로그 출력
+      console.log(`🔍 CORS 검증 - Origin: ${origin || '(none)'}`);
+      console.log(`🔍 허용 목록:`, allowedOriginsArray);
+      
+      // Origin이 없는 경우 (동일 출처 요청, Postman 등)
+      if (!origin) {
+        console.log('✅ Origin 없음 - 허용');
         callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'), false);
+        return;
       }
+      
+      // 1. 허용 목록 확인
+      if (allowedOriginsArray.includes(origin)) {
+        console.log(`✅ 허용 목록에 있음 - 허용: ${origin}`);
+        callback(null, true);
+        return;
+      }
+      
+      // 2. 프로덕션: Vercel 프리뷰 도메인 패턴 자동 허용
+      if (process.env.NODE_ENV === 'production' && isVercelDomain(origin)) {
+        console.log(`✅ Vercel 프리뷰 도메인 패턴 매칭 - 허용: ${origin}`);
+        callback(null, true);
+        return;
+      }
+      
+      // 3. 개발 환경: localhost 허용
+      if (origin.startsWith('http://localhost:')) {
+        console.log(`✅ Localhost - 허용: ${origin}`);
+        callback(null, true);
+        return;
+      }
+      
+      // 4. 차단
+      console.warn(`❌ 차단됨: ${origin}`);
+      callback(new Error('Not allowed by CORS'), false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-License-Key'],
+    preflightContinue: false,
+    optionsSuccessStatus: 200,
   });
 
   // CORS 설정 로그
