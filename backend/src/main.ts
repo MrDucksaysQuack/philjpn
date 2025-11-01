@@ -7,6 +7,36 @@ import appConfig from './config/app.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 🚨 CORS 미들웨어를 가장 먼저 설정 (Railway가 덮어쓰는 것 방지)
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    console.log(`🔍 [${req.method}] ${req.url} - Origin: ${origin || '(none)'}`);
+    
+    // OPTIONS 프리플라이트 요청 즉시 처리
+    if (req.method === 'OPTIONS') {
+      console.log('🔍 OPTIONS 프리플라이트 요청 처리');
+      res.header('Access-Control-Allow-Origin', origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Max-Age', '86400');
+      return res.sendStatus(200);
+    }
+    
+    // 일반 요청에도 CORS 헤더 추가
+    if (origin && (
+      origin === 'https://philjpn.vercel.app' ||
+      origin.startsWith('https://philjpn-') && origin.endsWith('.vercel.app') ||
+      origin.startsWith('http://localhost:')
+    )) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+      console.log(`✅ CORS 헤더 추가: ${origin}`);
+    }
+    
+    next();
+  });
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
