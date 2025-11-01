@@ -27,18 +27,21 @@ apiClient.interceptors.request.use(
 );
 
 // 응답 인터셉터: 401 에러 시 토큰 갱신 시도
+// SSR 안전성: interceptor를 클라이언트에서만 등록
+// Next.js는 모듈을 서버와 클라이언트 모두에서 평가하므로,
+// interceptor 등록 자체를 클라이언트 전용으로 처리
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // SSR 중에는 interceptor 로직 실행하지 않음
+    if (typeof window === "undefined") {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      // Skip token refresh during SSR
-      if (typeof window === "undefined") {
-        return Promise.reject(error);
-      }
 
       try {
         const refreshToken = localStorage.getItem("refreshToken");
@@ -57,9 +60,11 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
+        // 클라이언트에서만 리다이렉트
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        // window.location은 이미 typeof window 체크 후이므로 안전
+        if (window.location) {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);
