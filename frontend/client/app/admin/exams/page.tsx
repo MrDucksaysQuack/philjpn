@@ -21,7 +21,7 @@ export default function AdminExamsPage() {
     queryKey: ['admin-exams', page, search],
     queryFn: async () => {
       const response = await examAPI.getExams({ page, limit: 20, examType: search || undefined });
-      return response.data;
+      return response.data; // { data: Exam[], meta: {...} }
     },
     enabled: user?.role === 'admin',
   });

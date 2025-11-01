@@ -114,9 +114,19 @@ export const authAPI = {
 };
 
 // Exam API
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const examAPI = {
   getExams: (params?: { page?: number; limit?: number; examType?: string }) =>
-    apiClient.get<{ data: Exam[] }>('/exams', { params }),
+    apiClient.get<PaginatedResponse<Exam>>('/exams', { params }),
   getExam: (id: string) => apiClient.get<Exam>(`/exams/${id}`),
   getExamSections: (examId: string) =>
     apiClient.get(`/exams/${examId}/sections`),
@@ -139,7 +149,7 @@ export const sessionAPI = {
 // Result API
 export const resultAPI = {
   getResults: (params?: { page?: number; limit?: number }) =>
-    apiClient.get<{ data: ExamResult[] }>('/results', { params }),
+    apiClient.get<PaginatedResponse<ExamResult>>('/results', { params }),
   getResult: (id: string) => apiClient.get<ExamResult>(`/results/${id}`),
   getReport: (id: string) => apiClient.get(`/results/${id}/report`),
 };
@@ -153,7 +163,7 @@ export const statisticsAPI = {
 // WordBook API
 export const wordBookAPI = {
   getWords: (params?: { page?: number; limit?: number; difficulty?: string; tags?: string[]; masteryLevel?: number }) =>
-    apiClient.get('/word-books', { params }),
+    apiClient.get<PaginatedResponse<any>>('/word-books', { params }),
   createWord: (data: { word: string; meaning: string; example?: string; difficulty?: string; tags?: string[] }) =>
     apiClient.post('/word-books', data),
   updateWord: (id: string, data: any) =>
@@ -171,7 +181,7 @@ export const wordBookAPI = {
 // Admin API
 export const adminAPI = {
   getUsers: (params?: { page?: number; limit?: number; role?: string; isActive?: boolean; search?: string }) =>
-    apiClient.get('/admin/users', { params }),
+    apiClient.get<PaginatedResponse<any>>('/admin/users', { params }),
   getUser: (id: string) =>
     apiClient.get(`/admin/users/${id}`),
   updateUser: (id: string, data: any) =>
@@ -183,7 +193,7 @@ export const adminAPI = {
   getExamStatistics: () =>
     apiClient.get('/admin/exams/statistics'),
   getExamResults: (params?: { page?: number; limit?: number; examId?: string; userId?: string; status?: string; dateFrom?: string; dateTo?: string }) =>
-    apiClient.get('/admin/exam-results', { params }),
+    apiClient.get<PaginatedResponse<any>>('/admin/exam-results', { params }),
   getLicenseKeyStatistics: () =>
     apiClient.get('/admin/license-keys/statistics'),
   getDashboard: () =>

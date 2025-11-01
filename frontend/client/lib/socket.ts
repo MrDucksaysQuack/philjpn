@@ -9,7 +9,7 @@ class SocketClient {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 
-  connect(token?: string) {
+  connect(token?: string | null) {
     if (this.socket?.connected) {
       return this.socket;
     }
