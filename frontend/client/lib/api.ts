@@ -35,6 +35,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      // Skip token refresh during SSR
+      if (typeof window === "undefined") {
+        return Promise.reject(error);
+      }
+
       try {
         const refreshToken = localStorage.getItem("refreshToken");
         if (refreshToken) {
@@ -52,9 +57,9 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
         if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);

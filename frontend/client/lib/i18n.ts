@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
+import koMessages from "../messages/ko.json";
+import enMessages from "../messages/en.json";
 
 type Locale = "ko" | "en";
 
 const messages: Record<Locale, Record<string, any>> = {
-  ko: require("../messages/ko.json"),
-  en: require("../messages/en.json"),
+  ko: koMessages,
+  en: enMessages,
 };
 
 export const useTranslation = (locale: Locale = "ko") => {
