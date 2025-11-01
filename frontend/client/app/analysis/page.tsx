@@ -302,11 +302,11 @@ export default function AnalysisPage() {
                                   </div>
                                 )}
                               </div>
-                              {area.improvementSuggestions.length > 0 && (
+                              {area.improvementSuggestions && area.improvementSuggestions.length > 0 && (
                                 <div className="mt-4 pt-4 border-t border-red-200">
                                   <div className="text-sm font-semibold text-gray-700 mb-2">개선 방안:</div>
                                   <ul className="space-y-1">
-                                    {area.improvementSuggestions.map((suggestion, i) => (
+                                    {(area.improvementSuggestions || []).map((suggestion, i) => (
                                       <li key={i} className="text-xs text-gray-600 flex items-start gap-2">
                                         <span className="text-green-500">✓</span>
                                         {suggestion}
