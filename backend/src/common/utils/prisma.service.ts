@@ -7,6 +7,42 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly MAX_RETRIES = 5;
   private readonly RETRY_DELAY_MS = 5000; // 5초
 
+  constructor() {
+    // ✅ Connection Pooling (PgBouncer) 호환을 위한 DATABASE_URL 정규화
+    let dbUrl = process.env.DATABASE_URL || '';
+    const isPgBouncer = dbUrl.includes('pooler.supabase.com') || dbUrl.includes(':6543');
+    
+    if (isPgBouncer) {
+      try {
+        // URL 파싱 및 파라미터 추가
+        const urlObj = new URL(dbUrl);
+        
+        // PgBouncer 호환 설정 추가
+        // Prisma가 prepared statements를 사용하지 않도록 함
+        urlObj.searchParams.set('pgbouncer', 'true');
+        urlObj.searchParams.set('connection_limit', '1');
+        urlObj.searchParams.set('connect_timeout', '10');
+        
+        dbUrl = urlObj.toString();
+        this.logger.log('🔧 PgBouncer 호환 모드 활성화됨');
+      } catch (error) {
+        // URL 파싱 실패 시 원본 사용
+        this.logger.warn('⚠️ DATABASE_URL 파싱 실패, 원본 URL 사용', error);
+      }
+    }
+
+    super({
+      datasources: {
+        db: {
+          url: dbUrl,
+        },
+      },
+      log: process.env.NODE_ENV === 'development' 
+        ? ['query', 'error', 'warn'] 
+        : ['error'],
+    });
+  }
+
   async onModuleInit() {
     // 🔍 DATABASE_URL 확인
     const dbUrl = process.env.DATABASE_URL;
@@ -51,8 +87,53 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
-    this.logger.log('Database connection closed');
+    try {
+      await this.$disconnect();
+      this.logger.log('Database connection closed');
+    } catch (error) {
+      this.logger.warn('Error closing database connection', error);
+    }
+  }
+
+  // ✅ Prepared Statement 에러 발생 시 연결 재시도 헬퍼
+  async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    retries: number = 3,
+  ): Promise<T> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        const isPreparedStatementError = 
+          error?.message?.includes('prepared statement') ||
+          error?.code === '42P05' || // prepared statement already exists
+          error?.code === '26000';   // prepared statement does not exist
+        
+        const isConnectionError =
+          error?.code === 'P1017' || // Server has closed the connection
+          error?.message?.includes('Server has closed');
+
+        if ((isPreparedStatementError || isConnectionError) && i < retries - 1) {
+          this.logger.warn(
+            `⚠️ Database error (attempt ${i + 1}/${retries}), 재연결 시도...`,
+            error?.code || error?.message,
+          );
+          
+          // 연결 재설정
+          try {
+            await this.$disconnect();
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await this.$connect();
+          } catch (reconnectError) {
+            this.logger.warn('재연결 실패, 계속 시도...', reconnectError);
+          }
+          
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw new Error('Max retries reached');
   }
 }
 
