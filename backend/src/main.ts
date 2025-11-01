@@ -38,7 +38,7 @@ async function bootstrap() {
     return /^https:\/\/philjpn(-[a-z0-9-]+)?(-[a-z0-9-]+)?\.vercel\.app$/.test(origin);
   };
   
-  // ✅ 단일 CORS 미들웨어 (모든 중복 제거)
+  // ✅ CORS 미들웨어: 모든 응답에 헤더 강제 설정
   app.use((req, res, next) => {
     const origin = req.headers.origin;
     
@@ -64,14 +64,28 @@ async function bootstrap() {
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Max-Age', '86400');
+      console.log(`✅ OPTIONS CORS 헤더 설정: ${origin}`);
       return res.status(200).end();
     }
     
-    // 일반 요청에도 CORS 헤더 설정
+    // 일반 요청에도 CORS 헤더 즉시 설정 (응답 인터셉터로도 보강)
     if (origin) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
+      console.log(`✅ CORS 헤더 설정: ${origin}`);
     }
+    
+    // 응답 전송 전 최종 확인 (요청 abort 방지)
+    const originalEnd = res.end;
+    res.end = function(chunk?: any, encoding?: any) {
+      // 응답 전송 직전 CORS 헤더 재확인
+      if (origin && !res.getHeader('Access-Control-Allow-Origin')) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        console.log(`✅ 응답 전송 전 CORS 헤더 재설정: ${origin}`);
+      }
+      originalEnd.call(this, chunk, encoding);
+    };
     
     next();
   });
