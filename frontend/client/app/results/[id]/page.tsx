@@ -579,7 +579,7 @@ export default function ResultDetailPage() {
                         <div>
                           <div className="text-xs text-gray-600 mb-1">집중 영역</div>
                           <div className="flex flex-wrap gap-2">
-                            {section.improvementPlan.focusAreas.map((area: string, i: number) => (
+                            {(section.improvementPlan?.focusAreas || []).map((area: string, i: number) => (
                               <span
                                 key={i}
                                 className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium"
