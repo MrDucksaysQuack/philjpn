@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
-import { examAPI, apiClient } from '@/lib/api';
+import { examAPI, apiClient, PaginatedResponse, Exam } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 
 export default function AdminExamsPage() {
@@ -17,7 +17,7 @@ export default function AdminExamsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [editingExam, setEditingExam] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<PaginatedResponse<Exam>>({
     queryKey: ['admin-exams', page, search],
     queryFn: async () => {
       const response = await examAPI.getExams({ page, limit: 20, examType: search || undefined });
