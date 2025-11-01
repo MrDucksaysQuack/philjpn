@@ -8,6 +8,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = appConfig();
+  
+  // 🔍 DATABASE_URL 확인 (환경 변수 로드 확인용)
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    // 비밀번호는 보안을 위해 숨김
+    const safeDbUrl = dbUrl.replace(/:[^:@]+@/, ':****@');
+    console.log('🔍 DATABASE_URL 확인:', safeDbUrl);
+    console.log('🔍 DATABASE_URL 포트:', dbUrl.match(/:(6543|5432)\//)?.[1] || '알 수 없음');
+    console.log('🔍 DATABASE_URL 호스트:', dbUrl.match(/@([^:]+)/)?.[1] || '알 수 없음');
+  } else {
+    console.error('❌ DATABASE_URL 환경 변수가 설정되지 않았습니다!');
+  }
 
   // ✅ CORS 허용 도메인 파싱 (중복 제거)
   const rawCorsOrigin = process.env.CORS_ORIGIN || '';

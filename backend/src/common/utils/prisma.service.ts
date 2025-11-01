@@ -8,6 +8,17 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly RETRY_DELAY_MS = 5000; // 5초
 
   async onModuleInit() {
+    // 🔍 DATABASE_URL 확인
+    const dbUrl = process.env.DATABASE_URL;
+    if (dbUrl) {
+      const safeUrl = dbUrl.replace(/:[^:@]+@/, ':****@');
+      this.logger.log(`🔍 DATABASE_URL: ${safeUrl}`);
+      this.logger.log(`🔍 포트: ${dbUrl.match(/:(6543|5432)\//)?.[1] || '알 수 없음'}`);
+      this.logger.log(`🔍 호스트: ${dbUrl.match(/@([^:]+)/)?.[1] || '알 수 없음'}`);
+    } else {
+      this.logger.error('❌ DATABASE_URL 환경 변수가 없습니다!');
+    }
+    
     // 재시도 로직: Railway cold start나 일시적인 연결 실패 대응
     for (let i = 0; i < this.MAX_RETRIES; i++) {
       try {
