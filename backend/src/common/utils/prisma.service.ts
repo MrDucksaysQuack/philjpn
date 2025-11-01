@@ -12,6 +12,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     let dbUrl = process.env.DATABASE_URL || '';
     const isPgBouncer = dbUrl.includes('pooler.supabase.com') || dbUrl.includes(':6543');
     
+    // super() 호출 전에 URL 처리만 수행
     if (isPgBouncer) {
       try {
         // URL 파싱 및 파라미터 추가
@@ -24,10 +25,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         urlObj.searchParams.set('connect_timeout', '10');
         
         dbUrl = urlObj.toString();
-        this.logger.log('🔧 PgBouncer 호환 모드 활성화됨');
       } catch (error) {
-        // URL 파싱 실패 시 원본 사용
-        this.logger.warn('⚠️ DATABASE_URL 파싱 실패, 원본 URL 사용', error);
+        // URL 파싱 실패 시 원본 사용 (super() 호출 후 로깅)
+        console.warn('⚠️ DATABASE_URL 파싱 실패, 원본 URL 사용', error);
       }
     }
 
@@ -41,6 +41,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         ? ['query', 'error', 'warn'] 
         : ['error'],
     });
+
+    // super() 호출 후 로깅
+    if (isPgBouncer) {
+      this.logger.log('🔧 PgBouncer 호환 모드 활성화됨');
+    }
   }
 
   async onModuleInit() {
@@ -100,10 +105,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     operation: () => Promise<T>,
     retries: number = 3,
   ): Promise<T> {
+    let lastError: any;
+    
     for (let i = 0; i < retries; i++) {
       try {
         return await operation();
       } catch (error: any) {
+        lastError = error;
+        
         const isPreparedStatementError = 
           error?.message?.includes('prepared statement') ||
           error?.code === '42P05' || // prepared statement already exists
@@ -111,29 +120,61 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         
         const isConnectionError =
           error?.code === 'P1017' || // Server has closed the connection
-          error?.message?.includes('Server has closed');
+          error?.code === 'P1001' || // Can't reach database server
+          error?.message?.includes('Server has closed') ||
+          error?.message?.includes('Can\'t reach database');
 
+        // 재시도 가능한 에러인 경우
         if ((isPreparedStatementError || isConnectionError) && i < retries - 1) {
           this.logger.warn(
             `⚠️ Database error (attempt ${i + 1}/${retries}), 재연결 시도...`,
-            error?.code || error?.message,
+            {
+              code: error?.code,
+              message: error?.message?.substring(0, 100),
+            },
           );
           
           // 연결 재설정
           try {
-            await this.$disconnect();
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await this.$disconnect().catch(() => {
+              // 이미 연결 해제된 경우 무시
+            });
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1))); // 지수 백오프
             await this.$connect();
-          } catch (reconnectError) {
-            this.logger.warn('재연결 실패, 계속 시도...', reconnectError);
+            this.logger.log(`✅ 재연결 성공 (attempt ${i + 1}/${retries})`);
+          } catch (reconnectError: any) {
+            this.logger.warn(
+              `⚠️ 재연결 실패 (attempt ${i + 1}/${retries}), 계속 시도...`,
+              {
+                code: reconnectError?.code,
+                message: reconnectError?.message?.substring(0, 100),
+              },
+            );
           }
           
           continue;
         }
-        throw error;
+        
+        // 재시도 불가능한 에러 또는 마지막 시도
+        this.logger.error(
+          `❌ Database operation failed ${i < retries - 1 ? '(will retry)' : '(max retries reached)'}`,
+          {
+            code: error?.code,
+            message: error?.message?.substring(0, 200),
+            attempt: i + 1,
+            maxRetries: retries,
+          },
+        );
+        
+        // 마지막 시도인 경우 에러 throw
+        if (i === retries - 1) {
+          throw error;
+        }
       }
     }
-    throw new Error('Max retries reached');
+    
+    // 이 코드는 실행되지 않아야 하지만 TypeScript를 위해 추가
+    throw lastError || new Error('Max retries reached');
   }
 }
 

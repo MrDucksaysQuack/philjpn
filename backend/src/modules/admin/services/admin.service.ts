@@ -12,7 +12,7 @@ export class AdminService {
    * 사용자 목록 조회 (Admin)
    */
   async getUsers(query: AdminUserQueryDto) {
-    try {
+    return this.prisma.executeWithRetry(async () => {
       const { page = 1, limit = 10, role, isActive, search } = query;
       const skip = (page - 1) * limit;
 
@@ -57,21 +57,14 @@ export class AdminService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도
-      if (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017') {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.getUsers(query);
-      }
-      throw error;
-    }
+    });
   }
 
   /**
    * 사용자 상세 조회
    */
   async getUser(userId: string) {
-    try {
+    return this.prisma.executeWithRetry(async () => {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -100,17 +93,7 @@ export class AdminService {
       }
 
       return user;
-    } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도 (NotFoundException 제외)
-      if (
-        !(error instanceof NotFoundException) &&
-        (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017')
-      ) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.getUser(userId);
-      }
-      throw error;
-    }
+    });
   }
 
   /**
@@ -187,55 +170,56 @@ export class AdminService {
    */
   async getExamStatistics() {
     try {
-      const [
-        totalExams,
-        activeExams,
-        totalAttempts,
-        completedResults,
-      ] = await Promise.all([
-        this.prisma.exam.count({
-          where: { deletedAt: null },
-        }),
-        this.prisma.exam.count({
-          where: { deletedAt: null, isActive: true },
-        }),
-        this.prisma.examResult.count(),
-        this.prisma.examResult.count({
-          where: { status: 'completed' },
-        }),
-      ]);
+      return await this.prisma.executeWithRetry(async () => {
+        const [
+          totalExams,
+          activeExams,
+          totalAttempts,
+          completedResults,
+        ] = await Promise.all([
+          this.prisma.exam.count({
+            where: { deletedAt: null },
+          }),
+          this.prisma.exam.count({
+            where: { deletedAt: null, isActive: true },
+          }),
+          this.prisma.examResult.count(),
+          this.prisma.examResult.count({
+            where: { status: 'completed' },
+          }),
+        ]);
 
-      const averageScoreResult = await this.prisma.examResult.aggregate({
-        where: {
-          status: 'completed',
-          totalScore: { not: null },
-        },
-        _avg: {
-          totalScore: true,
-        },
-      });
+        const averageScoreResult = await this.prisma.examResult.aggregate({
+          where: {
+            status: 'completed',
+            totalScore: { not: null },
+          },
+          _avg: {
+            totalScore: true,
+          },
+        });
 
-      const averageScore = averageScoreResult._avg.totalScore
-        ? Math.round(averageScoreResult._avg.totalScore)
-        : 0;
+        const averageScore = averageScoreResult._avg.totalScore
+          ? Math.round(averageScoreResult._avg.totalScore)
+          : 0;
 
-      const completionRate =
-        totalAttempts > 0 ? (completedResults / totalAttempts) * 100 : 0;
+        const completionRate =
+          totalAttempts > 0 ? (completedResults / totalAttempts) * 100 : 0;
 
-      return {
-        totalExams,
-        activeExams,
-        totalAttempts,
-        averageScore,
-        completionRate: parseFloat(completionRate.toFixed(2)),
-      };
+        return {
+          totalExams,
+          activeExams,
+          totalAttempts,
+          averageScore,
+          completionRate: parseFloat(completionRate.toFixed(2)),
+        };
+      }, 5); // 5회 재시도
     } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도
-      if (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017') {
-        // 1초 대기 후 재시도
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.getExamStatistics();
-      }
+      console.error('❌ getExamStatistics 최종 에러:', {
+        code: error?.code,
+        message: error?.message,
+        name: error?.name,
+      });
       throw error;
     }
   }
@@ -244,7 +228,7 @@ export class AdminService {
    * 전체 시험 결과 목록 (Admin)
    */
   async getExamResults(query: AdminExamResultQueryDto) {
-    try {
+    return this.prisma.executeWithRetry(async () => {
       const {
         page = 1,
         limit = 10,
@@ -302,14 +286,7 @@ export class AdminService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도
-      if (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017') {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.getExamResults(query);
-      }
-      throw error;
-    }
+    });
   }
 
   /**
@@ -317,38 +294,40 @@ export class AdminService {
    */
   async getLicenseKeyStatistics() {
     try {
-      const [totalKeys, activeKeys, totalUsage, expiringKeys] =
-        await Promise.all([
-          this.prisma.licenseKey.count(),
-          this.prisma.licenseKey.count({
-            where: { isActive: true },
-          }),
-          this.prisma.keyUsageLog.count({
-            where: { status: 'success' },
-          }),
-          this.prisma.licenseKey.count({
-            where: {
-              isActive: true,
-              validUntil: {
-                gte: new Date(),
-                lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 이내
+      return await this.prisma.executeWithRetry(async () => {
+        const [totalKeys, activeKeys, totalUsage, expiringKeys] =
+          await Promise.all([
+            this.prisma.licenseKey.count(),
+            this.prisma.licenseKey.count({
+              where: { isActive: true },
+            }),
+            this.prisma.keyUsageLog.count({
+              where: { status: 'success' },
+            }),
+            this.prisma.licenseKey.count({
+              where: {
+                isActive: true,
+                validUntil: {
+                  gte: new Date(),
+                  lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 이내
+                },
               },
-            },
-          }),
-        ]);
+            }),
+          ]);
 
-      return {
-        totalKeys,
-        activeKeys,
-        totalUsage,
-        expiringSoon: expiringKeys,
-      };
+        return {
+          totalKeys,
+          activeKeys,
+          totalUsage,
+          expiringSoon: expiringKeys,
+        };
+      }, 5); // 5회 재시도
     } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도
-      if (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017') {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.getLicenseKeyStatistics();
-      }
+      console.error('❌ getLicenseKeyStatistics 최종 에러:', {
+        code: error?.code,
+        message: error?.message,
+        name: error?.name,
+      });
       throw error;
     }
   }
@@ -358,78 +337,80 @@ export class AdminService {
    */
   async getDashboardData() {
     try {
-      const [
-        totalUsers,
-        activeUsers,
-        totalExams,
-        totalAttempts,
-        recentResults,
-      ] = await Promise.all([
-        this.prisma.user.count(),
-        this.prisma.user.count({ where: { isActive: true } }),
-        this.prisma.exam.count({ where: { deletedAt: null } }),
-        this.prisma.examResult.count(),
-        this.prisma.examResult.findMany({
-          take: 10,
-          orderBy: { startedAt: 'desc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                name: true,
-              },
-            },
-            exam: {
-              select: {
-                id: true,
-                title: true,
-              },
-            },
-          },
-        }),
-      ]);
-
-      // 최근 7일간 일별 시험 응시 횟수
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const dailyAttemptsRaw = await this.prisma.examResult.groupBy({
-        by: ['startedAt'],
-        where: {
-          startedAt: { gte: sevenDaysAgo },
-        },
-        _count: true,
-      });
-
-      const dailyAttempts = dailyAttemptsRaw.map((item) => ({
-        date: item.startedAt.toISOString().split('T')[0],
-        count: item._count,
-      }));
-
-      return {
-        summary: {
+      return await this.prisma.executeWithRetry(async () => {
+        const [
           totalUsers,
           activeUsers,
           totalExams,
           totalAttempts,
-        },
-        recentActivity: recentResults.map((result) => ({
-          type: 'exam_submit',
-          userId: result.userId,
-          examId: result.examId,
-          user: result.user,
-          exam: result.exam,
-          timestamp: result.startedAt,
-        })),
-        chartData: {
-          dailyAttempts,
-        },
-      };
+          recentResults,
+        ] = await Promise.all([
+          this.prisma.user.count(),
+          this.prisma.user.count({ where: { isActive: true } }),
+          this.prisma.exam.count({ where: { deletedAt: null } }),
+          this.prisma.examResult.count(),
+          this.prisma.examResult.findMany({
+            take: 10,
+            orderBy: { startedAt: 'desc' },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  name: true,
+                },
+              },
+              exam: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          }),
+        ]);
+
+        // 최근 7일간 일별 시험 응시 횟수
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const dailyAttemptsRaw = await this.prisma.examResult.groupBy({
+          by: ['startedAt'],
+          where: {
+            startedAt: { gte: sevenDaysAgo },
+          },
+          _count: true,
+        });
+
+        const dailyAttempts = dailyAttemptsRaw.map((item) => ({
+          date: item.startedAt.toISOString().split('T')[0],
+          count: item._count,
+        }));
+
+        return {
+          summary: {
+            totalUsers,
+            activeUsers,
+            totalExams,
+            totalAttempts,
+          },
+          recentActivity: recentResults.map((result) => ({
+            type: 'exam_submit',
+            userId: result.userId,
+            examId: result.examId,
+            user: result.user,
+            exam: result.exam,
+            timestamp: result.startedAt,
+          })),
+          chartData: {
+            dailyAttempts,
+          },
+        };
+      }, 5); // 5회 재시도
     } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도
-      if (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017') {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.getDashboardData();
-      }
+      console.error('❌ getDashboardData 최종 에러:', {
+        code: error?.code,
+        message: error?.message,
+        name: error?.name,
+      });
       throw error;
     }
   }

@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './services/admin.service';
@@ -26,6 +27,8 @@ import { UserRole } from '../../common/types';
 @Roles(UserRole.ADMIN)
 @ApiBearerAuth()
 export class AdminController {
+  private readonly logger = new Logger(AdminController.name);
+
   constructor(private readonly adminService: AdminService) {}
 
   // ==================== 사용자 관리 ====================
@@ -74,8 +77,18 @@ export class AdminController {
   @Get('exams/statistics')
   @ApiOperation({ summary: '시험 통계 (Admin Only)' })
   @ApiResponse({ status: 200, description: '시험 통계 조회 성공' })
-  getExamStatistics() {
-    return this.adminService.getExamStatistics();
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async getExamStatistics() {
+    try {
+      return await this.adminService.getExamStatistics();
+    } catch (error: any) {
+      this.logger.error('❌ getExamStatistics 에러:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw error;
+    }
   }
 
   // ==================== 결과 모니터링 ====================
@@ -92,8 +105,18 @@ export class AdminController {
   @Get('license-keys/statistics')
   @ApiOperation({ summary: '라이선스 키 통계 (Admin Only)' })
   @ApiResponse({ status: 200, description: '라이선스 키 통계 조회 성공' })
-  getLicenseKeyStatistics() {
-    return this.adminService.getLicenseKeyStatistics();
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async getLicenseKeyStatistics() {
+    try {
+      return await this.adminService.getLicenseKeyStatistics();
+    } catch (error: any) {
+      this.logger.error('❌ getLicenseKeyStatistics 에러:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw error;
+    }
   }
 
   // ==================== 대시보드 ====================
@@ -101,8 +124,18 @@ export class AdminController {
   @Get('dashboard')
   @ApiOperation({ summary: '관리자 대시보드 데이터 (Admin Only)' })
   @ApiResponse({ status: 200, description: '대시보드 데이터 조회 성공' })
-  getDashboard() {
-    return this.adminService.getDashboardData();
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async getDashboard() {
+    try {
+      return await this.adminService.getDashboardData();
+    } catch (error: any) {
+      this.logger.error('❌ getDashboardData 에러:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw error;
+    }
   }
 }
 

@@ -25,31 +25,30 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.sub },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          isActive: true,
-        },
+      return await this.prisma.executeWithRetry(async () => {
+        const user = await this.prisma.user.findUnique({
+          where: { id: payload.sub },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            isActive: true,
+          },
+        });
+
+        if (!user || !user.isActive) {
+          throw new UnauthorizedException('사용자를 찾을 수 없거나 비활성화된 계정입니다.');
+        }
+
+        return user;
       });
-
-      if (!user || !user.isActive) {
-        throw new UnauthorizedException('사용자를 찾을 수 없거나 비활성화된 계정입니다.');
-      }
-
-      return user;
     } catch (error: any) {
-      // Prepared statement 에러인 경우 재시도 (UnauthorizedException 제외)
-      if (
-        !(error instanceof UnauthorizedException) &&
-        (error?.code === '42P05' || error?.code === '26000' || error?.code === 'P1017')
-      ) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return this.validate(payload);
+      // UnauthorizedException은 그대로 전달 (재시도하지 않음)
+      if (error instanceof UnauthorizedException) {
+        throw error;
       }
+      // 그 외 에러도 그대로 전달 (executeWithRetry에서 이미 처리됨)
       throw error;
     }
   }
