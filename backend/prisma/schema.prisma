@@ -1,0 +1,459 @@
+// Prisma Schema for Exam Platform
+// Based on ERD_DESIGN.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  user
+  admin
+  partner
+}
+
+enum ExamType {
+  mock
+  practice
+  official
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+enum QuestionType {
+  multiple_choice
+  fill_blank
+  essay
+}
+
+enum ResultStatus {
+  in_progress
+  completed
+  abandoned
+  graded
+}
+
+enum KeyType {
+  ACCESS_KEY
+  TEST_KEY
+  ADMIN_KEY
+}
+
+enum LogStatus {
+  success
+  failed
+  rejected
+}
+
+// ============================================
+// USER
+// ============================================
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  password        String
+  name            String
+  role            UserRole  @default(user)
+  phone           String?
+  profileImage    String?   @db.VarChar(500)
+  isActive        Boolean   @default(true)
+  isEmailVerified Boolean   @default(false)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  createdExams      Exam[]
+  examResults       ExamResult[]
+  licenseKeys       LicenseKey[]
+  wordBooks         WordBook[]
+  examSessions      UserExamSession[]
+  auditLogs         AuditLog[]
+  keyUsageLogs      KeyUsageLog[]
+  issuedLicenseKeys LicenseKey[] @relation("IssuedBy")
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ============================================
+// EXAM
+// ============================================
+
+model Exam {
+  id             String    @id @default(uuid())
+  title          String
+  description    String?   @db.Text
+  examType       ExamType
+  subject        String?   @db.VarChar(100)
+  difficulty     Difficulty?
+  totalQuestions Int       @default(0)
+  totalSections  Int       @default(0)
+  estimatedTime  Int?      // minutes
+  passingScore   Int?
+  isActive       Boolean   @default(true)
+  isPublic       Boolean   @default(false)
+  publishedAt    DateTime?
+  createdBy      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  // Relations
+  creator        User?            @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  config         ExamConfig?
+  sections       Section[]
+  examResults    ExamResult[]
+  examSessions   UserExamSession[]
+
+  @@index([examType])
+  @@index([subject])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("exams")
+}
+
+// ============================================
+// EXAM_CONFIG
+// ============================================
+
+model ExamConfig {
+  id                      String  @id @default(uuid())
+  examId                  String  @unique
+  allowSectionNavigation  Boolean @default(true)
+  allowQuestionReview     Boolean @default(true)
+  showAnswerAfterSubmit   Boolean @default(true)
+  showScoreImmediately    Boolean @default(true)
+  timeLimitPerSection     Boolean @default(false)
+  shuffleQuestions        Boolean @default(false)
+  shuffleOptions          Boolean @default(false)
+  preventTabSwitch        Boolean @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // Relations
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@map("exam_configs")
+}
+
+// ============================================
+// SECTION
+// ============================================
+
+model Section {
+  id            String    @id @default(uuid())
+  examId        String
+  title         String
+  description   String?   @db.Text
+  order         Int
+  questionCount Int       @default(0)
+  timeLimit     Int?      // seconds
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  exam             Exam              @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questions        Question[]
+  sectionResults   SectionResult[]
+
+  @@index([examId])
+  @@index([examId, order])
+  @@map("sections")
+}
+
+// ============================================
+// QUESTION
+// ============================================
+
+model Question {
+  id              String       @id @default(uuid())
+  sectionId       String
+  questionBankId  String?
+  questionNumber  Int
+  questionType    QuestionType
+  content         String       @db.Text
+  options         Json?        // JSON array of options
+  correctAnswer  String       @db.Text
+  explanation     String?      @db.Text
+  points          Int          @default(1)
+  difficulty      Difficulty?
+  tags            String[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  section         Section          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  questionBank    QuestionBank?    @relation(fields: [questionBankId], references: [id], onDelete: SetNull)
+  questionResults QuestionResult[]
+
+  @@index([sectionId])
+  @@index([sectionId, questionNumber])
+  @@index([difficulty])
+  @@index([tags])
+  @@map("questions")
+}
+
+// ============================================
+// QUESTION_BANK
+// ============================================
+
+model QuestionBank {
+  id          String     @id @default(uuid())
+  name        String
+  description String?    @db.Text
+  category    String?    @db.VarChar(100)
+  createdBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  questions Question[]
+
+  @@map("question_banks")
+}
+
+// ============================================
+// EXAM_RESULT
+// ============================================
+
+model ExamResult {
+  id           String        @id @default(uuid())
+  userId       String
+  examId       String
+  licenseKeyId String?
+  status       ResultStatus  @default(in_progress)
+  totalScore   Int?
+  maxScore     Int?
+  percentage   Decimal?      @db.Decimal(5, 2)
+  timeSpent    Int?          // seconds
+  startedAt    DateTime      @default(now())
+  submittedAt  DateTime?
+  gradedAt     DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  user          User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  exam          Exam            @relation(fields: [examId], references: [id], onDelete: Restrict)
+  licenseKey    LicenseKey?     @relation(fields: [licenseKeyId], references: [id], onDelete: SetNull)
+  sectionResults SectionResult[]
+
+  @@index([userId])
+  @@index([examId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("exam_results")
+}
+
+// ============================================
+// SECTION_RESULT
+// ============================================
+
+model SectionResult {
+  id              String    @id @default(uuid())
+  examResultId    String
+  sectionId       String
+  correctCount    Int       @default(0)
+  incorrectCount  Int       @default(0)
+  unansweredCount Int       @default(0)
+  score           Int?
+  maxScore        Int?
+  timeSpent       Int?      // seconds
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  examResult      ExamResult      @relation(fields: [examResultId], references: [id], onDelete: Cascade)
+  section         Section         @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  questionResults QuestionResult[]
+
+  @@index([examResultId])
+  @@index([sectionId])
+  @@map("section_results")
+}
+
+// ============================================
+// QUESTION_RESULT
+// ============================================
+
+model QuestionResult {
+  id             String    @id @default(uuid())
+  sectionResultId String
+  questionId     String
+  userAnswer     String?   @db.Text
+  isCorrect      Boolean?
+  pointsEarned   Int?
+  pointsPossible Int?
+  timeSpent      Int?      // seconds
+  answeredAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  sectionResult  SectionResult  @relation(fields: [sectionResultId], references: [id], onDelete: Cascade)
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@index([sectionResultId])
+  @@index([questionId])
+  @@map("question_results")
+}
+
+// ============================================
+// USER_EXAM_SESSION
+// ============================================
+
+model UserExamSession {
+  id                   String    @id @default(uuid())
+  userId               String
+  examId               String
+  examResultId         String?
+  currentSectionId     String?
+  currentQuestionNumber Int?
+  answers              Json      @default("{}") // { questionId: answer }
+  startTime            DateTime  @default(now())
+  lastActivityAt        DateTime  @default(now()) @updatedAt
+  expiresAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam      Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([examId])
+  @@index([expiresAt])
+  @@map("user_exam_sessions")
+}
+
+// ============================================
+// LICENSE_KEY
+// ============================================
+
+model LicenseKey {
+  id         String    @id @default(uuid())
+  userId     String?
+  key        String    @unique
+  keyType    KeyType
+  examIds    String[]  // Array of exam UUIDs
+  usageLimit Int?      // null = unlimited
+  usageCount Int       @default(0)
+  validFrom  DateTime  @default(now())
+  validUntil DateTime?
+  isActive   Boolean   @default(true)
+  issuedBy   String?
+  issuedAt   DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  user         User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  issuer       User?            @relation("IssuedBy", fields: [issuedBy], references: [id], onDelete: SetNull)
+  examResults  ExamResult[]
+  usageLogs    KeyUsageLog[]
+
+  @@index([key])
+  @@index([userId])
+  @@index([keyType])
+  @@index([validUntil])
+  @@map("license_keys")
+}
+
+// ============================================
+// KEY_USAGE_LOG
+// ============================================
+
+model KeyUsageLog {
+  id           String    @id @default(uuid())
+  licenseKeyId String
+  userId       String?
+  examId       String?
+  examResultId String?
+  action       String    @db.VarChar(50)
+  status       LogStatus
+  ipAddress    String?   @db.VarChar(45)
+  userAgent    String?   @db.VarChar(500)
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  licenseKey LicenseKey @relation(fields: [licenseKeyId], references: [id], onDelete: Restrict)
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([licenseKeyId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("key_usage_logs")
+}
+
+// ============================================
+// WORD_BOOK
+// ============================================
+
+model WordBook {
+  id            String     @id @default(uuid())
+  userId        String
+  word          String
+  meaning       String     @db.Text
+  example       String?    @db.Text
+  difficulty    Difficulty?
+  source        String?    @db.VarChar(100)
+  sourceId      String?
+  masteryLevel  Int        @default(0) // 0-100
+  reviewCount   Int        @default(0)
+  lastReviewedAt DateTime?
+  nextReviewAt  DateTime?
+  tags          String[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([word])
+  @@index([nextReviewAt])
+  @@index([tags])
+  @@map("word_books")
+}
+
+// ============================================
+// AUDIT_LOG
+// ============================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String   @db.VarChar(100)
+  entityType String   @db.VarChar(50)
+  entityId   String?
+  changes    Json?
+  ipAddress  String?  @db.VarChar(45)
+  userAgent  String?  @db.VarChar(500)
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
