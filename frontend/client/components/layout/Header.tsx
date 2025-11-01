@@ -32,22 +32,30 @@ export default function Header() {
                 <>
                   <Link
                     href="/results"
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     내 결과
                   </Link>
                   <Link
                     href="/wordbook"
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     단어장
                   </Link>
                   <Link
                     href="/statistics"
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     통계
                   </Link>
+                  {user.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      className="text-purple-600 hover:text-purple-700 px-3 py-2 rounded-md text-sm font-semibold transition-colors border border-purple-200 hover:border-purple-300"
+                    >
+                      관리자
+                    </Link>
+                  )}
                 </>
               )}
             </nav>
