@@ -55,52 +55,70 @@ apiClient.interceptors.request.use(
 // SSR 안전성: interceptor를 클라이언트에서만 등록
 // Next.js는 모듈을 서버와 클라이언트 모두에서 평가하므로,
 // interceptor 등록 자체를 클라이언트 전용으로 처리
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    // SSR 중에는 interceptor 로직 실행하지 않음
-    if (typeof window === "undefined") {
-      return Promise.reject(error);
-    }
+if (typeof window !== "undefined") {
+  apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
 
-    const originalRequest = error.config;
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+        try {
+          const refreshToken = localStorage.getItem("refreshToken");
+          if (refreshToken) {
+            const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+              refreshToken,
+            });
 
-      try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (refreshToken) {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
+            const { accessToken, refreshToken: newRefreshToken } = response.data;
+            localStorage.setItem("accessToken", accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem("refreshToken", newRefreshToken);
+            }
 
-          const { accessToken, refreshToken: newRefreshToken } = response.data;
-          localStorage.setItem("accessToken", accessToken);
-          if (newRefreshToken) {
-            localStorage.setItem("refreshToken", newRefreshToken);
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return apiClient(originalRequest);
           }
-
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
+        } catch (refreshError) {
+          // 클라이언트에서만 리다이렉트
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          // 동적 import를 사용하여 리다이렉트 (더 안전)
+          try {
+            const { default: router } = await import("next/navigation");
+            // router.push는 클라이언트 컴포넌트에서만 사용 가능
+            // 여기서는 직접 window.location 사용
+            if (window?.location) {
+              window.location.href = "/login";
+            }
+          } catch {
+            // import 실패 시 window.location 직접 사용
+            if (window?.location) {
+              window.location.href = "/login";
+            }
+          }
+          return Promise.reject(refreshError);
         }
-      } catch (refreshError) {
-        // 클라이언트에서만 리다이렉트
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        // window.location은 이미 typeof window 체크 후이므로 안전
-        if (window.location) {
-          window.location.href = "/login";
-        }
-        return Promise.reject(refreshError);
       }
-    }
 
-    return Promise.reject(error);
-  },
-);
+      return Promise.reject(error);
+    },
+  );
+}
 
 // API 엔드포인트 타입 정의
+export interface ExamConfig {
+  allowSectionNavigation?: boolean;
+  allowQuestionReview?: boolean;
+  showAnswerAfterSubmit?: boolean;
+  showScoreImmediately?: boolean;
+  timeLimitPerSection?: boolean;
+  shuffleQuestions?: boolean;
+  shuffleOptions?: boolean;
+  preventTabSwitch?: boolean;
+}
+
 export interface Exam {
   id: string;
   title: string;
@@ -113,6 +131,8 @@ export interface Exam {
   totalSections?: number;
   subject?: string;
   difficulty?: string;
+  isPublic?: boolean;
+  config?: ExamConfig;
 }
 
 export interface ExamResult {
@@ -125,6 +145,94 @@ export interface ExamResult {
   timeSpent?: number;
   startedAt: string;
   submittedAt?: string;
+}
+
+// Learning Pattern Types
+export interface LearningPatterns {
+  timePatterns: {
+    mostProductiveHours: number[];
+    averageSessionDuration: number;
+    preferredStudyDays: string[];
+  };
+  performanceByTimeOfDay: Array<{
+    hour: number;
+    averageScore: number;
+    examCount: number;
+  }>;
+  attentionSpan: {
+    optimalSessionLength: number;
+    focusDeclinePoint: number;
+  };
+  difficultyPreference: {
+    optimalDifficulty: string;
+    challengeAcceptance: number;
+  };
+}
+
+export interface WeaknessArea {
+  tag: string;
+  correctRate: number;
+  rootCause: string;
+  mistakePattern: {
+    commonErrors: string[];
+    frequency: number;
+    lastAttempt: string;
+  };
+  relatedConcepts: string[];
+  improvementSuggestions: string[];
+  predictedImprovementTime: string;
+}
+
+export interface WeaknessAnalysis {
+  weaknessAreas: WeaknessArea[];
+  knowledgeGaps: Array<{
+    concept: string;
+    understandingLevel: number;
+    practiceNeeded: number;
+  }>;
+}
+
+export interface EfficiencyMetrics {
+  learningVelocity: number;
+  retentionRate: number;
+  practiceEfficiency: number;
+  weaknessRecoveryRate: number;
+  comparison: {
+    vsPeers: string;
+    vsPersonalBest: string;
+  };
+}
+
+// Goal Types
+export interface UserGoal {
+  id: string;
+  userId: string;
+  goalType: "score_target" | "weakness_recovery" | "exam_count" | "word_count";
+  targetValue: number;
+  currentValue: number;
+  deadline: string;
+  status: "active" | "achieved" | "failed" | "paused";
+  milestones?: Array<{ date: string; target: number }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoalProgress {
+  activeGoals: Array<{
+    goalId: string;
+    type: string;
+    target: number;
+    current: number;
+    progress: number;
+    estimatedCompletion?: string;
+    onTrack: boolean;
+    dailyProgress: Array<{ date: string; value: number }>;
+  }>;
+  achievements: Array<{
+    badgeId: string;
+    title: string;
+    earnedAt: string;
+  }>;
 }
 
 export interface User {
@@ -232,13 +340,121 @@ export const resultAPI = {
     apiClient.get<PaginatedResponse<ExamResult>>("/results", { params }),
   getResult: (id: string) => apiClient.get<ExamResult>(`/results/${id}`),
   getReport: (id: string) => apiClient.get(`/results/${id}/report`),
+  getDetailedFeedback: (id: string) =>
+    apiClient.get<DetailedFeedback>(`/results/${id}/feedback`),
 };
 
 // Statistics API
 export const statisticsAPI = {
   getUserStatistics: (params?: { examId?: string; period?: string }) =>
     apiClient.get("/users/me/statistics", { params }),
+  getLearningPatterns: () =>
+    apiClient.get<LearningPatterns>("/users/me/learning-patterns"),
+  getWeaknessAnalysis: () =>
+    apiClient.get<WeaknessAnalysis>("/users/me/weakness-analysis"),
+  getEfficiencyMetrics: () =>
+    apiClient.get<EfficiencyMetrics>("/users/me/efficiency-metrics"),
 };
+
+// Goal API
+export const goalAPI = {
+  createGoal: (data: {
+    goalType: "score_target" | "weakness_recovery" | "exam_count" | "word_count";
+    targetValue: number;
+    deadline: string;
+    milestones?: Array<{ date: string; target: number }>;
+  }) => apiClient.post("/users/me/goals", data),
+  getGoals: (params?: { status?: string }) =>
+    apiClient.get("/users/me/goals", { params }),
+  getGoalProgress: () =>
+    apiClient.get("/users/me/goals/progress"),
+  getGoal: (id: string) =>
+    apiClient.get(`/users/me/goals/${id}`),
+  updateGoal: (id: string, data: {
+    targetValue?: number;
+    deadline?: string;
+    status?: "active" | "achieved" | "failed" | "paused";
+    milestones?: Array<{ date: string; target: number }>;
+  }) => apiClient.put(`/users/me/goals/${id}`, data),
+  deleteGoal: (id: string) =>
+    apiClient.delete(`/users/me/goals/${id}`),
+};
+
+// Recommendation API
+export const recommendationAPI = {
+  getRecommendedExams: () =>
+    apiClient.get("/exams/recommended"),
+  getExamsByWordbook: () =>
+    apiClient.get("/exams/by-wordbook"),
+};
+
+// Learning Cycle API
+export const learningCycleAPI = {
+  getLearningCycle: () =>
+    apiClient.get("/users/me/learning-cycle"),
+  updateCycleStage: (stage: string) =>
+    apiClient.put("/users/me/learning-cycle/stage", { stage }),
+  completeCycle: () =>
+    apiClient.post("/users/me/learning-cycle/complete"),
+};
+
+// Word Extraction API
+export const wordExtractionAPI = {
+  extractFromResult: (examResultId: string) =>
+    apiClient.post(`/word-books/extract-from-result/${examResultId}`),
+  addExtractedWords: (words: Array<{
+    word: string;
+    meaning: string;
+    context?: string;
+    difficulty?: "easy" | "medium" | "hard";
+    source?: string;
+    sourceId?: string;
+    tags?: string[];
+  }>) => apiClient.post("/word-books/add-extracted", words),
+};
+
+// Session API (실시간 피드백)
+export const sessionFeedbackAPI = {
+  submitQuestion: (sessionId: string, data: {
+    questionId: string;
+    answer: string;
+    timeSpent?: number;
+    confidence?: number;
+  }) => apiClient.post(`/sessions/${sessionId}/submit-question`, data),
+};
+
+// Detailed Feedback API
+export interface DetailedFeedback {
+  summary: any;
+  detailedFeedback: {
+    questionLevel: Array<{
+      questionId: string;
+      userAnswer: string;
+      correctAnswer: string;
+      isCorrect: boolean;
+      mistakeType: "conceptual" | "careless" | "time_pressure" | "correct";
+      explanation: string;
+      timeSpent?: number;
+      similarQuestions: string[];
+      relatedWords: string[];
+    }>;
+    sectionLevel: Array<{
+      sectionId: string;
+      sectionTitle: string;
+      strengths: string[];
+      weaknesses: string[];
+      improvementPlan: {
+        focusAreas: string[];
+        practiceQuestions: number;
+        estimatedTime: string;
+      };
+    }>;
+    overall: {
+      learningInsights: string[];
+      nextSteps: string[];
+    };
+  };
+}
 
 // WordBook API
 export const wordBookAPI = {
@@ -278,6 +494,126 @@ export const wordBookAPI = {
   }) => apiClient.post("/word-books/quiz", data),
 };
 
+// Admin API Types
+export interface ExamAnalytics {
+  examStats: {
+    totalAttempts: number;
+    completedResults: number;
+    completionRate: number;
+    averageScore: number;
+    averageTimeSpent: number;
+  };
+  questionAnalysis: Array<{
+    questionId: string;
+    correctRate: number;
+    averageTime: number;
+    discriminationIndex: number;
+    difficultyIndex: number;
+    commonWrongAnswer: string | null;
+    issues: string[];
+    attempts: number;
+  }>;
+  userPatterns: {
+    scoreDistribution: Array<{
+      range: string;
+      count: number;
+    }>;
+    improvementRate: number;
+  };
+  recommendations: string[];
+}
+
+export interface UserLearningPattern {
+  engagementMetrics: {
+    activeDays: number;
+    averageSessionLength: number;
+    consistency: number;
+  };
+  performanceTrends: {
+    improvementRate: number;
+    volatility: number;
+    peakPerformance: string;
+  };
+  riskFactors: Array<{
+    type: string;
+    severity: string;
+    description: string;
+    suggestedAction: string;
+  }>;
+  strengths: string[];
+  weaknesses: string[];
+}
+
+// Admin API Types - Templates
+export interface ExamTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  structure: {
+    sections: Array<{
+      type: string;
+      questionCount: number;
+      tags?: string[];
+      difficulty?: string;
+    }>;
+  };
+  questionPoolIds: string[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  _count?: {
+    exams: number;
+  };
+}
+
+export interface CreateTemplateData {
+  name: string;
+  description?: string;
+  structure: {
+    sections: Array<{
+      type: string;
+      questionCount: number;
+      tags?: string[];
+      difficulty?: string;
+    }>;
+  };
+  questionPoolIds?: string[];
+}
+
+export interface CreateExamFromTemplateData {
+  templateId: string;
+  title: string;
+  description?: string;
+  examType: string;
+  subject?: string;
+  overrides?: {
+    questionCount?: number;
+    structure?: any;
+  };
+}
+
+export interface QuestionPool {
+  id: string;
+  name: string;
+  description?: string;
+  tags: string[];
+  difficulty?: 'easy' | 'medium' | 'hard';
+  questionIds: string[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 // Admin API
 export const adminAPI = {
   getUsers: (params?: {
@@ -300,7 +636,11 @@ export const adminAPI = {
   deleteUser: (id: string) => apiClient.delete(`/admin/users/${id}`),
   getUserExamResults: (id: string) =>
     apiClient.get(`/admin/users/${id}/exam-results`),
+  getUserLearningPattern: (id: string) =>
+    apiClient.get<{ data: UserLearningPattern }>(`/admin/users/${id}/learning-pattern`),
   getExamStatistics: () => apiClient.get("/admin/exams/statistics"),
+  getExamAnalytics: (id: string) =>
+    apiClient.get<{ data: ExamAnalytics }>(`/admin/exams/${id}/analytics`),
   getExamResults: (params?: {
     page?: number;
     limit?: number;
@@ -316,4 +656,42 @@ export const adminAPI = {
   getLicenseKeyStatistics: () =>
     apiClient.get("/admin/license-keys/statistics"),
   getDashboard: () => apiClient.get("/admin/dashboard"),
+  // Template APIs
+  createTemplate: (data: CreateTemplateData) =>
+    apiClient.post<{ data: ExamTemplate }>("/admin/templates", data),
+  getTemplates: () =>
+    apiClient.get<{ data: ExamTemplate[] }>("/admin/templates"),
+  getTemplate: (id: string) =>
+    apiClient.get<{ data: ExamTemplate }>(`/admin/templates/${id}`),
+  updateTemplate: (id: string, data: Partial<CreateTemplateData>) =>
+    apiClient.put<{ data: ExamTemplate }>(`/admin/templates/${id}`, data),
+  deleteTemplate: (id: string) =>
+    apiClient.delete(`/admin/templates/${id}`),
+  createExamFromTemplate: (data: CreateExamFromTemplateData) =>
+    apiClient.post<{ data: Exam }>(`/admin/exams/from-template`, data),
+  // Question Pool APIs
+  createQuestionPool: (data: {
+    name: string;
+    description?: string;
+    tags?: string[];
+    difficulty?: 'easy' | 'medium' | 'hard';
+    questionIds?: string[];
+  }) => apiClient.post<{ data: QuestionPool }>('/admin/question-pools', data),
+  getQuestionPools: () =>
+    apiClient.get<{ data: QuestionPool[] }>('/admin/question-pools'),
+  getQuestionPool: (id: string) =>
+    apiClient.get<{ data: QuestionPool }>(`/admin/question-pools/${id}`),
+  updateQuestionPool: (
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      tags?: string[];
+      difficulty?: 'easy' | 'medium' | 'hard';
+      questionIds?: string[];
+    },
+  ) =>
+    apiClient.put<{ data: QuestionPool }>(`/admin/question-pools/${id}`, data),
+  deleteQuestionPool: (id: string) =>
+    apiClient.delete(`/admin/question-pools/${id}`),
 };

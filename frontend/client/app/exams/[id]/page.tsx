@@ -6,6 +6,8 @@ import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { examAPI, sessionAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { emotionalToast, toast } from "@/components/common/Toast";
+import { getContextualError } from "@/lib/messages";
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -51,10 +53,10 @@ export default function ExamDetailPage() {
       const response = await sessionAPI.startExam(examId, { licenseKey });
       router.push(`/exams/${examId}/take?sessionId=${response.data.sessionId}`);
     } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(
-        error.response?.data?.message || "시험 시작에 실패했습니다.",
-      );
+      const contextualError = getContextualError(err, () => handleStartExam());
+      setError(contextualError.message);
+      // Toast로도 표시
+      toast.error(contextualError.message);
     } finally {
       setLoading(false);
     }

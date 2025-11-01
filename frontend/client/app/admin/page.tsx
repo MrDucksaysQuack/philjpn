@@ -178,6 +178,20 @@ export default function AdminDashboardPage() {
             <p className="text-gray-600 text-sm">시험 생성, 수정, 삭제</p>
           </Link>
           <Link
+            href="/admin/templates"
+            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold mb-2">시험 템플릿</h3>
+            <p className="text-gray-600 text-sm">템플릿 생성 및 관리로 빠른 시험 생성</p>
+          </Link>
+          <Link
+            href="/admin/question-pools"
+            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold mb-2">문제 풀 관리</h3>
+            <p className="text-gray-600 text-sm">태그/난이도별 문제 그룹화 및 관리</p>
+          </Link>
+          <Link
             href="/admin/exam-results"
             className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
           >
@@ -190,6 +204,13 @@ export default function AdminDashboardPage() {
           >
             <h3 className="text-lg font-semibold mb-2">라이선스 키 관리</h3>
             <p className="text-gray-600 text-sm">키 발급 및 관리</p>
+          </Link>
+          <Link
+            href="/admin/monitoring"
+            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold mb-2">실시간 모니터링</h3>
+            <p className="text-gray-600 text-sm">진행 중인 시험 세션 모니터링</p>
           </Link>
         </div>
 

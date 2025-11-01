@@ -10,8 +10,12 @@ const nextConfig: NextConfig = {
     // 서버 컴포넌트에서 클라이언트 전용 코드 실행 방지
   },
   
-  // Admin 페이지들을 동적 렌더링으로 강제
-  // 이 설정은 모든 페이지를 동적으로 렌더링하여 SSR 중 location 접근 방지
+  // 빌드 중 static optimization 경고 무시
+  onDemandEntries: {
+    // pages 폴더가 없으므로 이 설정은 적용되지 않음
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
 };
 
 export default nextConfig;

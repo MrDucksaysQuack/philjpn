@@ -7,6 +7,8 @@ import Header from "@/components/layout/Header";
 import { sessionAPI } from "@/lib/api";
 import { socketClient } from "@/lib/socket";
 import { useAuthStore } from "@/lib/store";
+import { emotionalToast } from "@/components/common/Toast";
+import ProgressBar from "@/components/common/ProgressBar";
 
 export default function TakeExamPage() {
   const params = useParams();
@@ -18,6 +20,10 @@ export default function TakeExamPage() {
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const socketConnectedRef = useRef(false);
+  
+  // 진행률 계산
+  const answeredCount = Object.keys(answers).length;
+  const totalQuestions = session?.questions?.length || session?.totalQuestions || 50; // 기본값
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session", sessionId],
@@ -97,6 +103,7 @@ export default function TakeExamPage() {
       return response.data;
     },
     onSuccess: (data) => {
+      emotionalToast.success.examSubmitted();
       router.push(`/results/${data.examResultId}`);
     },
   });
@@ -136,6 +143,11 @@ export default function TakeExamPage() {
     );
   }
 
+  // 진행률 계산 (세션이 로드된 후)
+  const answeredCount = Object.keys(answers).length;
+  const estimatedTotal = session?.totalQuestions || session?.exam?.totalQuestions || 50;
+  const currentTotal = session?.totalQuestions || estimatedTotal;
+  
   // TODO: 실제 문제 데이터를 가져와서 표시
   // 현재는 구조만 구현
 
@@ -151,18 +163,22 @@ export default function TakeExamPage() {
             </div>
           </div>
 
+          {/* 진행률 바 */}
           <div className="mb-8">
-            <div className="text-center text-gray-500 mb-2">
-              문제 {currentQuestionNumber} / {session.totalQuestions || "-"}
-            </div>
-            <div className="h-2 bg-gray-200 rounded-full">
-              <div
-                className="h-2 bg-blue-600 rounded-full"
-                style={{
-                  width: `${(currentQuestionNumber / (session.totalQuestions || 1)) * 100}%`,
-                }}
-              />
-            </div>
+            <ProgressBar
+              current={currentQuestionNumber}
+              total={currentTotal}
+              message={`문제 ${currentQuestionNumber} / ${currentTotal}`}
+              color="blue"
+              size="md"
+            />
+            {/* 진행 상황 격려 메시지 */}
+            {answeredCount > 0 && (
+              <p className="text-center text-sm text-gray-600 mt-2">
+                ✅ {answeredCount}개 문제 답변 완료
+                {answeredCount >= currentTotal * 0.8 && " 💪 거의 다 했어요!"}
+              </p>
+            )}
           </div>
 
           <div className="mb-8">

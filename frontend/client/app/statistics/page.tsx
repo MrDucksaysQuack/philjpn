@@ -5,6 +5,8 @@ import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { statisticsAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import CustomRadarChart from "@/components/charts/RadarChart";
+import CustomLineChart from "@/components/charts/LineChart";
 
 export default function StatisticsPage() {
   const user = useAuthStore((state) => state.user);
@@ -122,26 +124,17 @@ export default function StatisticsPage() {
                     <div className="w-1 h-8 bg-gradient-to-b from-amber-600 to-orange-600 rounded-full"></div>
                     개선 추이
                   </h2>
-                  <div className="space-y-4">
-                    {stats.improvementTrend.map((item: any, index: number) => (
-                      <div
-                        key={index}
-                        className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-5 border border-gray-200"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-gray-700 font-medium">{item.date}</span>
-                          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            {item.score}점
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 rounded-full transition-all duration-1000"
-                            style={{ width: `${(item.score / 990) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <CustomLineChart
+                      data={stats.improvementTrend.map((item: any) => ({
+                        date: item.date,
+                        score: item.score,
+                      }))}
+                      dataKeys={[
+                        { key: "score", name: "점수", color: "#6366f1" },
+                      ]}
+                      title="시험 점수 추이"
+                    />
                   </div>
                 </div>
               )}
@@ -151,46 +144,66 @@ export default function StatisticsPage() {
                   <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                       <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
-                      섹션별 성능
+                      섹션별 성능 균형도
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {stats.sectionPerformance.map(
-                        (section: any, index: number) => (
-                          <div key={index} className="bg-gradient-to-r from-gray-50 to-purple-50/30 rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all">
-                            <div className="flex justify-between items-center mb-3">
-                              <h3 className="font-semibold text-gray-900 text-lg">
-                                {section.sectionTitle}
-                              </h3>
-                              <div className="text-right">
-                                <div className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                                  {section.averageScore}점
-                                </div>
-                                {section.improvement !== 0 && (
-                                  <div
-                                    className={`text-sm font-semibold flex items-center gap-1 ${
-                                      section.improvement > 0
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                    }`}
-                                  >
-                                    {section.improvement > 0 ? (
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                                      </svg>
-                                    ) : (
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                      </svg>
-                                    )}
-                                    {section.improvement > 0 ? "+" : ""}
-                                    {section.improvement}점
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* 레이다 차트 */}
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <CustomRadarChart
+                          data={stats.sectionPerformance.map((section: any) => ({
+                            subject: section.sectionTitle,
+                            score: section.averageScore,
+                            fullMark: 100,
+                          }))}
+                          title="섹션별 실력 균형"
+                        />
+                      </div>
+                      {/* 섹션별 상세 정보 */}
+                      <div className="space-y-4">
+                        {stats.sectionPerformance.map(
+                          (section: any, index: number) => (
+                            <div key={index} className="bg-gradient-to-r from-gray-50 to-purple-50/30 rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all">
+                              <div className="flex justify-between items-center mb-3">
+                                <h3 className="font-semibold text-gray-900 text-lg">
+                                  {section.sectionTitle}
+                                </h3>
+                                <div className="text-right">
+                                  <div className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                                    {section.averageScore}점
                                   </div>
-                                )}
+                                  {section.improvement !== 0 && (
+                                    <div
+                                      className={`text-sm font-semibold flex items-center gap-1 ${
+                                        section.improvement > 0
+                                          ? "text-green-600"
+                                          : "text-red-600"
+                                      }`}
+                                    >
+                                      {section.improvement > 0 ? (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                      ) : (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                        </svg>
+                                      )}
+                                      {section.improvement > 0 ? "+" : ""}
+                                      {section.improvement}점
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 rounded-full transition-all duration-1000"
+                                  style={{ width: `${Math.min((section.averageScore / 100) * 100, 100)}%` }}
+                                />
                               </div>
                             </div>
-                          </div>
-                        ),
-                      )}
+                          ),
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}

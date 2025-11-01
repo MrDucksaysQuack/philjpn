@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import { useAuthStore } from "@/lib/store";
 
 export default function HomePage() {
+  const user = useAuthStore((state) => state.user);
   return (
     <>
       <Header />
@@ -24,33 +26,68 @@ export default function HomePage() {
               언제 어디서나 편리하게 시험을 응시하고 학습하세요
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 px-4">
-              <Link
-                href="/exams"
-                className="group w-full sm:w-auto bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  시험 시작하기
-                  <svg
-                    className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="group w-full sm:w-auto bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </span>
-              </Link>
-              <Link
-                href="/register"
-                className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
-              >
-                회원가입
-              </Link>
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="text-xl">📊</span>
+                      나의 대시보드
+                      <svg
+                        className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </span>
+                  </Link>
+                  <Link
+                    href="/exams"
+                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
+                  >
+                    시험 시작하기
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/exams"
+                    className="group w-full sm:w-auto bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      시험 시작하기
+                      <svg
+                        className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </span>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
+                  >
+                    회원가입
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

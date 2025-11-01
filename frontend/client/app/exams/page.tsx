@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { examAPI, Exam } from "@/lib/api";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import LoadingSkeleton from "@/components/common/LoadingSkeleton";
 
 export default function ExamsPage() {
   const { data, isLoading, error } = useQuery({
@@ -20,30 +22,9 @@ export default function ExamsPage() {
         <Header />
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-gray-600 font-medium">시험 목록을 불러오는 중...</p>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-2xl mb-6">
-                <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <p className="text-xl font-semibold text-red-600 mb-2">시험 목록을 불러오는데 실패했습니다</p>
-              <p className="text-gray-500">잠시 후 다시 시도해주세요</p>
+            <LoadingSpinner message="시험 목록을 불러오는 중..." />
+            <div className="mt-8">
+              <LoadingSkeleton type="card" count={3} />
             </div>
           </div>
         </div>
@@ -71,6 +52,19 @@ export default function ExamsPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* 추천 시험 링크 */}
+          <div className="mb-8 text-center">
+            <Link
+              href="/exams/recommended"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              개인 맞춤형 추천 시험 보기
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data?.map((exam: Exam) => (
               <Link
