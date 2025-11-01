@@ -64,9 +64,11 @@ export default function EditUserPage() {
     if (userData) {
       setFormData({
         name: userData.name || "",
-        role: userData.role || "user",
+        role: (userData.role === "admin" || userData.role === "user") 
+          ? userData.role 
+          : "user",
         isActive: userData.isActive ?? true,
-        isEmailVerified: userData.isEmailVerified ?? false,
+        isEmailVerified: (userData as any).isEmailVerified ?? false,
       });
     }
   }, [userData]);
@@ -177,7 +179,7 @@ export default function EditUserPage() {
                 </label>
                 <input
                   type="text"
-                  value={userData.phone || "-"}
+                  value={(userData as any).phone || "-"}
                   disabled
                   className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
                 />
@@ -189,8 +191,8 @@ export default function EditUserPage() {
                 <input
                   type="text"
                   value={
-                    userData.createdAt
-                      ? new Date(userData.createdAt).toLocaleString("ko-KR")
+                    (userData as any).createdAt
+                      ? new Date((userData as any).createdAt).toLocaleString("ko-KR")
                       : "-"
                   }
                   disabled
