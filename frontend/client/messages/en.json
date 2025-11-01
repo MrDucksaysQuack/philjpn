@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "phone": "Phone",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "exam": {
+    "title": "Exam",
+    "list": "Exam List",
+    "start": "Start Exam",
+    "submit": "Submit Exam",
+    "result": "Exam Result",
+    "timeRemaining": "Time Remaining",
+    "question": "Question",
+    "of": "/",
+    "answer": "Answer",
+    "review": "Review",
+    "confirmSubmit": "Are you sure you want to submit the exam?"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "users": "User Management",
+    "exams": "Exam Management",
+    "licenseKeys": "License Key Management",
+    "results": "Exam Results",
+    "statistics": "Statistics"
+  },
+  "wordbook": {
+    "title": "Wordbook",
+    "addWord": "Add Word",
+    "review": "Review",
+    "quiz": "Quiz",
+    "mastery": "Mastery"
+  }
+}
+

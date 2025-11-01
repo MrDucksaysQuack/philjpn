@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "success": "성공",
+    "cancel": "취소",
+    "confirm": "확인",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "수정",
+    "create": "생성",
+    "search": "검색",
+    "filter": "필터",
+    "back": "뒤로",
+    "next": "다음",
+    "previous": "이전",
+    "submit": "제출",
+    "close": "닫기"
+  },
+  "auth": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "register": "회원가입",
+    "email": "이메일",
+    "password": "비밀번호",
+    "name": "이름",
+    "phone": "전화번호",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "noAccount": "계정이 없으신가요?",
+    "hasAccount": "이미 계정이 있으신가요?"
+  },
+  "exam": {
+    "title": "시험",
+    "list": "시험 목록",
+    "start": "시험 시작",
+    "submit": "시험 제출",
+    "result": "시험 결과",
+    "timeRemaining": "남은 시간",
+    "question": "문제",
+    "of": "/",
+    "answer": "답안",
+    "review": "복습",
+    "confirmSubmit": "시험을 제출하시겠습니까?"
+  },
+  "admin": {
+    "dashboard": "관리자 대시보드",
+    "users": "사용자 관리",
+    "exams": "시험 관리",
+    "licenseKeys": "라이선스 키 관리",
+    "results": "시험 결과",
+    "statistics": "통계"
+  },
+  "wordbook": {
+    "title": "단어장",
+    "addWord": "단어 추가",
+    "review": "복습",
+    "quiz": "퀴즈",
+    "mastery": "숙련도"
+  }
+}
+
