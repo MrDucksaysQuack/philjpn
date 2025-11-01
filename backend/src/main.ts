@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import appConfig from './config/app.config';
@@ -76,12 +76,22 @@ async function bootstrap() {
     next();
   });
 
-  // Global validation pipe
+  // Global validation pipe (더 상세한 에러 메시지)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: (errors) => {
+        console.error('❌ Validation error:', JSON.stringify(errors, null, 2));
+        return new BadRequestException({
+          message: '입력값 검증에 실패했습니다.',
+          errors: errors.map(err => ({
+            property: err.property,
+            constraints: err.constraints,
+          })),
+        });
+      },
     }),
   );
 

@@ -103,13 +103,23 @@ export class AuthService {
         role: user.role,
       };
 
-      // JWT_SECRET 확인 (app.config.ts에서 로드됨)
+        // JWT_SECRET 확인 (app.config.ts에서 로드됨)
       const jwtSecret = this.configService.get<string>('app.jwtSecret') || 
                         this.configService.get<string>('JWT_SECRET');
+      
+      console.log('🔍 JWT_SECRET check:', {
+        'app.jwtSecret': this.configService.get<string>('app.jwtSecret'),
+        'JWT_SECRET (direct)': this.configService.get<string>('JWT_SECRET'),
+        'final jwtSecret': jwtSecret ? `${jwtSecret.substring(0, 5)}...` : 'null',
+      });
+      
       if (!jwtSecret || jwtSecret === 'default-secret') {
         console.error('❌ JWT_SECRET이 설정되지 않았습니다.');
         console.error('Current JWT_SECRET:', jwtSecret);
-        throw new BadRequestException('서버 설정 오류가 발생했습니다.');
+        throw new BadRequestException({
+          message: '서버 설정 오류가 발생했습니다.',
+          code: 'JWT_SECRET_MISSING',
+        });
       }
 
       const accessToken = this.jwtService.sign(payload);
@@ -139,11 +149,21 @@ export class AuthService {
       
       // Prisma 에러인 경우
       if (error && typeof error === 'object' && 'code' in error) {
-        console.error('Prisma error code:', (error as any).code);
-        throw new BadRequestException('데이터베이스 연결 오류가 발생했습니다.');
+        const prismaError = error as any;
+        console.error('Prisma error code:', prismaError.code);
+        console.error('Prisma error message:', prismaError.message);
+        throw new BadRequestException({
+          message: '데이터베이스 연결 오류가 발생했습니다.',
+          code: 'DATABASE_ERROR',
+          prismaCode: prismaError.code,
+        });
       }
       
-      throw new BadRequestException('로그인 처리 중 오류가 발생했습니다.');
+      throw new BadRequestException({
+        message: '로그인 처리 중 오류가 발생했습니다.',
+        code: 'LOGIN_ERROR',
+        originalError: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
