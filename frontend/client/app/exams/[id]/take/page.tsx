@@ -20,10 +20,6 @@ export default function TakeExamPage() {
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const socketConnectedRef = useRef(false);
-  
-  // 진행률 계산
-  const answeredCount = Object.keys(answers).length;
-  const totalQuestions = session?.questions?.length || session?.totalQuestions || 50; // 기본값
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session", sessionId],
