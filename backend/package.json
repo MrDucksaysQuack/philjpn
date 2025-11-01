@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed:users": "ts-node scripts/seed-users.ts",
     "seed:all": "ts-node scripts/seed-all.ts",
+    "seed:cognitive": "ts-node prisma/seed-cognitive-features.ts",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

@@ -15,6 +15,7 @@ import { SessionService } from './session.service';
 import { StartExamDto } from './dto/start-exam.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { MoveSectionDto } from './dto/move-section.dto';
+import { SubmitQuestionDto } from './dto/submit-question.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { LicenseKeyGuard } from '../../license/guards/license-key.guard';
@@ -89,6 +90,25 @@ export class SessionController {
   @ApiResponse({ status: 404, description: '세션을 찾을 수 없음' })
   submitExam(@Param('sessionId') sessionId: string, @CurrentUser() user: any) {
     return this.sessionService.submitExam(sessionId, user.id);
+  }
+
+  @Post('sessions/:sessionId/submit-question')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '문제별 피드백 (실시간 피드백)' })
+  @ApiResponse({ status: 200, description: '피드백 조회 성공' })
+  @ApiResponse({ status: 404, description: '세션 또는 문제를 찾을 수 없음' })
+  submitQuestion(
+    @Param('sessionId') sessionId: string,
+    @Body() dto: SubmitQuestionDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.sessionService.submitQuestion(
+      sessionId,
+      dto.questionId,
+      user.id,
+      dto,
+    );
   }
 }
 

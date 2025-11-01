@@ -84,7 +84,12 @@ model User {
   examSessions      UserExamSession[]
   auditLogs         AuditLog[]
   keyUsageLogs      KeyUsageLog[]
-  issuedLicenseKeys LicenseKey[] @relation("IssuedBy")
+  issuedLicenseKeys LicenseKey[]      @relation("IssuedBy")
+  goals             UserGoal[]
+  learningPatterns  LearningPattern[]
+  learningCycles    LearningCycle[]
+  createdExamTemplates ExamTemplate[]
+  createdQuestionPools QuestionPool[]
 
   @@index([email])
   @@index([role])
@@ -97,35 +102,38 @@ model User {
 // ============================================
 
 model Exam {
-  id             String    @id @default(uuid())
+  id             String      @id @default(uuid())
   title          String
-  description    String?   @db.Text
+  description    String?     @db.Text
   examType       ExamType
-  subject        String?   @db.VarChar(100)
+  subject        String?     @db.VarChar(100)
   difficulty     Difficulty?
-  totalQuestions Int       @default(0)
-  totalSections  Int       @default(0)
-  estimatedTime  Int?      // minutes
+  totalQuestions Int         @default(0)
+  totalSections  Int         @default(0)
+  estimatedTime  Int? // minutes
   passingScore   Int?
-  isActive       Boolean   @default(true)
-  isPublic       Boolean   @default(false)
+  isActive       Boolean     @default(true)
+  isPublic       Boolean     @default(false)
   publishedAt    DateTime?
   createdBy      String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
   deletedAt      DateTime?
 
   // Relations
-  creator        User?            @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  config         ExamConfig?
-  sections       Section[]
-  examResults    ExamResult[]
-  examSessions   UserExamSession[]
+  creator      User?             @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  templateId   String?
+  template     ExamTemplate?     @relation("TemplateBased", fields: [templateId], references: [id], onDelete: SetNull)
+  config       ExamConfig?
+  sections     Section[]
+  examResults  ExamResult[]
+  examSessions UserExamSession[]
 
   @@index([examType])
   @@index([subject])
   @@index([isActive])
   @@index([createdAt])
+  @@index([templateId])
   @@map("exams")
 }
 
@@ -134,18 +142,18 @@ model Exam {
 // ============================================
 
 model ExamConfig {
-  id                      String  @id @default(uuid())
-  examId                  String  @unique
-  allowSectionNavigation  Boolean @default(true)
-  allowQuestionReview     Boolean @default(true)
-  showAnswerAfterSubmit   Boolean @default(true)
-  showScoreImmediately    Boolean @default(true)
-  timeLimitPerSection     Boolean @default(false)
-  shuffleQuestions        Boolean @default(false)
-  shuffleOptions          Boolean @default(false)
-  preventTabSwitch        Boolean @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  examId                 String   @unique
+  allowSectionNavigation Boolean  @default(true)
+  allowQuestionReview    Boolean  @default(true)
+  showAnswerAfterSubmit  Boolean  @default(true)
+  showScoreImmediately   Boolean  @default(true)
+  timeLimitPerSection    Boolean  @default(false)
+  shuffleQuestions       Boolean  @default(false)
+  shuffleOptions         Boolean  @default(false)
+  preventTabSwitch       Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   // Relations
   exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
@@ -158,20 +166,20 @@ model ExamConfig {
 // ============================================
 
 model Section {
-  id            String    @id @default(uuid())
+  id            String   @id @default(uuid())
   examId        String
   title         String
-  description   String?   @db.Text
+  description   String?  @db.Text
   order         Int
-  questionCount Int       @default(0)
-  timeLimit     Int?      // seconds
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  questionCount Int      @default(0)
+  timeLimit     Int? // seconds
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
-  exam             Exam              @relation(fields: [examId], references: [id], onDelete: Cascade)
-  questions        Question[]
-  sectionResults   SectionResult[]
+  exam           Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questions      Question[]
+  sectionResults SectionResult[]
 
   @@index([examId])
   @@index([examId, order])
@@ -183,20 +191,20 @@ model Section {
 // ============================================
 
 model Question {
-  id              String       @id @default(uuid())
-  sectionId       String
-  questionBankId  String?
-  questionNumber  Int
-  questionType    QuestionType
-  content         String       @db.Text
-  options         Json?        // JSON array of options
+  id             String       @id @default(uuid())
+  sectionId      String
+  questionBankId String?
+  questionNumber Int
+  questionType   QuestionType
+  content        String       @db.Text
+  options        Json? // JSON array of options
   correctAnswer  String       @db.Text
-  explanation     String?      @db.Text
-  points          Int          @default(1)
-  difficulty      Difficulty?
-  tags            String[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  explanation    String?      @db.Text
+  points         Int          @default(1)
+  difficulty     Difficulty?
+  tags           String[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   // Relations
   section         Section          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
@@ -215,13 +223,13 @@ model Question {
 // ============================================
 
 model QuestionBank {
-  id          String     @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  description String?    @db.Text
-  category    String?    @db.VarChar(100)
+  description String?  @db.Text
+  category    String?  @db.VarChar(100)
   createdBy   String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   questions Question[]
@@ -234,25 +242,27 @@ model QuestionBank {
 // ============================================
 
 model ExamResult {
-  id           String        @id @default(uuid())
-  userId       String
-  examId       String
-  licenseKeyId String?
-  status       ResultStatus  @default(in_progress)
-  totalScore   Int?
-  maxScore     Int?
-  percentage   Decimal?      @db.Decimal(5, 2)
-  timeSpent    Int?          // seconds
-  startedAt    DateTime      @default(now())
-  submittedAt  DateTime?
-  gradedAt     DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id               String       @id @default(uuid())
+  userId           String
+  examId           String
+  licenseKeyId     String?
+  status           ResultStatus @default(in_progress)
+  totalScore       Int?
+  maxScore         Int?
+  percentage       Decimal?     @db.Decimal(5, 2)
+  timeSpent        Int? // seconds
+  startedAt        DateTime     @default(now())
+  submittedAt      DateTime?
+  gradedAt         DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  extractedWords   String[]     @default([]) // 시험에서 추출된 단어 ID 목록
+  learningInsights Json? // 학습 인사이트 JSON
 
   // Relations
-  user          User            @relation(fields: [userId], references: [id], onDelete: Restrict)
-  exam          Exam            @relation(fields: [examId], references: [id], onDelete: Restrict)
-  licenseKey    LicenseKey?     @relation(fields: [licenseKeyId], references: [id], onDelete: SetNull)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  exam           Exam            @relation(fields: [examId], references: [id], onDelete: Restrict)
+  licenseKey     LicenseKey?     @relation(fields: [licenseKeyId], references: [id], onDelete: SetNull)
   sectionResults SectionResult[]
 
   @@index([userId])
@@ -267,21 +277,21 @@ model ExamResult {
 // ============================================
 
 model SectionResult {
-  id              String    @id @default(uuid())
+  id              String   @id @default(uuid())
   examResultId    String
   sectionId       String
-  correctCount    Int       @default(0)
-  incorrectCount  Int       @default(0)
-  unansweredCount Int       @default(0)
+  correctCount    Int      @default(0)
+  incorrectCount  Int      @default(0)
+  unansweredCount Int      @default(0)
   score           Int?
   maxScore        Int?
-  timeSpent       Int?      // seconds
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  timeSpent       Int? // seconds
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  examResult      ExamResult      @relation(fields: [examResultId], references: [id], onDelete: Cascade)
-  section         Section         @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  examResult      ExamResult       @relation(fields: [examResultId], references: [id], onDelete: Cascade)
+  section         Section          @relation(fields: [sectionId], references: [id], onDelete: Restrict)
   questionResults QuestionResult[]
 
   @@index([examResultId])
@@ -294,21 +304,21 @@ model SectionResult {
 // ============================================
 
 model QuestionResult {
-  id             String    @id @default(uuid())
+  id              String    @id @default(uuid())
   sectionResultId String
-  questionId     String
-  userAnswer     String?   @db.Text
-  isCorrect      Boolean?
-  pointsEarned   Int?
-  pointsPossible Int?
-  timeSpent      Int?      // seconds
-  answeredAt     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  questionId      String
+  userAnswer      String?   @db.Text
+  isCorrect       Boolean?
+  pointsEarned    Int?
+  pointsPossible  Int?
+  timeSpent       Int? // seconds
+  answeredAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relations
-  sectionResult  SectionResult  @relation(fields: [sectionResultId], references: [id], onDelete: Cascade)
-  question       Question       @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  sectionResult SectionResult @relation(fields: [sectionResultId], references: [id], onDelete: Cascade)
+  question      Question      @relation(fields: [questionId], references: [id], onDelete: Restrict)
 
   @@index([sectionResultId])
   @@index([questionId])
@@ -320,22 +330,22 @@ model QuestionResult {
 // ============================================
 
 model UserExamSession {
-  id                   String    @id @default(uuid())
-  userId               String
-  examId               String
-  examResultId         String?
-  currentSectionId     String?
+  id                    String    @id @default(uuid())
+  userId                String
+  examId                String
+  examResultId          String?
+  currentSectionId      String?
   currentQuestionNumber Int?
-  answers              Json      @default("{}") // { questionId: answer }
-  startTime            DateTime  @default(now())
+  answers               Json      @default("{}") // { questionId: answer }
+  startTime             DateTime  @default(now())
   lastActivityAt        DateTime  @default(now()) @updatedAt
-  expiresAt            DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  expiresAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   // Relations
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  exam      Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([examId])
@@ -352,8 +362,8 @@ model LicenseKey {
   userId     String?
   key        String    @unique
   keyType    KeyType
-  examIds    String[]  // Array of exam UUIDs
-  usageLimit Int?      // null = unlimited
+  examIds    String[] // Array of exam UUIDs
+  usageLimit Int? // null = unlimited
   usageCount Int       @default(0)
   validFrom  DateTime  @default(now())
   validUntil DateTime?
@@ -364,10 +374,10 @@ model LicenseKey {
   updatedAt  DateTime  @updatedAt
 
   // Relations
-  user         User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  issuer       User?            @relation("IssuedBy", fields: [issuedBy], references: [id], onDelete: SetNull)
-  examResults  ExamResult[]
-  usageLogs    KeyUsageLog[]
+  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  issuer      User?         @relation("IssuedBy", fields: [issuedBy], references: [id], onDelete: SetNull)
+  examResults ExamResult[]
+  usageLogs   KeyUsageLog[]
 
   @@index([key])
   @@index([userId])
@@ -408,21 +418,23 @@ model KeyUsageLog {
 // ============================================
 
 model WordBook {
-  id            String     @id @default(uuid())
-  userId        String
-  word          String
-  meaning       String     @db.Text
-  example       String?    @db.Text
-  difficulty    Difficulty?
-  source        String?    @db.VarChar(100)
-  sourceId      String?
-  masteryLevel  Int        @default(0) // 0-100
-  reviewCount   Int        @default(0)
-  lastReviewedAt DateTime?
-  nextReviewAt  DateTime?
-  tags          String[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id                 String      @id @default(uuid())
+  userId             String
+  word               String
+  meaning            String      @db.Text
+  example            String?     @db.Text
+  difficulty         Difficulty?
+  source             String?     @db.VarChar(100)
+  sourceId           String?
+  sourceExamResultId String? // 시험 결과에서 추출된 경우
+  extractedAt        DateTime? // 추출 시점
+  masteryLevel       Int         @default(0) // 0-100
+  reviewCount        Int         @default(0)
+  lastReviewedAt     DateTime?
+  nextReviewAt       DateTime?
+  tags               String[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -431,6 +443,7 @@ model WordBook {
   @@index([word])
   @@index([nextReviewAt])
   @@index([tags])
+  @@index([sourceExamResultId])
   @@map("word_books")
 }
 
@@ -456,4 +469,140 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ============================================
+// USER_GOAL
+// ============================================
+
+enum GoalType {
+  score_target
+  weakness_recovery
+  exam_count
+  word_count
+}
+
+enum GoalStatus {
+  active
+  achieved
+  failed
+  paused
+}
+
+model UserGoal {
+  id           String     @id @default(uuid())
+  userId       String
+  goalType     GoalType
+  targetValue  Int
+  currentValue Int        @default(0)
+  deadline     DateTime
+  status       GoalStatus @default(active)
+  milestones   Json? // 중간 목표들 [{date, target}]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([deadline])
+  @@map("user_goals")
+}
+
+// ============================================
+// LEARNING_PATTERN
+// ============================================
+
+model LearningPattern {
+  id            String   @id @default(uuid())
+  userId        String
+  date          DateTime @default(now())
+  hour          Int // 0-23
+  dayOfWeek     Int // 0-6 (0=일요일)
+  sessionLength Int // 분
+  score         Float?
+  focusLevel    Float? // 0-1, 집중도
+  efficiency    Float? // 학습 효율성 (0-1)
+  examResultId  String? // 연관된 시험 결과 ID
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, date])
+  @@index([hour])
+  @@index([dayOfWeek])
+  @@map("learning_patterns")
+}
+
+// ============================================
+// LEARNING_CYCLE
+// ============================================
+
+model LearningCycle {
+  id              String    @id @default(uuid())
+  userId          String
+  cycleType       String    // "weakness_focused", "vocabulary", "comprehensive"
+  stage           String    @default("identify") // "identify", "practice", "review", "test"
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  targetWords     String[]  @default([]) // 단어 ID 목록
+  targetExams     String[]  @default([]) // 시험 ID 목록
+  improvement     Float?   // 점수 향상
+  wordsLearned    Int       @default(0)
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stage])
+  @@map("learning_cycles")
+}
+
+// ============================================
+// EXAM TEMPLATE
+// ============================================
+
+model ExamTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  structure       Json     // { sections: [{type, questionCount, tags, difficulty}] }
+  questionPoolIds String[] @default([]) // 문제 풀 ID 목록 (현재는 태그/난이도로 필터링)
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  creator         User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  exams           Exam[]   @relation("TemplateBased")
+
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("exam_templates")
+}
+
+// ============================================
+// QUESTION POOL (향후 확장용)
+// ============================================
+
+model QuestionPool {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  tags            String[] @default([])
+  difficulty      Difficulty?
+  questionIds     String[] @default([]) // 문제 ID 목록
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  creator         User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([createdBy])
+  @@index([tags])
+  @@index([difficulty])
+  @@map("question_pools")
 }

@@ -33,59 +33,61 @@ export class LicenseKeyService {
    * 라이선스 키 목록 조회
    */
   async findAll(userId: string, role: string, query: LicenseKeyQueryDto) {
-    const { page = 1, limit = 20, keyType, isActive } = query;
-    const skip = (page - 1) * limit;
+    return this.prisma.executeWithRetry(async () => {
+      const { page = 1, limit = 20, keyType, isActive } = query;
+      const skip = (page - 1) * limit;
 
-    const where: any = {};
+      const where: any = {};
 
-    // Admin이 아니면 본인의 키만 조회
-    if (role !== 'admin') {
-      where.userId = userId;
-    }
+      // Admin이 아니면 본인의 키만 조회
+      if (role !== 'admin') {
+        where.userId = userId;
+      }
 
-    if (keyType) where.keyType = keyType;
-    if (isActive !== undefined) where.isActive = isActive;
+      if (keyType) where.keyType = keyType;
+      if (isActive !== undefined) where.isActive = isActive;
 
-    const [licenseKeys, total] = await Promise.all([
-      this.prisma.licenseKey.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { issuedAt: 'desc' },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
+      const [licenseKeys, total] = await Promise.all([
+        this.prisma.licenseKey.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { issuedAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
             },
           },
-        },
-      }),
-      this.prisma.licenseKey.count({ where }),
-    ]);
+        }),
+        this.prisma.licenseKey.count({ where }),
+      ]);
 
-    return {
-      data: licenseKeys.map((key) => ({
-        id: key.id,
-        key: key.key,
-        keyType: key.keyType,
-        examIds: key.examIds,
-        usageLimit: key.usageLimit,
-        usageCount: key.usageCount,
-        validFrom: key.validFrom,
-        validUntil: key.validUntil,
-        isActive: key.isActive,
-        issuedAt: key.issuedAt,
-        user: key.user,
-      })),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+      return {
+        data: licenseKeys.map((key) => ({
+          id: key.id,
+          key: key.key,
+          keyType: key.keyType,
+          examIds: key.examIds,
+          usageLimit: key.usageLimit,
+          usageCount: key.usageCount,
+          validFrom: key.validFrom,
+          validUntil: key.validUntil,
+          isActive: key.isActive,
+          issuedAt: key.issuedAt,
+          user: key.user,
+        })),
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }, 5); // 5회 재시도
   }
 
   /**

@@ -35,7 +35,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       }
     }
 
-    super({
+    // Prisma Client 옵션 설정
+    const prismaOptions: any = {
       datasources: {
         db: {
           url: dbUrl,
@@ -44,7 +45,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       log: process.env.NODE_ENV === 'development' 
         ? ['query', 'error', 'warn'] 
         : ['error'],
-    });
+    };
+
+    // PgBouncer 사용 시: Prisma의 connection pool 설정
+    // Prisma는 기본적으로 connection pool을 관리하지만,
+    // PgBouncer를 통한 연결에서는 prepared statements를 비활성화해야 함
+    if (isPgBouncer) {
+      // Prisma Engine 옵션: connection_limit은 URL 파라미터로 설정했지만
+      // 실제로는 Prisma Engine이 자동으로 관리하므로 URL 파라미터만으로 충분
+      // 추가 설정은 필요 없음 (pgbouncer=true가 이미 URL에 포함됨)
+    }
+
+    super(prismaOptions);
 
     // super() 호출 후 로깅
     if (isPgBouncer) {

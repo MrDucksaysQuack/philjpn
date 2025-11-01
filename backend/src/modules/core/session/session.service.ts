@@ -263,6 +263,96 @@ export class SessionService {
   }
 
   /**
+   * 문제별 피드백 (실시간 피드백)
+   */
+  async submitQuestion(
+    sessionId: string,
+    questionId: string,
+    userId: string,
+    dto: any,
+  ) {
+    const session = await this.prisma.userExamSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        exam: {
+          include: {
+            sections: {
+              include: {
+                questions: {
+                  where: { id: questionId },
+                  include: {
+                    section: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException(`세션을 찾을 수 없습니다. ID: ${sessionId}`);
+    }
+
+    if (session.userId !== userId) {
+      throw new BadRequestException('본인의 시험만 사용할 수 있습니다.');
+    }
+
+    const question = session.exam.sections
+      .flatMap((s) => s.questions)
+      .find((q) => q.id === questionId);
+
+    if (!question) {
+      throw new NotFoundException(`문제를 찾을 수 없습니다. ID: ${questionId}`);
+    }
+
+    // 답안 확인
+    const isCorrect = dto.answer === question.correctAnswer;
+
+    // 시간 관리 힌트 계산
+    const avgTimeForDifficulty: { [key: string]: number } = {
+      easy: 30,
+      medium: 60,
+      hard: 90,
+    };
+    const avgTime = avgTimeForDifficulty[question.difficulty || 'medium'] || 60;
+    const timeHint = dto.timeSpent
+      ? dto.timeSpent < avgTime * 0.7
+        ? `이 문제는 평균보다 ${Math.round(avgTime - dto.timeSpent)}초 빠르게 해결했습니다`
+        : dto.timeSpent > avgTime * 1.5
+          ? `이 문제에 평균보다 ${Math.round(dto.timeSpent - avgTime)}초 더 소요되었습니다`
+          : '시간 관리가 적절합니다'
+      : null;
+
+    // 즉각 피드백 생성
+    const immediateFeedback = isCorrect
+      ? '정답입니다! 👍'
+      : '아쉽네요. 설명을 확인해보세요';
+
+    // 팁 생성
+    const tips: string[] = [];
+    if (isCorrect && question.difficulty === 'hard') {
+      tips.push('고난이도 문제를 정확히 풀었습니다. 실력이 향상되고 있습니다!');
+    } else if (!isCorrect && question.tags && question.tags.length > 0) {
+      tips.push(`${question.tags[0]} 개념을 다시 확인해보세요`);
+    }
+
+    return {
+      isCorrect,
+      feedback: {
+        immediate: immediateFeedback,
+        explanation: question.explanation || '설명이 없습니다.',
+        tips,
+      },
+      performanceHint: {
+        timeManagement: timeHint,
+        difficulty: `난이도 ${question.difficulty || '중급'} 문제를 ${isCorrect ? '정확히' : '오답'}했습니다`,
+      },
+    };
+  }
+
+  /**
    * 시험 제출
    */
   async submitExam(sessionId: string, userId: string) {
