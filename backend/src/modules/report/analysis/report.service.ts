@@ -789,7 +789,7 @@ export class ReportService {
         focusDeclinePoint,
       },
       difficultyPreference: {
-        optimalDifficulty: 'medium', // TODO: 실제 난이도 데이터 분석
+        optimalDifficulty: await this.calculateOptimalDifficulty(userId),
         challengeAcceptance: 0.65,
       },
     };
@@ -1028,8 +1028,8 @@ export class ReportService {
     const weeks = timeDiff / (7 * 24 * 60 * 60 * 1000);
     const learningVelocity = weeks > 0 ? (lastScore - firstScore) / weeks : 0;
 
-    // 지식 보유율 (재시험 점수 비교) - TODO: 실제 재시험 데이터 필요
-    const retentionRate = 0.85; // 임시값
+    // 지식 보유율 (재시험 점수 비교) - 실제 재시험 데이터 분석
+    const retentionRate = await this.calculateRetentionRate(userId);
 
     // 연습 효율성
     const totalTime = examResults.reduce(
@@ -1040,12 +1040,15 @@ export class ReportService {
     const practiceEfficiency =
       totalTime > 0 ? scoreImprovement / (totalTime / 3600) : 0; // 시간당 점수 향상
 
-    // 약점 회복율
-    const weaknessRecoveryRate = 0.65; // TODO: 실제 약점 추적 필요
+    // 약점 회복율 - 실제 약점 추적
+    const weaknessRecoveryRate = await this.calculateWeaknessRecoveryRate(userId);
 
     // 개인 최고 성적 대비
     const bestScore = Math.max(...scores.map((s) => s.score));
     const vsPersonalBest = lastScore - bestScore;
+
+    // 동료 비교 - 실제 동료 점수와 비교
+    const vsPeers = await this.calculatePeerComparison(userId, lastScore);
 
     return {
       learningVelocity: Math.round(learningVelocity * 10) / 10,
@@ -1053,11 +1056,312 @@ export class ReportService {
       practiceEfficiency: Math.round(practiceEfficiency * 100) / 100,
       weaknessRecoveryRate: Math.round(weaknessRecoveryRate * 100) / 100,
       comparison: {
-        vsPeers: '상위 25%', // TODO: 실제 동료 비교
+        vsPeers,
         vsPersonalBest:
           vsPersonalBest >= 0 ? `+${Math.round(vsPersonalBest)}점` : `${Math.round(vsPersonalBest)}점`,
       },
     };
+  }
+
+  /**
+   * 지식 보유율 계산 (재시험 데이터 기반)
+   */
+  private async calculateRetentionRate(userId: string): Promise<number> {
+    // 같은 시험을 여러 번 친 경우 찾기
+    const allResults = await this.prisma.examResult.findMany({
+      where: {
+        userId,
+        status: 'completed',
+        totalScore: { not: null },
+        maxScore: { not: null },
+      },
+      select: {
+        examId: true,
+        totalScore: true,
+        maxScore: true,
+        startedAt: true,
+      },
+      orderBy: { startedAt: 'asc' },
+    });
+
+    // examId별로 그룹화 (재시험 찾기)
+    const examGroups = new Map<string, Array<{ score: number; date: Date }>>();
+    
+    allResults.forEach((result) => {
+      if (result.totalScore !== null && result.maxScore !== null && result.maxScore > 0) {
+        const score = (result.totalScore / result.maxScore) * 100;
+        if (!examGroups.has(result.examId)) {
+          examGroups.set(result.examId, []);
+        }
+        examGroups.get(result.examId)!.push({ score, date: result.startedAt });
+      }
+    });
+
+    // 재시험이 있는 시험들만 필터링 (2회 이상)
+    const retakeExams = Array.from(examGroups.entries())
+      .filter(([, attempts]) => attempts.length >= 2)
+      .map(([, attempts]) => attempts.sort((a, b) => a.date.getTime() - b.date.getTime()));
+
+    if (retakeExams.length === 0) {
+      return 0.85; // 기본값 (재시험 데이터가 없을 경우)
+    }
+
+    // 첫 시험과 재시험 비교하여 보유율 계산
+    // retentionRate = (재시험 점수 - 첫 시험 점수) / (100 - 첫 시험 점수)
+    // 만약 개선되었다면 보유율 높음, 악화되었다면 보유율 낮음
+    const retentionRates: number[] = [];
+
+    retakeExams.forEach((attempts) => {
+      const firstAttempt = attempts[0];
+      const lastAttempt = attempts[attempts.length - 1];
+      
+      if (firstAttempt.score < 100) {
+        const improvement = lastAttempt.score - firstAttempt.score;
+        const possibleImprovement = 100 - firstAttempt.score;
+        // 개선된 정도를 보유율로 계산 (개선 = 보유율 증가)
+        // 기본 보유율은 0.7로 시작하고, 개선 정도에 따라 가중
+        const baseRetention = 0.7;
+        const improvementFactor = possibleImprovement > 0 ? improvement / possibleImprovement : 0;
+        const retention = Math.min(1.0, baseRetention + improvementFactor * 0.3);
+        retentionRates.push(retention);
+      } else {
+        // 만점이면 재시험 점수에 따라 보유율 계산
+        const retention = lastAttempt.score / 100;
+        retentionRates.push(retention);
+      }
+    });
+
+    // 평균 보유율 계산
+    return retentionRates.length > 0
+      ? retentionRates.reduce((sum, rate) => sum + rate, 0) / retentionRates.length
+      : 0.85;
+  }
+
+  /**
+   * 약점 회복률 계산 (시간 경과별 약점 개선 추적)
+   */
+  private async calculateWeaknessRecoveryRate(userId: string): Promise<number> {
+    // 최근 약점 분석 (현재)
+    const currentWeakness = await this.getWeaknessAnalysis(userId);
+    const currentWeakTags = new Set(
+      currentWeakness.weaknessAreas.map((area) => area.tag)
+    );
+
+    // 과거 약점 분석 (30일 전 데이터 시뮬레이션)
+    const pastDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const pastResults = await this.prisma.examResult.findMany({
+      where: {
+        userId,
+        status: 'completed',
+        startedAt: {
+          gte: new Date(pastDate.getTime() - 30 * 24 * 60 * 60 * 1000), // 60일 전부터
+          lte: pastDate,
+        },
+      },
+      include: {
+        sectionResults: {
+          include: {
+            questionResults: {
+              include: {
+                question: {
+                  select: {
+                    tags: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 과거 약점 태그 추출
+    const pastTagStats: Map<string, { correct: number; total: number }> = new Map();
+    pastResults.forEach((result) => {
+      result.sectionResults.forEach((sr) => {
+        sr.questionResults.forEach((qr) => {
+          const question = qr.question;
+          if (question.tags && question.tags.length > 0) {
+            question.tags.forEach((tag: string) => {
+              if (!pastTagStats.has(tag)) {
+                pastTagStats.set(tag, { correct: 0, total: 0 });
+              }
+              const stats = pastTagStats.get(tag)!;
+              stats.total++;
+              if (qr.isCorrect) {
+                stats.correct++;
+              }
+            });
+          }
+        });
+      });
+    });
+
+    const pastWeakTags = new Set(
+      Array.from(pastTagStats.entries())
+        .filter(
+          ([, stats]) => stats.total > 0 && (stats.correct / stats.total) * 100 < 70
+        )
+        .map(([tag]) => tag)
+    );
+
+    if (pastWeakTags.size === 0) {
+      return 0.65; // 기본값 (과거 약점 데이터가 없을 경우)
+    }
+
+    // 회복된 약점 수 계산 (과거에는 약점이었지만 현재는 약점이 아닌 태그)
+    const recoveredTags = Array.from(pastWeakTags).filter((tag) => !currentWeakTags.has(tag));
+    const recoveryRate = recoveredTags.length / pastWeakTags.size;
+
+    return Math.min(1.0, recoveryRate);
+  }
+
+  /**
+   * 동료 비교 계산 (같은 시험을 친 다른 사용자들과 비교)
+   */
+  private async calculatePeerComparison(userId: string, userScore: number): Promise<string> {
+    // 사용자가 최근에 친 시험들 찾기
+    const userRecentResults = await this.prisma.examResult.findMany({
+      where: {
+        userId,
+        status: 'completed',
+        startedAt: {
+          gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 최근 90일
+        },
+      },
+      select: {
+        examId: true,
+        percentage: true,
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 10,
+    });
+
+    if (userRecentResults.length === 0) {
+      return '데이터 부족';
+    }
+
+    // 사용자가 친 시험들의 examId 목록
+    const examIds = userRecentResults.map((r) => r.examId);
+
+    // 같은 시험을 친 다른 사용자들의 점수 조회
+    const peerResults = await this.prisma.examResult.findMany({
+      where: {
+        examId: { in: examIds },
+        userId: { not: userId },
+        status: 'completed',
+        percentage: { not: null },
+      },
+      select: {
+        percentage: true,
+      },
+    });
+
+    if (peerResults.length === 0) {
+      return '데이터 부족';
+    }
+
+    // 동료들의 평균 점수 계산
+    const peerScores = peerResults
+      .map((r) => (r.percentage ? Number(r.percentage) : 0))
+      .filter((score) => score > 0);
+    
+    if (peerScores.length === 0) {
+      return '데이터 부족';
+    }
+
+    const peerAverage = peerScores.reduce((sum, score) => sum + score, 0) / peerScores.length;
+    
+    // 사용자 점수와 비교하여 상위 X% 계산
+    const betterThanCount = peerScores.filter((score) => userScore > score).length;
+    const percentile = ((peerScores.length - betterThanCount) / peerScores.length) * 100;
+
+    if (percentile >= 90) {
+      return '상위 10%';
+    } else if (percentile >= 75) {
+      return '상위 25%';
+    } else if (percentile >= 50) {
+      return '상위 50%';
+    } else if (percentile >= 25) {
+      return '상위 75%';
+    } else {
+      return '하위 25%';
+    }
+  }
+
+  /**
+   * 최적 난이도 계산 (난이도별 성과 분석)
+   */
+  private async calculateOptimalDifficulty(userId: string): Promise<'easy' | 'medium' | 'hard'> {
+    // 최근 90일간의 시험 결과에서 난이도별 성과 분석
+    const examResults = await this.prisma.examResult.findMany({
+      where: {
+        userId,
+        status: 'completed',
+        startedAt: {
+          gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+        },
+      },
+      include: {
+        sectionResults: {
+          include: {
+            questionResults: {
+              include: {
+                question: {
+                  select: {
+                    difficulty: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 난이도별 성과 집계
+    const difficultyStats: Map<string, { correct: number; total: number; avgScore: number }> = new Map();
+    
+    examResults.forEach((result) => {
+      result.sectionResults.forEach((sr) => {
+        sr.questionResults.forEach((qr) => {
+          const difficulty = qr.question.difficulty || 'medium';
+          if (!difficultyStats.has(difficulty)) {
+            difficultyStats.set(difficulty, { correct: 0, total: 0, avgScore: 0 });
+          }
+          const stats = difficultyStats.get(difficulty)!;
+          stats.total++;
+          if (qr.isCorrect) {
+            stats.correct++;
+          }
+        });
+      });
+    });
+
+    // 난이도별 평균 점수 계산
+    const difficultyPerformance: Array<{ difficulty: string; score: number }> = [];
+    difficultyStats.forEach((stats, difficulty) => {
+      if (stats.total > 0) {
+        const correctRate = (stats.correct / stats.total) * 100;
+        difficultyPerformance.push({ difficulty, score: correctRate });
+      }
+    });
+
+    if (difficultyPerformance.length === 0) {
+      return 'medium'; // 기본값
+    }
+
+    // 가장 높은 성과를 보이는 난이도 찾기
+    const bestDifficulty = difficultyPerformance.sort((a, b) => b.score - a.score)[0];
+    
+    // 최소 5문제 이상 풀어야 신뢰성 있는 데이터로 간주
+    const minQuestions = 5;
+    const bestStats = difficultyStats.get(bestDifficulty.difficulty);
+    if (!bestStats || bestStats.total < minQuestions) {
+      return 'medium';
+    }
+
+    return bestDifficulty.difficulty as 'easy' | 'medium' | 'hard';
   }
 }
 
