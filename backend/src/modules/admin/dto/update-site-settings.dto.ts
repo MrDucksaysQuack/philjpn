@@ -134,10 +134,20 @@ export class UpdateSiteSettingsDto {
   @IsObject()
   companyStats?: any;
 
+  @ApiPropertyOptional({ description: '회사 가치 데이터 (JSON) - 미션/비전/가치' })
+  @IsOptional()
+  @IsObject()
+  companyValues?: any;
+
   @ApiPropertyOptional({ description: '팀원 데이터 (JSON)' })
   @IsOptional()
   @IsObject()
   teamMembers?: any;
+
+  @ApiPropertyOptional({ description: '팀 문화 데이터 (JSON)' })
+  @IsOptional()
+  @IsObject()
+  teamCulture?: any;
 
   @ApiPropertyOptional({ description: '서비스 기능 데이터 (JSON)' })
   @IsOptional()

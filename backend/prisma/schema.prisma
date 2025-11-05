@@ -629,10 +629,12 @@ model SiteSettings {
   aboutTeam    String? @db.Text // 팀 소개 (마크다운 지원)
   contactInfo  Json? // { email, phone, address, socialMedia: {...} }
   serviceInfo  String? @db.Text // 서비스 소개 (마크다운 지원)
-  
+
   // 구조화된 데이터 (JSON)
   companyStats    Json? // { stats: [{ icon, value, suffix, label }] }
+  companyValues   Json? // { values: [{ icon, title, description }] } - 미션/비전/가치
   teamMembers     Json? // { members: [{ name, role, description, imageUrl, socialLinks }] }
+  teamCulture     Json? // { culture: [{ icon, title, description }] } - 팀 문화
   serviceFeatures Json? // { features: [{ icon, title, description }] }
   serviceBenefits Json? // { benefits: [{ text }] }
   serviceProcess  Json? // { steps: [{ step, title, description }] }

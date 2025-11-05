@@ -24,7 +24,9 @@ export class SiteSettingsService {
         contactInfo: true,
         serviceInfo: true,
         companyStats: true,
+        companyValues: true,
         teamMembers: true,
+        teamCulture: true,
         serviceFeatures: true,
         serviceBenefits: true,
         serviceProcess: true,
@@ -93,8 +95,14 @@ export class SiteSettingsService {
     if (data.companyStats) {
       updateData.companyStats = data.companyStats as any;
     }
+    if (data.companyValues) {
+      updateData.companyValues = data.companyValues as any;
+    }
     if (data.teamMembers) {
       updateData.teamMembers = data.teamMembers as any;
+    }
+    if (data.teamCulture) {
+      updateData.teamCulture = data.teamCulture as any;
     }
     if (data.serviceFeatures) {
       updateData.serviceFeatures = data.serviceFeatures as any;
@@ -152,7 +160,9 @@ export class SiteSettingsService {
       contactInfo: null,
       serviceInfo: null,
       companyStats: null,
+      companyValues: null,
       teamMembers: null,
+      teamCulture: null,
       serviceFeatures: null,
       serviceBenefits: null,
       serviceProcess: null,

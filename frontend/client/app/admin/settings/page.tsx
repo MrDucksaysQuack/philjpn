@@ -45,7 +45,9 @@ export default function SiteSettingsPage() {
     },
     serviceInfo: "",
     companyStats: { stats: [] },
+    companyValues: { values: [] },
     teamMembers: { members: [] },
+    teamCulture: { culture: [] },
     serviceFeatures: { features: [] },
     serviceBenefits: { benefits: [] },
     serviceProcess: { steps: [] },
@@ -71,7 +73,9 @@ export default function SiteSettingsPage() {
         },
         serviceInfo: settings.serviceInfo || "",
         companyStats: settings.companyStats || { stats: [] },
+        companyValues: settings.companyValues || { values: [] },
         teamMembers: settings.teamMembers || { members: [] },
+        teamCulture: settings.teamCulture || { culture: [] },
         serviceFeatures: settings.serviceFeatures || { features: [] },
         serviceBenefits: settings.serviceBenefits || { benefits: [] },
         serviceProcess: settings.serviceProcess || { steps: [] },
@@ -690,6 +694,86 @@ export default function SiteSettingsPage() {
                   </div>
                 </div>
 
+                {/* 회사 가치 (미션/비전/가치) */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">회사 가치 (미션/비전/가치)</h3>
+                  <div className="space-y-4">
+                    {(formData.companyValues?.values || []).map((value, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                        <input
+                          type="text"
+                          value={value.icon || ""}
+                          onChange={(e) => {
+                            const newValues = [...(formData.companyValues?.values || [])];
+                            newValues[index] = { ...value, icon: e.target.value };
+                            setFormData({
+                              ...formData,
+                              companyValues: { values: newValues },
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="아이콘 이름"
+                        />
+                        <input
+                          type="text"
+                          value={value.title || ""}
+                          onChange={(e) => {
+                            const newValues = [...(formData.companyValues?.values || [])];
+                            newValues[index] = { ...value, title: e.target.value };
+                            setFormData({
+                              ...formData,
+                              companyValues: { values: newValues },
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="제목 (예: 미션, 비전, 가치)"
+                        />
+                        <textarea
+                          value={value.description || ""}
+                          onChange={(e) => {
+                            const newValues = [...(formData.companyValues?.values || [])];
+                            newValues[index] = { ...value, description: e.target.value };
+                            setFormData({
+                              ...formData,
+                              companyValues: { values: newValues },
+                            });
+                          }}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="설명"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newValues = formData.companyValues?.values?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              companyValues: { values: newValues },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          companyValues: {
+                            values: [...(formData.companyValues?.values || []), { icon: "", title: "", description: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 가치 추가
+                    </button>
+                  </div>
+                </div>
+
                 {/* 팀원 */}
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">팀원</h3>
@@ -768,6 +852,86 @@ export default function SiteSettingsPage() {
                       className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
                     >
                       + 팀원 추가
+                    </button>
+                  </div>
+                </div>
+
+                {/* 팀 문화 */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">팀 문화</h3>
+                  <div className="space-y-4">
+                    {(formData.teamCulture?.culture || []).map((culture, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                        <input
+                          type="text"
+                          value={culture.icon || ""}
+                          onChange={(e) => {
+                            const newCulture = [...(formData.teamCulture?.culture || [])];
+                            newCulture[index] = { ...culture, icon: e.target.value };
+                            setFormData({
+                              ...formData,
+                              teamCulture: { culture: newCulture },
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="아이콘 이름"
+                        />
+                        <input
+                          type="text"
+                          value={culture.title || ""}
+                          onChange={(e) => {
+                            const newCulture = [...(formData.teamCulture?.culture || [])];
+                            newCulture[index] = { ...culture, title: e.target.value };
+                            setFormData({
+                              ...formData,
+                              teamCulture: { culture: newCulture },
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="제목"
+                        />
+                        <textarea
+                          value={culture.description || ""}
+                          onChange={(e) => {
+                            const newCulture = [...(formData.teamCulture?.culture || [])];
+                            newCulture[index] = { ...culture, description: e.target.value };
+                            setFormData({
+                              ...formData,
+                              teamCulture: { culture: newCulture },
+                            });
+                          }}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="설명"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCulture = formData.teamCulture?.culture?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              teamCulture: { culture: newCulture },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          teamCulture: {
+                            culture: [...(formData.teamCulture?.culture || []), { icon: "", title: "", description: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 문화 추가
                     </button>
                   </div>
                 </div>

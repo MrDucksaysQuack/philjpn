@@ -634,6 +634,13 @@ export interface SiteSettings {
       label: string;
     }>;
   } | null;
+  companyValues?: {
+    values?: Array<{
+      icon?: string;
+      title: string;
+      description: string;
+    }>;
+  } | null;
   teamMembers?: {
     members?: Array<{
       name: string;
@@ -645,6 +652,13 @@ export interface SiteSettings {
         linkedin?: string;
         github?: string;
       };
+    }>;
+  } | null;
+  teamCulture?: {
+    culture?: Array<{
+      icon?: string;
+      title: string;
+      description: string;
     }>;
   } | null;
   serviceFeatures?: {
@@ -696,6 +710,13 @@ export interface UpdateSiteSettingsDto {
       label: string;
     }>;
   };
+  companyValues?: {
+    values?: Array<{
+      icon?: string;
+      title: string;
+      description: string;
+    }>;
+  };
   teamMembers?: {
     members?: Array<{
       name: string;
@@ -707,6 +728,13 @@ export interface UpdateSiteSettingsDto {
         linkedin?: string;
         github?: string;
       };
+    }>;
+  };
+  teamCulture?: {
+    culture?: Array<{
+      icon?: string;
+      title: string;
+      description: string;
     }>;
   };
   serviceFeatures?: {
