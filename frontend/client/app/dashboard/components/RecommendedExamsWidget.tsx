@@ -35,7 +35,7 @@ export default function RecommendedExamsWidget() {
         {recommendations.length > 0 && (
           <Link
             href="/exams/recommended"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+            className="text-sm text-theme-primary hover:opacity-80 font-medium flex items-center gap-1"
           >
             모든 추천 시험 보기
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@ export default function RecommendedExamsWidget() {
           <p className="text-gray-600 mb-6">추천할 시험이 없습니다.</p>
           <Link
             href="/exams"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-theme-gradient-primary text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg"
           >
             시험 목록 보기
           </Link>

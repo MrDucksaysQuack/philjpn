@@ -110,15 +110,17 @@ export default function QuickStats() {
       label: "오늘 응시한 시험",
       value: todayExams || 0,
       icon: "📝",
-      color: "from-blue-500 to-blue-600",
-      bgColor: "from-blue-50 to-blue-100",
+      color: "bg-theme-gradient-primary",
+      bgColor: "bg-theme-primary-light",
+      textColor: "text-theme-primary",
     },
     {
       label: "이번 주 목표 진행률",
       value: `${weeklyGoalProgress}%`,
       icon: "🎯",
-      color: "from-purple-500 to-purple-600",
-      bgColor: "from-purple-50 to-purple-100",
+      color: "bg-theme-gradient-secondary",
+      bgColor: "bg-theme-secondary-light",
+      textColor: "text-theme-secondary",
     },
     {
       label: "최근 평균 점수",
@@ -144,14 +146,14 @@ export default function QuickStats() {
           className="bg-gradient-to-br bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className={`w-14 h-14 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center text-2xl shadow-md`}>
+            <div className={`w-14 h-14 ${stat.color || `bg-gradient-to-br ${stat.color}`} rounded-xl flex items-center justify-center text-2xl shadow-md`}>
               {stat.icon}
             </div>
-            <div className={`text-sm font-semibold px-3 py-1 rounded-lg bg-gradient-to-r ${stat.bgColor} border border-gray-200`}>
+            <div className={`text-sm font-semibold px-3 py-1 rounded-lg ${stat.bgColor || `bg-gradient-to-r ${stat.bgColor}`} border border-gray-200`}>
               {stat.label}
             </div>
           </div>
-          <div className={`text-3xl font-extrabold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+          <div className={`text-3xl font-extrabold ${stat.textColor ? stat.textColor : `bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}`}>
             {stat.value}
           </div>
         </div>

@@ -133,7 +133,7 @@ export default function ResultsPage() {
                       <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
                         <div className="flex items-baseline justify-between">
                           <div>
-                            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            <div className="text-3xl font-bold text-theme-primary">
                               {result.totalScore} <span className="text-lg text-gray-500">/ {result.maxScore}</span>
                             </div>
                             {result.percentage && (
@@ -179,7 +179,7 @@ export default function ResultsPage() {
               <p className="text-gray-500 mb-6">시험을 응시하면 결과가 여기에 표시됩니다</p>
               <Link
                 href="/exams"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 시험 시작하기
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

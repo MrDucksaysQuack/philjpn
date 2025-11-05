@@ -79,27 +79,27 @@ export default function StatisticsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg p-8 border border-blue-200 hover:shadow-xl transition-all">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-theme-gradient-primary rounded-xl flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div className="text-sm font-semibold text-blue-700">총 시험 수</div>
                   </div>
-                  <div className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                  <div className="text-4xl font-extrabold text-theme-primary">
                     {stats.totalExams}
                   </div>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-lg p-8 border border-purple-200 hover:shadow-xl transition-all">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-theme-gradient-secondary rounded-xl flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
                     <div className="text-sm font-semibold text-purple-700">평균 점수</div>
                   </div>
-                  <div className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                  <div className="text-4xl font-extrabold text-theme-secondary">
                     {stats.averageScore}
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function StatisticsPage() {
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                 <div
-                                  className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-600 rounded-full transition-all duration-1000"
+                                  className="h-full bg-theme-gradient-primary rounded-full transition-all duration-1000"
                                   style={{ width: `${Math.min((section.averageScore / 100) * 100, 100)}%` }}
                                 />
                               </div>

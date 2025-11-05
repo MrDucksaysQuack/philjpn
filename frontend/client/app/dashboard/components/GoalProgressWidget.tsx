@@ -63,7 +63,7 @@ export default function GoalProgressWidget() {
           {mainGoal && (
             <Link
               href="/analysis?tab=goals"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+              className="text-sm text-theme-primary hover:opacity-80 font-medium flex items-center gap-1"
             >
               자세히 보기
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

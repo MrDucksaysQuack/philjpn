@@ -37,7 +37,7 @@ export default function ExamsPage() {
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 overflow-hidden">
+        <div className="relative bg-theme-gradient-diagonal overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
@@ -74,12 +74,12 @@ export default function ExamsPage() {
               >
                 <div className="relative">
                   {/* 그라데이션 헤더 */}
-                  <div className="h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700"></div>
+                  <div className="h-2 bg-theme-gradient-diagonal"></div>
                   
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
+                        <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-theme-primary transition-all">
                           {exam.title}
                         </h2>
                         {exam.description && (

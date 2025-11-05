@@ -43,7 +43,7 @@ export default function TemplatesPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
-        <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 overflow-hidden">
+        <div className="relative bg-theme-gradient-diagonal overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
@@ -62,7 +62,7 @@ export default function TemplatesPage() {
             <h2 className="text-2xl font-bold text-gray-900">템플릿 목록</h2>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+              className="px-6 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg"
             >
               + 새 템플릿 생성
             </button>
@@ -148,7 +148,7 @@ export default function TemplatesPage() {
               <p className="text-gray-500 mb-4">템플릿이 없습니다.</p>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold"
+                className="px-6 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold"
               >
                 첫 템플릿 생성하기
               </button>
@@ -363,7 +363,7 @@ function CreateTemplateModal({
           <button
             onClick={() => createMutation.mutate(formData)}
             disabled={!formData.name || createMutation.isPending}
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+            className="px-6 py-2 bg-theme-gradient-primary text-white rounded-lg hover:opacity-90 disabled:opacity-50"
           >
             {createMutation.isPending ? "생성 중..." : "생성"}
           </button>
@@ -471,7 +471,7 @@ function CreateExamFromTemplateModal({
           <button
             onClick={() => createMutation.mutate()}
             disabled={!formData.title || createMutation.isPending}
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+            className="px-6 py-2 bg-theme-gradient-primary text-white rounded-lg hover:opacity-90 disabled:opacity-50"
           >
             {createMutation.isPending ? "생성 중..." : "시험 생성"}
           </button>

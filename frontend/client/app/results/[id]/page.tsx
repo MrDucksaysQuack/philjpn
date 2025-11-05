@@ -163,7 +163,7 @@ export default function ResultDetailPage() {
                   </div>
                   <div className="text-sm font-semibold text-blue-700">총점</div>
                 </div>
-                <div className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                <div className="text-3xl font-extrabold text-theme-primary">
                   {result.totalScore ?? "-"} <span className="text-lg text-gray-500">/ {result.maxScore ?? "-"}</span>
                 </div>
               </div>
@@ -191,7 +191,7 @@ export default function ResultDetailPage() {
                   </div>
                   <div className="text-sm font-semibold text-purple-700">소요 시간</div>
                 </div>
-                <div className="text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <div className="text-3xl font-extrabold text-theme-secondary">
                   {result.timeSpent
                     ? `${Math.floor(result.timeSpent / 60)}분 ${result.timeSpent % 60}초`
                     : "-"}

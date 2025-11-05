@@ -597,6 +597,84 @@ export interface CreateExamFromTemplateData {
   };
 }
 
+// Site Settings Types
+export interface SocialMedia {
+  website?: string;
+  facebook?: string;
+  twitter?: string;
+  instagram?: string;
+  linkedin?: string;
+}
+
+export interface ContactInfo {
+  email?: string;
+  phone?: string;
+  address?: string;
+  socialMedia?: SocialMedia;
+}
+
+export interface SiteSettings {
+  id?: string;
+  companyName: string;
+  logoUrl?: string | null;
+  faviconUrl?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  accentColor?: string | null;
+  colorScheme?: any;
+  aboutCompany?: string | null;
+  aboutTeam?: string | null;
+  contactInfo?: ContactInfo | null;
+  serviceInfo?: string | null;
+  isActive?: boolean;
+  updatedBy?: string | null;
+  updatedAt?: string;
+  createdAt?: string;
+  updater?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface UpdateSiteSettingsDto {
+  companyName?: string;
+  logoUrl?: string;
+  faviconUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  aboutCompany?: string;
+  aboutTeam?: string;
+  contactInfo?: ContactInfo;
+  serviceInfo?: string;
+}
+
+export interface ColorAnalysisResult {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  colorScheme: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    gradients: {
+      primary: string;
+      secondary: string;
+      accent: string;
+    };
+    textColors: {
+      primary: string;
+      secondary: string;
+    };
+    bgColors: {
+      primary: string;
+      secondary: string;
+    };
+  };
+  confidence: number;
+}
+
 export interface QuestionPool {
   id: string;
   name: string;
@@ -694,4 +772,19 @@ export const adminAPI = {
     apiClient.put<{ data: QuestionPool }>(`/admin/question-pools/${id}`, data),
   deleteQuestionPool: (id: string) =>
     apiClient.delete(`/admin/question-pools/${id}`),
+  // Site Settings APIs
+  getSiteSettings: () =>
+    apiClient.get<{ data: SiteSettings }>("/admin/site-settings"),
+  updateSiteSettings: (data: UpdateSiteSettingsDto) =>
+    apiClient.put<{ data: SiteSettings }>("/admin/site-settings", data),
+  analyzeColors: (logoUrl: string) =>
+    apiClient.post<{ data: ColorAnalysisResult }>("/admin/site-settings/analyze-colors", { logoUrl }),
+};
+
+// Site Settings API (Public)
+export const siteSettingsAPI = {
+  getPublicSettings: () =>
+    apiClient.get<{ data: SiteSettings }>("/site-settings"),
+  getAboutSection: (section: string) =>
+    apiClient.get<{ data: any }>(`/site-settings/about?section=${section}`),
 };

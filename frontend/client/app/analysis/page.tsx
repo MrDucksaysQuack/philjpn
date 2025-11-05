@@ -477,12 +477,12 @@ export default function AnalysisPage() {
                             </div>
                             {/* 감정적 진행 상황 메시지 */}
                             {goal.progress >= 0.9 && goal.progress < 1 && (
-                              <p className="text-sm text-center text-blue-600 font-semibold mt-2">
+                              <p className="text-sm text-center text-theme-primary font-semibold mt-2">
                                 🎯 거의 다 왔어요! 화이팅!
                               </p>
                             )}
                             {goal.progress >= 0.7 && goal.progress < 0.9 && (
-                              <p className="text-sm text-center text-purple-600 font-semibold mt-2">
+                              <p className="text-sm text-center text-theme-secondary font-semibold mt-2">
                                 💪 좋아요! 계속 달려봐요!
                               </p>
                             )}

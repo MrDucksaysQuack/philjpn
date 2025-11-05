@@ -10,7 +10,7 @@ export default function HomePage() {
     <>
       <Header />
       {/* Hero Section with Gradient Background */}
-      <div className="relative min-h-[600px] bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 overflow-hidden">
+      <div className="relative min-h-[600px] bg-theme-gradient-diagonal overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
@@ -30,7 +30,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="group w-full sm:w-auto bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                    className="group w-full sm:w-auto bg-white text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
                     <span className="flex items-center justify-center gap-2">
                       <span className="text-xl">📊</span>
@@ -52,7 +52,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/exams"
-                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
+                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
                   >
                     시험 시작하기
                   </Link>
@@ -61,7 +61,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/exams"
-                    className="group w-full sm:w-auto bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                    className="group w-full sm:w-auto bg-white text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
                     <span className="flex items-center justify-center gap-2">
                       시험 시작하기
@@ -82,7 +82,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/register"
-                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105"
+                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
                   >
                     회원가입
                   </Link>

@@ -212,6 +212,13 @@ export default function AdminDashboardPage() {
             <h3 className="text-lg font-semibold mb-2">실시간 모니터링</h3>
             <p className="text-gray-600 text-sm">진행 중인 시험 세션 모니터링</p>
           </Link>
+          <Link
+            href="/admin/settings"
+            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold mb-2">사이트 설정</h3>
+            <p className="text-gray-600 text-sm">회사 정보, 로고, 색상 테마 및 콘텐츠 관리</p>
+          </Link>
         </div>
 
         {/* 최근 활동 */}

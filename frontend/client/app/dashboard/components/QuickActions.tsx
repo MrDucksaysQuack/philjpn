@@ -8,14 +8,14 @@ export default function QuickActions() {
       label: "시험 시작하기",
       href: "/exams",
       icon: "📝",
-      color: "from-blue-600 to-blue-700",
+      color: "bg-theme-gradient-primary",
       description: "새로운 시험에 도전하세요",
     },
     {
       label: "자기 분석 보기",
       href: "/analysis",
       icon: "📊",
-      color: "from-purple-600 to-purple-700",
+      color: "bg-theme-gradient-secondary",
       description: "학습 패턴과 약점을 분석하세요",
     },
     {
@@ -41,11 +41,11 @@ export default function QuickActions() {
             className="group bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all transform hover:-translate-y-1"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-14 h-14 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-2xl shadow-md transform group-hover:scale-110 transition-transform`}>
+              <div className={`w-14 h-14 ${action.color} rounded-xl flex items-center justify-center text-2xl shadow-md transform group-hover:scale-110 transition-transform`}>
                 {action.icon}
               </div>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
+            <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-theme-primary transition-all">
               {action.label}
             </h3>
             <p className="text-sm text-gray-600">{action.description}</p>
