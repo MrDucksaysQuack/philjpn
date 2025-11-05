@@ -9,37 +9,48 @@ import {
   IsEmail,
   IsArray,
   ValidateNested as ValidateNestedArray,
+  ValidateIf,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 class SocialMediaDto {
   @ApiPropertyOptional({ description: '웹사이트 URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.website !== undefined)
   @IsString()
   @IsUrl()
   website?: string;
 
   @ApiPropertyOptional({ description: 'Facebook URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.facebook !== undefined)
   @IsString()
   @IsUrl()
   facebook?: string;
 
   @ApiPropertyOptional({ description: 'Twitter URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.twitter !== undefined)
   @IsString()
   @IsUrl()
   twitter?: string;
 
   @ApiPropertyOptional({ description: 'Instagram URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.instagram !== undefined)
   @IsString()
   @IsUrl()
   instagram?: string;
 
   @ApiPropertyOptional({ description: 'LinkedIn URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.linkedin !== undefined)
   @IsString()
   @IsUrl()
   linkedin?: string;
@@ -79,30 +90,40 @@ export class UpdateSiteSettingsDto {
 
   @ApiPropertyOptional({ description: '로고 URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.logoUrl !== undefined)
   @IsString()
   @IsUrl()
   logoUrl?: string;
 
   @ApiPropertyOptional({ description: '파비콘 URL' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.faviconUrl !== undefined)
   @IsString()
   @IsUrl()
   faviconUrl?: string;
 
   @ApiPropertyOptional({ description: 'Primary 색상 (HEX 코드)', example: '#667eea' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.primaryColor !== undefined)
   @IsString()
   @Matches(/^#[0-9A-Fa-f]{6}$/, { message: '올바른 HEX 색상 코드 형식이 아닙니다 (예: #667eea)' })
   primaryColor?: string;
 
   @ApiPropertyOptional({ description: 'Secondary 색상 (HEX 코드)', example: '#764ba2' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.secondaryColor !== undefined)
   @IsString()
   @Matches(/^#[0-9A-Fa-f]{6}$/, { message: '올바른 HEX 색상 코드 형식이 아닙니다' })
   secondaryColor?: string;
 
   @ApiPropertyOptional({ description: 'Accent 색상 (HEX 코드)', example: '#4facfe' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @ValidateIf((o) => o.accentColor !== undefined)
   @IsString()
   @Matches(/^#[0-9A-Fa-f]{6}$/, { message: '올바른 HEX 색상 코드 형식이 아닙니다' })
   accentColor?: string;

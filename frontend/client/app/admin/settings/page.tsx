@@ -135,7 +135,21 @@ export default function SiteSettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    updateMutation.mutate(formData);
+    
+    // 빈 문자열을 null로 변환 (DTO 검증 통과를 위해)
+    const cleanedData: UpdateSiteSettingsDto = {
+      ...formData,
+      logoUrl: formData.logoUrl?.trim() || undefined,
+      faviconUrl: formData.faviconUrl?.trim() || undefined,
+      primaryColor: formData.primaryColor?.trim() || undefined,
+      secondaryColor: formData.secondaryColor?.trim() || undefined,
+      accentColor: formData.accentColor?.trim() || undefined,
+      aboutCompany: formData.aboutCompany?.trim() || undefined,
+      aboutTeam: formData.aboutTeam?.trim() || undefined,
+      serviceInfo: formData.serviceInfo?.trim() || undefined,
+    };
+    
+    updateMutation.mutate(cleanedData);
   };
 
   if (!user || user.role !== "admin") {
