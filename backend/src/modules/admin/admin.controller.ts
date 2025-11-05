@@ -17,10 +17,13 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { AdminService } from './services/admin.service';
 import { TemplateService } from './services/template.service';
 import { QuestionPoolService } from './services/question-pool.service';
+import { SiteSettingsService } from './services/site-settings.service';
+import { ColorAnalysisService } from './services/color-analysis.service';
 import { AdminUserQueryDto } from './dto/user-query.dto';
 import { AdminUpdateUserDto } from './dto/update-user.dto';
 import { AdminExamResultQueryDto } from './dto/exam-result-query.dto';
 import { CreateTemplateDto } from './dto/create-template.dto';
+import { UpdateSiteSettingsDto } from './dto/update-site-settings.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -39,6 +42,8 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly templateService: TemplateService,
     private readonly questionPoolService: QuestionPoolService,
+    private readonly siteSettingsService: SiteSettingsService,
+    private readonly colorAnalysisService: ColorAnalysisService,
   ) {}
 
   // ==================== 사용자 관리 ====================
@@ -279,6 +284,70 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   deleteQuestionPool(@Param('id') id: string, @CurrentUser() user: any) {
     return this.questionPoolService.deleteQuestionPool(id, user.id);
+  }
+
+  // ==================== 사이트 설정 관리 ====================
+
+  @Get('site-settings')
+  @ApiOperation({ summary: '사이트 설정 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '사이트 설정 조회 성공' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async getSiteSettings() {
+    try {
+      return { data: await this.siteSettingsService.getAdminSettings() };
+    } catch (error: any) {
+      this.logger.error('❌ getSiteSettings 에러:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw error;
+    }
+  }
+
+  @Put('site-settings')
+  @ApiOperation({ summary: '사이트 설정 업데이트 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '사이트 설정 업데이트 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @HttpCode(HttpStatus.OK)
+  async updateSiteSettings(
+    @Body() dto: UpdateSiteSettingsDto,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      return {
+        data: await this.siteSettingsService.updateSettings(user.id, dto),
+      };
+    } catch (error: any) {
+      this.logger.error('❌ updateSiteSettings 에러:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw error;
+    }
+  }
+
+  @Post('site-settings/analyze-colors')
+  @ApiOperation({ summary: '로고 색상 분석 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '색상 분석 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @HttpCode(HttpStatus.OK)
+  async analyzeColors(@Body() body: { logoUrl: string }) {
+    try {
+      const result =
+        await this.colorAnalysisService.analyzeImageColors(body.logoUrl);
+      return { data: result };
+    } catch (error: any) {
+      this.logger.error('❌ analyzeColors 에러:', {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack,
+      });
+      throw error;
+    }
   }
 }
 

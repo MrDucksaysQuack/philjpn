@@ -77,19 +77,20 @@ model User {
   deletedAt       DateTime?
 
   // Relations
-  createdExams      Exam[]
-  examResults       ExamResult[]
-  licenseKeys       LicenseKey[]
-  wordBooks         WordBook[]
-  examSessions      UserExamSession[]
-  auditLogs         AuditLog[]
-  keyUsageLogs      KeyUsageLog[]
-  issuedLicenseKeys LicenseKey[]      @relation("IssuedBy")
-  goals             UserGoal[]
-  learningPatterns  LearningPattern[]
-  learningCycles    LearningCycle[]
+  createdExams         Exam[]
+  examResults          ExamResult[]
+  licenseKeys          LicenseKey[]
+  wordBooks            WordBook[]
+  examSessions         UserExamSession[]
+  auditLogs            AuditLog[]
+  keyUsageLogs         KeyUsageLog[]
+  issuedLicenseKeys    LicenseKey[]      @relation("IssuedBy")
+  goals                UserGoal[]
+  learningPatterns     LearningPattern[]
+  learningCycles       LearningCycle[]
   createdExamTemplates ExamTemplate[]
   createdQuestionPools QuestionPool[]
+  updatedSiteSettings  SiteSettings[]    @relation("SiteSettingsUpdater")
 
   @@index([email])
   @@index([role])
@@ -541,19 +542,19 @@ model LearningPattern {
 // ============================================
 
 model LearningCycle {
-  id              String    @id @default(uuid())
-  userId          String
-  cycleType       String    // "weakness_focused", "vocabulary", "comprehensive"
-  stage           String    @default("identify") // "identify", "practice", "review", "test"
-  startDate       DateTime  @default(now())
-  endDate         DateTime?
-  targetWords     String[]  @default([]) // 단어 ID 목록
-  targetExams     String[]  @default([]) // 시험 ID 목록
-  improvement     Float?   // 점수 향상
-  wordsLearned    Int       @default(0)
-  
+  id           String    @id @default(uuid())
+  userId       String
+  cycleType    String // "weakness_focused", "vocabulary", "comprehensive"
+  stage        String    @default("identify") // "identify", "practice", "review", "test"
+  startDate    DateTime  @default(now())
+  endDate      DateTime?
+  targetWords  String[]  @default([]) // 단어 ID 목록
+  targetExams  String[]  @default([]) // 시험 ID 목록
+  improvement  Float? // 점수 향상
+  wordsLearned Int       @default(0)
+
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([stage])
@@ -568,15 +569,15 @@ model ExamTemplate {
   id              String   @id @default(uuid())
   name            String
   description     String?
-  structure       Json     // { sections: [{type, questionCount, tags, difficulty}] }
+  structure       Json // { sections: [{type, questionCount, tags, difficulty}] }
   questionPoolIds String[] @default([]) // 문제 풀 ID 목록 (현재는 태그/난이도로 필터링)
   createdBy       String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relations
-  creator         User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  exams           Exam[]   @relation("TemplateBased")
+  creator User   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  exams   Exam[] @relation("TemplateBased")
 
   @@index([createdBy])
   @@index([createdAt])
@@ -588,21 +589,56 @@ model ExamTemplate {
 // ============================================
 
 model QuestionPool {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  tags            String[] @default([])
-  difficulty      Difficulty?
-  questionIds     String[] @default([]) // 문제 ID 목록
-  createdBy       String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  tags        String[]    @default([])
+  difficulty  Difficulty?
+  questionIds String[]    @default([]) // 문제 ID 목록
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   // Relations
-  creator         User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  creator User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   @@index([createdBy])
   @@index([tags])
   @@index([difficulty])
   @@map("question_pools")
+}
+
+// ============================================
+// SITE_SETTINGS
+// ============================================
+
+model SiteSettings {
+  id          String  @id @default(uuid())
+  companyName String  @default("Exam Platform")
+  logoUrl     String? @db.VarChar(500)
+  faviconUrl  String? @db.VarChar(500)
+
+  // 색상 테마 (로고 분석 결과 또는 수동 설정)
+  primaryColor   String? @db.VarChar(7) // HEX 코드 (예: #667eea)
+  secondaryColor String? @db.VarChar(7) // HEX 코드
+  accentColor    String? @db.VarChar(7) // HEX 코드
+  colorScheme    Json? // { primary, secondary, accent, gradients } 등 상세 정보
+
+  // 각 섹션 콘텐츠
+  aboutCompany String? @db.Text // 회사 소개 (마크다운 지원)
+  aboutTeam    String? @db.Text // 팀 소개 (마크다운 지원)
+  contactInfo  Json? // { email, phone, address, socialMedia: {...} }
+  serviceInfo  String? @db.Text // 서비스 소개 (마크다운 지원)
+
+  // 메타 정보
+  isActive  Boolean  @default(true)
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  // Relations
+  updater User? @relation("SiteSettingsUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([isActive])
+  @@map("site_settings")
 }
