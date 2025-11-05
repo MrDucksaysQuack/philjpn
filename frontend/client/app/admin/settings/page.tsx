@@ -13,7 +13,7 @@ export default function SiteSettingsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"basic" | "content" | "preview">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "content" | "structured" | "preview">("basic");
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -44,6 +44,11 @@ export default function SiteSettingsPage() {
       socialMedia: {},
     },
     serviceInfo: "",
+    companyStats: { stats: [] },
+    teamMembers: { members: [] },
+    serviceFeatures: { features: [] },
+    serviceBenefits: { benefits: [] },
+    serviceProcess: { steps: [] },
   });
 
   // 설정 데이터 로드 시 폼 데이터 설정
@@ -65,6 +70,11 @@ export default function SiteSettingsPage() {
           socialMedia: {},
         },
         serviceInfo: settings.serviceInfo || "",
+        companyStats: settings.companyStats || { stats: [] },
+        teamMembers: settings.teamMembers || { members: [] },
+        serviceFeatures: settings.serviceFeatures || { features: [] },
+        serviceBenefits: settings.serviceBenefits || { benefits: [] },
+        serviceProcess: settings.serviceProcess || { steps: [] },
       });
     }
   }, [settings]);
@@ -185,6 +195,16 @@ export default function SiteSettingsPage() {
                   }`}
                 >
                   콘텐츠
+                </button>
+                <button
+                  onClick={() => setActiveTab("structured")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "structured"
+                      ? "border-theme-primary text-theme-primary"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  구조화된 데이터
                 </button>
                 <button
                   onClick={() => setActiveTab("preview")}
@@ -564,6 +584,393 @@ export default function SiteSettingsPage() {
                         placeholder="LinkedIn URL"
                       />
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 구조화된 데이터 탭 */}
+            {activeTab === "structured" && (
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 space-y-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">구조화된 데이터 관리</h2>
+
+                {/* 회사 통계 */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">회사 통계</h3>
+                  <div className="space-y-4">
+                    {(formData.companyStats?.stats || []).map((stat, index) => (
+                      <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <input
+                            type="text"
+                            value={stat.icon || ""}
+                            onChange={(e) => {
+                              const newStats = [...(formData.companyStats?.stats || [])];
+                              newStats[index] = { ...stat, icon: e.target.value };
+                              setFormData({
+                                ...formData,
+                                companyStats: { stats: newStats },
+                              });
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="아이콘 이름 (예: BuildingIcon)"
+                          />
+                          <input
+                            type="text"
+                            value={stat.value || ""}
+                            onChange={(e) => {
+                              const newStats = [...(formData.companyStats?.stats || [])];
+                              newStats[index] = { ...stat, value: e.target.value };
+                              setFormData({
+                                ...formData,
+                                companyStats: { stats: newStats },
+                              });
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="숫자"
+                          />
+                          <input
+                            type="text"
+                            value={stat.suffix || ""}
+                            onChange={(e) => {
+                              const newStats = [...(formData.companyStats?.stats || [])];
+                              newStats[index] = { ...stat, suffix: e.target.value };
+                              setFormData({
+                                ...formData,
+                                companyStats: { stats: newStats },
+                              });
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="접미사 (예: +, %)"
+                          />
+                          <input
+                            type="text"
+                            value={stat.label || ""}
+                            onChange={(e) => {
+                              const newStats = [...(formData.companyStats?.stats || [])];
+                              newStats[index] = { ...stat, label: e.target.value };
+                              setFormData({
+                                ...formData,
+                                companyStats: { stats: newStats },
+                              });
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="라벨"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newStats = formData.companyStats?.stats?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              companyStats: { stats: newStats },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          companyStats: {
+                            stats: [...(formData.companyStats?.stats || []), { icon: "", value: "", suffix: "", label: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 통계 추가
+                    </button>
+                  </div>
+                </div>
+
+                {/* 팀원 */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">팀원</h3>
+                  <div className="space-y-4">
+                    {(formData.teamMembers?.members || []).map((member, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <input
+                            type="text"
+                            value={member.name || ""}
+                            onChange={(e) => {
+                              const newMembers = [...(formData.teamMembers?.members || [])];
+                              newMembers[index] = { ...member, name: e.target.value };
+                              setFormData({
+                                ...formData,
+                                teamMembers: { members: newMembers },
+                              });
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="이름"
+                          />
+                          <input
+                            type="text"
+                            value={member.role || ""}
+                            onChange={(e) => {
+                              const newMembers = [...(formData.teamMembers?.members || [])];
+                              newMembers[index] = { ...member, role: e.target.value };
+                              setFormData({
+                                ...formData,
+                                teamMembers: { members: newMembers },
+                              });
+                            }}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="역할"
+                          />
+                        </div>
+                        <textarea
+                          value={member.description || ""}
+                          onChange={(e) => {
+                            const newMembers = [...(formData.teamMembers?.members || [])];
+                            newMembers[index] = { ...member, description: e.target.value };
+                            setFormData({
+                              ...formData,
+                              teamMembers: { members: newMembers },
+                            });
+                          }}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="설명"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newMembers = formData.teamMembers?.members?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              teamMembers: { members: newMembers },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          teamMembers: {
+                            members: [...(formData.teamMembers?.members || []), { name: "", role: "", description: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 팀원 추가
+                    </button>
+                  </div>
+                </div>
+
+                {/* 서비스 기능 */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">서비스 기능</h3>
+                  <div className="space-y-4">
+                    {(formData.serviceFeatures?.features || []).map((feature, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                        <input
+                          type="text"
+                          value={feature.icon || ""}
+                          onChange={(e) => {
+                            const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                            newFeatures[index] = { ...feature, icon: e.target.value };
+                            setFormData({
+                              ...formData,
+                              serviceFeatures: { features: newFeatures },
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="아이콘 이름"
+                        />
+                        <input
+                          type="text"
+                          value={feature.title || ""}
+                          onChange={(e) => {
+                            const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                            newFeatures[index] = { ...feature, title: e.target.value };
+                            setFormData({
+                              ...formData,
+                              serviceFeatures: { features: newFeatures },
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="제목"
+                        />
+                        <textarea
+                          value={feature.description || ""}
+                          onChange={(e) => {
+                            const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                            newFeatures[index] = { ...feature, description: e.target.value };
+                            setFormData({
+                              ...formData,
+                              serviceFeatures: { features: newFeatures },
+                            });
+                          }}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="설명"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newFeatures = formData.serviceFeatures?.features?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              serviceFeatures: { features: newFeatures },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          serviceFeatures: {
+                            features: [...(formData.serviceFeatures?.features || []), { icon: "", title: "", description: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 기능 추가
+                    </button>
+                  </div>
+                </div>
+
+                {/* 서비스 혜택 */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">서비스 혜택</h3>
+                  <div className="space-y-4">
+                    {(formData.serviceBenefits?.benefits || []).map((benefit, index) => (
+                      <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                        <input
+                          type="text"
+                          value={benefit.text || ""}
+                          onChange={(e) => {
+                            const newBenefits = [...(formData.serviceBenefits?.benefits || [])];
+                            newBenefits[index] = { text: e.target.value };
+                            setFormData({
+                              ...formData,
+                              serviceBenefits: { benefits: newBenefits },
+                            });
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="혜택 내용"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newBenefits = formData.serviceBenefits?.benefits?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              serviceBenefits: { benefits: newBenefits },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          serviceBenefits: {
+                            benefits: [...(formData.serviceBenefits?.benefits || []), { text: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 혜택 추가
+                    </button>
+                  </div>
+                </div>
+
+                {/* 서비스 프로세스 */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">서비스 프로세스</h3>
+                  <div className="space-y-4">
+                    {(formData.serviceProcess?.steps || []).map((step, index) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
+                        <div className="flex gap-4 items-center">
+                          <span className="text-sm font-medium text-gray-700 w-12">단계 {step.step || index + 1}</span>
+                          <input
+                            type="text"
+                            value={step.title || ""}
+                            onChange={(e) => {
+                              const newSteps = [...(formData.serviceProcess?.steps || [])];
+                              newSteps[index] = { ...step, title: e.target.value };
+                              setFormData({
+                                ...formData,
+                                serviceProcess: { steps: newSteps },
+                              });
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="제목"
+                          />
+                        </div>
+                        <textarea
+                          value={step.description || ""}
+                          onChange={(e) => {
+                            const newSteps = [...(formData.serviceProcess?.steps || [])];
+                            newSteps[index] = { ...step, description: e.target.value };
+                            setFormData({
+                              ...formData,
+                              serviceProcess: { steps: newSteps },
+                            });
+                          }}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="설명"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSteps = formData.serviceProcess?.steps?.filter((_, i) => i !== index) || [];
+                            setFormData({
+                              ...formData,
+                              serviceProcess: { steps: newSteps },
+                            });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentSteps = formData.serviceProcess?.steps || [];
+                        setFormData({
+                          ...formData,
+                          serviceProcess: {
+                            steps: [...currentSteps, { step: currentSteps.length + 1, title: "", description: "" }],
+                          },
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                    >
+                      + 단계 추가
+                    </button>
                   </div>
                 </div>
               </div>

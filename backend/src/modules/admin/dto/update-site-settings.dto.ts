@@ -7,6 +7,8 @@ import {
   IsObject,
   ValidateNested,
   IsEmail,
+  IsArray,
+  ValidateNested as ValidateNestedArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -126,5 +128,30 @@ export class UpdateSiteSettingsDto {
   @IsOptional()
   @IsString()
   serviceInfo?: string;
+
+  @ApiPropertyOptional({ description: '회사 통계 데이터 (JSON)' })
+  @IsOptional()
+  @IsObject()
+  companyStats?: any;
+
+  @ApiPropertyOptional({ description: '팀원 데이터 (JSON)' })
+  @IsOptional()
+  @IsObject()
+  teamMembers?: any;
+
+  @ApiPropertyOptional({ description: '서비스 기능 데이터 (JSON)' })
+  @IsOptional()
+  @IsObject()
+  serviceFeatures?: any;
+
+  @ApiPropertyOptional({ description: '서비스 혜택 데이터 (JSON)' })
+  @IsOptional()
+  @IsObject()
+  serviceBenefits?: any;
+
+  @ApiPropertyOptional({ description: '서비스 프로세스 데이터 (JSON)' })
+  @IsOptional()
+  @IsObject()
+  serviceProcess?: any;
 }
 

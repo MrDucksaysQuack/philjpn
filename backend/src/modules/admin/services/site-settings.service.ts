@@ -23,6 +23,11 @@ export class SiteSettingsService {
         aboutTeam: true,
         contactInfo: true,
         serviceInfo: true,
+        companyStats: true,
+        teamMembers: true,
+        serviceFeatures: true,
+        serviceBenefits: true,
+        serviceProcess: true,
       },
     });
 
@@ -75,14 +80,30 @@ export class SiteSettingsService {
       where: { isActive: true },
     });
 
-    // contactInfo를 JSON으로 변환
+    // JSON 필드들을 처리
     const updateData: any = {
       ...data,
       updatedBy: userId,
     };
 
+    // JSON 필드들을 명시적으로 변환
     if (data.contactInfo) {
       updateData.contactInfo = data.contactInfo as any;
+    }
+    if (data.companyStats) {
+      updateData.companyStats = data.companyStats as any;
+    }
+    if (data.teamMembers) {
+      updateData.teamMembers = data.teamMembers as any;
+    }
+    if (data.serviceFeatures) {
+      updateData.serviceFeatures = data.serviceFeatures as any;
+    }
+    if (data.serviceBenefits) {
+      updateData.serviceBenefits = data.serviceBenefits as any;
+    }
+    if (data.serviceProcess) {
+      updateData.serviceProcess = data.serviceProcess as any;
     }
 
     if (existing) {
@@ -130,6 +151,11 @@ export class SiteSettingsService {
       aboutTeam: null,
       contactInfo: null,
       serviceInfo: null,
+      companyStats: null,
+      teamMembers: null,
+      serviceFeatures: null,
+      serviceBenefits: null,
+      serviceProcess: null,
     };
   }
 }

@@ -626,6 +626,46 @@ export interface SiteSettings {
   aboutTeam?: string | null;
   contactInfo?: ContactInfo | null;
   serviceInfo?: string | null;
+  companyStats?: {
+    stats?: Array<{
+      icon?: string;
+      value: number | string;
+      suffix?: string;
+      label: string;
+    }>;
+  } | null;
+  teamMembers?: {
+    members?: Array<{
+      name: string;
+      role: string;
+      description?: string;
+      imageUrl?: string;
+      socialLinks?: {
+        email?: string;
+        linkedin?: string;
+        github?: string;
+      };
+    }>;
+  } | null;
+  serviceFeatures?: {
+    features?: Array<{
+      icon?: string;
+      title: string;
+      description: string;
+    }>;
+  } | null;
+  serviceBenefits?: {
+    benefits?: Array<{
+      text: string;
+    }>;
+  } | null;
+  serviceProcess?: {
+    steps?: Array<{
+      step: number;
+      title: string;
+      description: string;
+    }>;
+  } | null;
   isActive?: boolean;
   updatedBy?: string | null;
   updatedAt?: string;
@@ -648,6 +688,46 @@ export interface UpdateSiteSettingsDto {
   aboutTeam?: string;
   contactInfo?: ContactInfo;
   serviceInfo?: string;
+  companyStats?: {
+    stats?: Array<{
+      icon?: string;
+      value: number | string;
+      suffix?: string;
+      label: string;
+    }>;
+  };
+  teamMembers?: {
+    members?: Array<{
+      name: string;
+      role: string;
+      description?: string;
+      imageUrl?: string;
+      socialLinks?: {
+        email?: string;
+        linkedin?: string;
+        github?: string;
+      };
+    }>;
+  };
+  serviceFeatures?: {
+    features?: Array<{
+      icon?: string;
+      title: string;
+      description: string;
+    }>;
+  };
+  serviceBenefits?: {
+    benefits?: Array<{
+      text: string;
+    }>;
+  };
+  serviceProcess?: {
+    steps?: Array<{
+      step: number;
+      title: string;
+      description: string;
+    }>;
+  };
 }
 
 export interface ColorAnalysisResult {

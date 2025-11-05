@@ -5,6 +5,10 @@ import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { siteSettingsAPI } from "@/lib/api";
 import { ContactInfo } from "@/lib/api";
+import HeroSection from "@/components/about/HeroSection";
+import SectionTitle from "@/components/about/SectionTitle";
+import ContactForm from "@/components/about/ContactForm";
+import { MailIcon, PhoneIcon, MapPinIcon } from "@/components/about/icons";
 
 export default function ContactPage() {
   const { data: settingsResponse, isLoading } = useQuery({
@@ -36,129 +40,161 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
-            <div className="mb-8">
-              <h1 className="text-4xl font-extrabold text-gray-900 mb-4 flex items-center gap-3">
-                <span className="text-5xl">📧</span>
-                연락처
-              </h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
-            </div>
+      
+      {/* Hero Section */}
+      <HeroSection
+        title="언제든지 연락주세요"
+        subtitle="궁금한 점이나 문의사항이 있으시면 언제든지 연락해주세요"
+      />
 
-            {contactInfo ? (
+      <div className="min-h-screen bg-white">
+        {/* 연락처 정보 및 문의 폼 섹션 */}
+        <section className="py-16 md:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+              {/* 왼쪽: 연락처 정보 */}
               <div className="space-y-6">
-                {contactInfo.email && (
-                  <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <span className="text-2xl">📧</span>
-                    <div>
-                      <div className="text-sm font-semibold text-gray-700 mb-1">이메일</div>
-                      <a
-                        href={`mailto:${contactInfo.email}`}
-                        className="text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        {contactInfo.email}
-                      </a>
-                    </div>
-                  </div>
-                )}
+                <SectionTitle title="연락처 정보" className="text-left mb-8" />
+                
+                {contactInfo ? (
+                  <div className="space-y-6">
+                    {contactInfo.email && (
+                      <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 hover:border-theme-primary hover:shadow-lg transition-all">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-theme-primary-light text-theme-primary flex items-center justify-center">
+                          <MailIcon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-700 mb-1">이메일</div>
+                          <a
+                            href={`mailto:${contactInfo.email}`}
+                            className="text-theme-primary hover:opacity-80 font-medium"
+                          >
+                            {contactInfo.email}
+                          </a>
+                        </div>
+                      </div>
+                    )}
 
-                {contactInfo.phone && (
-                  <div className="flex items-start gap-4 p-4 bg-green-50 rounded-xl border border-green-100">
-                    <span className="text-2xl">📞</span>
-                    <div>
-                      <div className="text-sm font-semibold text-gray-700 mb-1">전화번호</div>
-                      <a
-                        href={`tel:${contactInfo.phone}`}
-                        className="text-green-600 hover:text-green-700 font-medium"
-                      >
-                        {contactInfo.phone}
-                      </a>
-                    </div>
-                  </div>
-                )}
+                    {contactInfo.phone && (
+                      <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 hover:border-theme-primary hover:shadow-lg transition-all">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-theme-secondary-light text-theme-secondary flex items-center justify-center">
+                          <PhoneIcon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-700 mb-1">전화번호</div>
+                          <a
+                            href={`tel:${contactInfo.phone}`}
+                            className="text-theme-secondary hover:opacity-80 font-medium"
+                          >
+                            {contactInfo.phone}
+                          </a>
+                        </div>
+                      </div>
+                    )}
 
-                {contactInfo.address && (
-                  <div className="flex items-start gap-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
-                    <span className="text-2xl">📍</span>
-                    <div>
-                      <div className="text-sm font-semibold text-gray-700 mb-1">주소</div>
-                      <div className="text-gray-700">{contactInfo.address}</div>
-                    </div>
-                  </div>
-                )}
+                    {contactInfo.address && (
+                      <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 hover:border-theme-primary hover:shadow-lg transition-all">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-theme-accent-light text-theme-accent flex items-center justify-center">
+                          <MapPinIcon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-700 mb-1">주소</div>
+                          <div className="text-gray-700">{contactInfo.address}</div>
+                        </div>
+                      </div>
+                    )}
 
-                {contactInfo.socialMedia && (
-                  <div className="mt-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">소셜 미디어</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {contactInfo.socialMedia.website && (
-                        <a
-                          href={contactInfo.socialMedia.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
-                        >
-                          <span className="text-2xl">🌐</span>
-                          <span className="font-medium text-gray-700">웹사이트</span>
-                        </a>
-                      )}
-                      {contactInfo.socialMedia.facebook && (
-                        <a
-                          href={contactInfo.socialMedia.facebook}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200 hover:bg-blue-100 transition-colors"
-                        >
-                          <span className="text-2xl">📘</span>
-                          <span className="font-medium text-gray-700">Facebook</span>
-                        </a>
-                      )}
-                      {contactInfo.socialMedia.twitter && (
-                        <a
-                          href={contactInfo.socialMedia.twitter}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-4 bg-sky-50 rounded-xl border border-sky-200 hover:bg-sky-100 transition-colors"
-                        >
-                          <span className="text-2xl">🐦</span>
-                          <span className="font-medium text-gray-700">Twitter</span>
-                        </a>
-                      )}
-                      {contactInfo.socialMedia.instagram && (
-                        <a
-                          href={contactInfo.socialMedia.instagram}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-4 bg-pink-50 rounded-xl border border-pink-200 hover:bg-pink-100 transition-colors"
-                        >
-                          <span className="text-2xl">📷</span>
-                          <span className="font-medium text-gray-700">Instagram</span>
-                        </a>
-                      )}
-                      {contactInfo.socialMedia.linkedin && (
-                        <a
-                          href={contactInfo.socialMedia.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200 hover:bg-blue-100 transition-colors"
-                        >
-                          <span className="text-2xl">💼</span>
-                          <span className="font-medium text-gray-700">LinkedIn</span>
-                        </a>
-                      )}
-                    </div>
+                    {/* 소셜 미디어 */}
+                    {contactInfo.socialMedia && (
+                      <div className="pt-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">소셜 미디어</h3>
+                        <div className="flex flex-wrap gap-3">
+                          {contactInfo.socialMedia.website && (
+                            <a
+                              href={contactInfo.socialMedia.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors"
+                              aria-label="웹사이트"
+                            >
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                              </svg>
+                            </a>
+                          )}
+                          {contactInfo.socialMedia.facebook && (
+                            <a
+                              href={contactInfo.socialMedia.facebook}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-12 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
+                              aria-label="Facebook"
+                            >
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                              </svg>
+                            </a>
+                          )}
+                          {contactInfo.socialMedia.twitter && (
+                            <a
+                              href={contactInfo.socialMedia.twitter}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-12 h-12 rounded-xl bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center transition-colors"
+                              aria-label="Twitter"
+                            >
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                              </svg>
+                            </a>
+                          )}
+                          {contactInfo.socialMedia.instagram && (
+                            <a
+                              href={contactInfo.socialMedia.instagram}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white flex items-center justify-center transition-all"
+                              aria-label="Instagram"
+                            >
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                              </svg>
+                            </a>
+                          )}
+                          {contactInfo.socialMedia.linkedin && (
+                            <a
+                              href={contactInfo.socialMedia.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-12 h-12 rounded-xl bg-blue-700 hover:bg-blue-800 text-white flex items-center justify-center transition-colors"
+                              aria-label="LinkedIn"
+                            >
+                              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                              </svg>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-100">
+                    연락처 정보가 아직 등록되지 않았습니다.
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                연락처 정보가 아직 등록되지 않았습니다.
+
+              {/* 오른쪽: 문의 폼 */}
+              <div>
+                <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
+                  <SectionTitle title="문의하기" className="text-left mb-8" />
+                  <ContactForm />
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </>
   );
