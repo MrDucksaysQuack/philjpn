@@ -8,6 +8,7 @@ import { AppModule } from './app.module';
 import appConfig from './config/app.config';
 import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
 import { MetricsService } from './common/services/metrics.service';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -20,6 +21,9 @@ async function bootstrap() {
   // Prometheus 메트릭 인터셉터
   const metricsService = app.get(MetricsService);
   app.useGlobalInterceptors(new MetricsInterceptor(metricsService));
+  
+  // 전역 예외 필터 (모든 에러 응답에 CORS 헤더 보장)
+  app.useGlobalFilters(new AllExceptionsFilter());
   
   // 정적 파일 서빙 설정 (업로드된 파일 접근)
   // public/uploads 폴더를 /uploads 경로로 서빙
