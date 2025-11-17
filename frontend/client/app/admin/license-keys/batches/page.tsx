@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import {
   licenseKeyAPI,
@@ -103,8 +103,15 @@ export default function BatchManagementPage() {
     },
   });
 
-  if (!user || user.role !== "admin") {
-    router.push("/login");
+  // 클라이언트에서만 리다이렉트 (SSR 방지)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (!user || user.role !== "admin")) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+  // SSR 중에는 로딩 표시
+  if (typeof window === 'undefined' || !user || user.role !== "admin") {
     return null;
   }
 

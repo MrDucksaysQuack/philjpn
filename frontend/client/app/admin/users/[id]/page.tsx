@@ -104,8 +104,15 @@ export default function EditUserPage() {
     updateMutation.mutate(formData);
   };
 
-  if (!user || user.role !== "admin") {
-    router.push("/login");
+  // 클라이언트에서만 리다이렉트 (SSR 방지)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (!user || user.role !== "admin")) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+  // SSR 중에는 로딩 표시
+  if (typeof window === 'undefined' || !user || user.role !== "admin") {
     return null;
   }
 

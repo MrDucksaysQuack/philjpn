@@ -3,7 +3,7 @@
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -131,8 +131,15 @@ export default function CreateExamPage() {
     createMutation.mutate(formData);
   };
 
-  if (!user || user.role !== "admin") {
-    router.push("/login");
+  // 클라이언트에서만 리다이렉트 (SSR 방지)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (!user || user.role !== "admin")) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+  // SSR 중에는 로딩 표시
+  if (typeof window === 'undefined' || !user || user.role !== "admin") {
     return null;
   }
 
