@@ -327,7 +327,7 @@ function BadgeModal({
               </label>
               <select
                 value={formData.badgeType}
-                onChange={(e) => setFormData({ ...formData, badgeType: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, badgeType: e.target.value as typeof formData.badgeType })}
                 className="w-full px-3 py-2 border rounded-md"
                 required
                 disabled={!!badge}
