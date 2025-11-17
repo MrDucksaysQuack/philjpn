@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
-import { adminAPI, questionAPI, Question } from "@/lib/api";
+import { adminAPI, questionAPI, examAPI, Question } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { toast } from "@/components/common/Toast";
@@ -41,7 +41,7 @@ export default function AdminQuestionsPage() {
   const { data: examsResponse } = useQuery({
     queryKey: ["admin-exams-for-filter"],
     queryFn: async () => {
-      const response = await adminAPI.getExams({ limit: 1000 });
+      const response = await examAPI.getExams({ limit: 1000 });
       return response.data;
     },
     enabled: user?.role === "admin",
