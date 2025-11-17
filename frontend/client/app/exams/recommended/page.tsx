@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { recommendationAPI } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function RecommendedExamsPage() {
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["recommended-exams"],
@@ -19,26 +19,28 @@ export default function RecommendedExamsPage() {
     enabled: !!user,
   });
 
-  if (!user) {
+  if (authLoading) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-600">로그인이 필요합니다.</p>
-            </div>
+            <LoadingSpinner message="인증 확인 중..." />
           </div>
         </div>
       </>
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   if (isLoading) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <LoadingSpinner message="추천 시험을 분석하는 중..." />
           </div>
@@ -54,7 +56,7 @@ export default function RecommendedExamsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-700 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>

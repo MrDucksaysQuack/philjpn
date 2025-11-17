@@ -25,7 +25,7 @@ export default function ContactPage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <LoadingSpinner message="연락처 정보를 불러오는 중..." />
           </div>
@@ -127,7 +127,7 @@ export default function ContactPage() {
                               href={contactInfo.socialMedia.facebook}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-12 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
+                              className="w-12 h-12 rounded-xl bg-theme-primary hover:opacity-90 text-white flex items-center justify-center transition-colors"
                               aria-label="Facebook"
                             >
                               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -166,7 +166,7 @@ export default function ContactPage() {
                               href={contactInfo.socialMedia.linkedin}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-12 h-12 rounded-xl bg-blue-700 hover:bg-blue-800 text-white flex items-center justify-center transition-colors"
+                              className="w-12 h-12 rounded-xl bg-theme-secondary hover:opacity-90 text-white flex items-center justify-center transition-colors"
                               aria-label="LinkedIn"
                             >
                               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

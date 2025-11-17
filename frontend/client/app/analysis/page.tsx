@@ -11,7 +11,7 @@ import {
   EfficiencyMetrics,
   GoalProgress,
 } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import HeatmapChart from "@/components/charts/HeatmapChart";
 import CustomRadarChart from "@/components/charts/RadarChart";
 import CustomLineChart from "@/components/charts/LineChart";
@@ -22,7 +22,7 @@ import { contextualMessages } from "@/lib/messages";
 import CreateGoalModal from "@/components/goals/CreateGoalModal";
 
 export default function AnalysisPage() {
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"patterns" | "weakness" | "efficiency" | "goals">("patterns");
   const [showCelebration, setShowCelebration] = useState(false);
@@ -83,25 +83,27 @@ export default function AnalysisPage() {
     }
   }, [goalProgress]);
 
-  if (!user) {
+  if (authLoading) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-600">로그인이 필요합니다.</p>
-            </div>
+            <LoadingSpinner message="인증 확인 중..." />
           </div>
         </div>
       </>
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-700 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
@@ -161,14 +163,14 @@ export default function AnalysisPage() {
                       시간대별 학습 패턴
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                        <div className="text-sm font-semibold text-blue-700 mb-2">가장 생산적인 시간대</div>
+                      <div className="bg-theme-primary-light rounded-xl p-6 border border-theme-primary">
+                        <div className="text-sm font-semibold text-theme-primary mb-2">가장 생산적인 시간대</div>
                         <div className="flex flex-wrap gap-2">
                           {patterns.timePatterns.mostProductiveHours.length > 0 ? (
                             patterns.timePatterns.mostProductiveHours.map((hour) => (
                               <span
                                 key={hour}
-                                className="px-3 py-1 bg-blue-500 text-white rounded-lg font-bold"
+                                className="px-3 py-1 bg-theme-primary text-white rounded-lg font-bold"
                               >
                                 {hour}시
                               </span>
@@ -178,7 +180,7 @@ export default function AnalysisPage() {
                           )}
                         </div>
                       </div>
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                      <div className="bg-theme-secondary-light rounded-xl p-6 border border-theme-secondary">
                         <div className="text-sm font-semibold text-purple-700 mb-2">평균 세션 길이</div>
                         <div className="text-3xl font-extrabold text-purple-900">
                           {patterns.timePatterns.averageSessionDuration}분
@@ -381,9 +383,9 @@ export default function AnalysisPage() {
                 <LoadingSpinner message="효율성 지표를 계산하는 중..." />
               ) : efficiency ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-lg p-8 border border-blue-200">
-                    <div className="text-sm font-semibold text-blue-700 mb-2">학습 속도</div>
-                    <div className="text-4xl font-extrabold text-blue-900 mb-2">
+                  <div className="bg-theme-primary-light rounded-2xl shadow-lg p-8 border border-theme-primary">
+                    <div className="text-sm font-semibold text-theme-primary mb-2">학습 속도</div>
+                    <div className="text-4xl font-extrabold text-theme-primary mb-2">
                       {efficiency.learningVelocity > 0 ? "+" : ""}
                       {efficiency.learningVelocity.toFixed(1)}
                     </div>
@@ -505,7 +507,7 @@ export default function AnalysisPage() {
                       <p className="text-gray-500 mb-4">현재 활성화된 목표가 없습니다.</p>
                       <button
                         onClick={() => setShowCreateGoalModal(true)}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+                        className="px-6 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl"
                       >
                         목표 설정하기
                       </button>

@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { wordBookAPI } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function WordBookPage() {
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth();
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newWord, setNewWord] = useState({
@@ -66,25 +67,27 @@ export default function WordBookPage() {
     addWordMutation.mutate(newWord);
   };
 
-  if (!user) {
+  if (authLoading) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-600">로그인이 필요합니다.</p>
-            </div>
+            <LoadingSpinner message="인증 확인 중..." />
           </div>
         </div>
       </>
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>

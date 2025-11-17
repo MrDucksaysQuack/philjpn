@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { siteSettingsAPI } from "@/lib/api";
 import AboutUsDropdown from "./AboutUsDropdown";
 
 export default function Header() {
@@ -11,6 +13,27 @@ export default function Header() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // 사이트 설정 가져오기 (회사명, 로고)
+  const { data: settingsResponse } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const response = await siteSettingsAPI.getPublicSettings();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+  });
+
+  const data = (settingsResponse as any)?.data || settingsResponse;
+  const settings = data as any;
+  const companyName = settings?.companyName || "Exam Platform";
+  const logoUrl = settings?.logoUrl;
+  const [logoError, setLogoError] = useState(false);
+
+  // logoUrl이 변경되면 에러 상태 리셋
+  useEffect(() => {
+    setLogoError(false);
+  }, [logoUrl]);
 
   const handleLogout = () => {
     clearAuth();
@@ -53,12 +76,21 @@ export default function Header() {
               className="text-xl font-bold gradient-text flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 rounded-lg"
               aria-label="홈페이지로 이동"
             >
-              <div className="w-8 h-8 bg-theme-gradient-diagonal rounded-lg flex items-center justify-center" aria-hidden="true">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-8 h-8 bg-theme-gradient-diagonal rounded-lg flex items-center justify-center overflow-hidden" aria-hidden="true">
+                {logoUrl && !logoError ? (
+                  <img
+                    src={logoUrl}
+                    alt={companyName}
+                    className="w-full h-full object-contain"
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
               </div>
-              <span>Exam Platform</span>
+              <span>{companyName}</span>
             </Link>
             <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="주요 메뉴">
               <AboutUsDropdown />

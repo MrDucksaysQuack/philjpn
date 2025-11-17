@@ -38,6 +38,18 @@ export const apiClient = axios.create({
 // 요청 인터셉터: JWT 토큰 자동 추가
 apiClient.interceptors.request.use(
   (config) => {
+    // ✅ 개발 환경에서 요청 로깅 (400 에러 디버깅용)
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+      if (config.url?.includes("/auth/login")) {
+        console.log("📤 Login Request:", {
+          url: config.url,
+          method: config.method,
+          data: config.data,
+          headers: config.headers,
+        });
+      }
+    }
+    
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("accessToken");
       if (token) {
@@ -59,6 +71,17 @@ if (typeof window !== "undefined") {
   apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
+      // ✅ 400 Bad Request 에러 상세 로깅 (디버깅용)
+      if (error.response?.status === 400) {
+        console.error("❌ 400 Bad Request:", {
+          url: error.config?.url,
+          method: error.config?.method,
+          requestData: error.config?.data,
+          responseData: error.response?.data,
+          status: error.response?.status,
+        });
+      }
+      
       const originalRequest = error.config;
 
       if (error.response?.status === 401 && !originalRequest._retry) {
@@ -82,20 +105,22 @@ if (typeof window !== "undefined") {
           }
         } catch (refreshError) {
           // 클라이언트에서만 리다이렉트
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          // 동적 import를 사용하여 리다이렉트 (더 안전)
-          try {
-            const { default: router } = await import("next/navigation");
-            // router.push는 클라이언트 컴포넌트에서만 사용 가능
-            // 여기서는 직접 window.location 사용
-            if (window?.location) {
-              window.location.href = "/login";
-            }
-          } catch {
-            // import 실패 시 window.location 직접 사용
-            if (window?.location) {
-              window.location.href = "/login";
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            // 동적 import를 사용하여 리다이렉트 (더 안전)
+            try {
+              const { default: router } = await import("next/navigation");
+              // router.push는 클라이언트 컴포넌트에서만 사용 가능
+              // 여기서는 직접 window.location 사용
+              if (typeof window !== "undefined" && window.location) {
+                window.location.href = "/login";
+              }
+            } catch {
+              // import 실패 시 window.location 직접 사용
+              if (typeof window !== "undefined" && window.location) {
+                window.location.href = "/login";
+              }
             }
           }
           return Promise.reject(refreshError);
@@ -887,6 +912,16 @@ export const adminAPI = {
     apiClient.put<{ data: SiteSettings }>("/admin/site-settings", data),
   analyzeColors: (logoUrl: string) =>
     apiClient.post<{ data: ColorAnalysisResult }>("/admin/site-settings/analyze-colors", { logoUrl }),
+  // File Upload API
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post<{ data: { url: string; filename: string; size: number } }>("/admin/upload/image", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 // Site Settings API (Public)

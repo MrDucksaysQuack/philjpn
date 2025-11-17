@@ -28,7 +28,7 @@ export default function ServicePage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <LoadingSpinner message="서비스 정보를 불러오는 중..." />
           </div>

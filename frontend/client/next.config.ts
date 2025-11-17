@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+  
+  // Turbopack 설정 (Next.js 16 기본)
+  turbopack: {},
 };
 
 export default nextConfig;

@@ -1,17 +1,15 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { adminAPI, QuestionPool } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { emotionalToast } from "@/components/common/Toast";
 
 export default function QuestionPoolsPage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPool, setEditingPool] = useState<QuestionPool | null>(null);
@@ -37,15 +35,27 @@ export default function QuestionPoolsPage() {
     },
   });
 
-  if (!user || user.role !== "admin") {
-    router.push("/login");
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* 헤더 */}
           <div className="flex justify-between items-center mb-8">
@@ -77,7 +87,7 @@ export default function QuestionPoolsPage() {
                 {pools.map((pool) => (
                   <div
                     key={pool.id}
-                    className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100 hover:shadow-lg transition-all"
+                    className="bg-theme-primary-light rounded-xl p-6 border border-theme-primary hover:shadow-lg transition-all"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
@@ -93,7 +103,7 @@ export default function QuestionPoolsPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEditingPool(pool)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-theme-primary hover:bg-theme-primary-light rounded-lg transition-colors"
                           aria-label="수정"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +137,7 @@ export default function QuestionPoolsPage() {
                             {pool.tags.map((tag, idx) => (
                               <span
                                 key={idx}
-                                className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-lg"
+                                className="px-2 py-1 bg-theme-primary-light text-theme-primary text-xs rounded-lg"
                               >
                                 {tag}
                               </span>

@@ -1,9 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import QuickStats from "./components/QuickStats";
 import GoalProgressWidget from "./components/GoalProgressWidget";
@@ -14,19 +13,29 @@ import WordBookSummaryWidget from "./components/WordBookSummaryWidget";
 import QuickActions from "./components/QuickActions";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading } = useRequireAuth();
 
-  // 로그인 체크
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (!user) {
-    router.push("/login");
     return null;
   }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-theme-gradient-diagonal overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
@@ -36,7 +45,7 @@ export default function DashboardPage() {
                 <span className="text-5xl">📊</span>
                 나의 학습 대시보드
               </h1>
-              <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              <p className="text-xl text-theme-primary-light max-w-2xl mx-auto">
                 모든 학습 정보를 한눈에 확인하세요
               </p>
             </div>

@@ -2,14 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import { resultAPI, ExamResult } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function ResultsPage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["results"],
@@ -20,8 +19,20 @@ export default function ResultsPage() {
     enabled: !!user,
   });
 
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (!user) {
-    router.push("/login");
     return null;
   }
 
@@ -29,7 +40,7 @@ export default function ResultsPage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex flex-col items-center justify-center py-20">
               <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -45,7 +56,7 @@ export default function ResultsPage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-2xl mb-6">
@@ -65,7 +76,7 @@ export default function ResultsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
@@ -130,7 +141,7 @@ export default function ResultsPage() {
                     </div>
                     
                     {result.totalScore !== null && result.maxScore !== null && (
-                      <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                      <div className="mb-4 p-4 bg-theme-primary-light rounded-xl border border-theme-primary">
                         <div className="flex items-baseline justify-between">
                           <div>
                             <div className="text-3xl font-bold text-theme-primary">

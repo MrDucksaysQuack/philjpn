@@ -14,7 +14,12 @@ export default function HomePage() {
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-300 opacity-10 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div 
+            className="absolute bottom-0 right-1/4 w-96 h-96 opacity-10 rounded-full blur-3xl animate-pulse delay-700"
+            style={{ 
+              backgroundColor: `var(--color-secondary, #764ba2)`,
+            }}
+          ></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
@@ -22,7 +27,7 @@ export default function HomePage() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 animate-fade-in">
               온라인 시험 플랫폼
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-100 mb-8 sm:mb-12 px-4 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-theme-primary-light mb-8 sm:mb-12 px-4 max-w-3xl mx-auto">
               언제 어디서나 편리하게 시험을 응시하고 학습하세요
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 px-4">
@@ -107,7 +112,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Feature Card 1 */}
           <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-theme-gradient-icon-primary rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -132,7 +137,7 @@ export default function HomePage() {
 
           {/* Feature Card 2 */}
           <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-theme-gradient-icon-secondary rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -155,7 +160,7 @@ export default function HomePage() {
 
           {/* Feature Card 3 */}
           <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-theme-gradient-icon-accent rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"

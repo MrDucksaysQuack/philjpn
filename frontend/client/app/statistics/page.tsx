@@ -4,12 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { statisticsAPI } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import CustomRadarChart from "@/components/charts/RadarChart";
 import CustomLineChart from "@/components/charts/LineChart";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function StatisticsPage() {
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth();
   const [period, setPeriod] = useState<string>("month");
 
   const { data: stats, isLoading } = useQuery({
@@ -21,25 +22,27 @@ export default function StatisticsPage() {
     enabled: !!user,
   });
 
-  if (!user) {
+  if (authLoading) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+        <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-600">로그인이 필요합니다.</p>
-            </div>
+            <LoadingSpinner message="인증 확인 중..." />
           </div>
         </div>
       </>
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-gradient-to-r from-amber-600 via-orange-600 to-red-700 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
@@ -77,27 +80,27 @@ export default function StatisticsPage() {
           ) : stats ? (
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg p-8 border border-blue-200 hover:shadow-xl transition-all">
+                <div className="bg-theme-primary-light rounded-2xl shadow-lg p-8 border border-theme-primary hover:shadow-xl transition-all">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-theme-gradient-primary rounded-xl flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <div className="text-sm font-semibold text-blue-700">총 시험 수</div>
+                    <div className="text-sm font-semibold text-theme-primary">총 시험 수</div>
                   </div>
                   <div className="text-4xl font-extrabold text-theme-primary">
                     {stats.totalExams}
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-lg p-8 border border-purple-200 hover:shadow-xl transition-all">
+                <div className="bg-theme-secondary-light rounded-2xl shadow-lg p-8 border border-theme-secondary hover:shadow-xl transition-all">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-theme-gradient-secondary rounded-xl flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
-                    <div className="text-sm font-semibold text-purple-700">평균 점수</div>
+                    <div className="text-sm font-semibold text-theme-secondary">평균 점수</div>
                   </div>
                   <div className="text-4xl font-extrabold text-theme-secondary">
                     {stats.averageScore}

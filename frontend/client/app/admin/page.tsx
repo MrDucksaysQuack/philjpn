@@ -4,15 +4,14 @@
 export const dynamic = "force-dynamic";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { adminAPI } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
 
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ["admin-dashboard"],
@@ -41,8 +40,20 @@ export default function AdminDashboardPage() {
     enabled: user?.role === "admin",
   });
 
-  if (!user || user.role !== "admin") {
-    router.push("/login");
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 

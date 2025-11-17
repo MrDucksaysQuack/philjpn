@@ -91,7 +91,7 @@ export const contextualMessages = {
       action: {
         label: "로그인하기",
         onClick: () => {
-          if (typeof window !== 'undefined') {
+          if (typeof window !== 'undefined' && window.location) {
             window.location.href = '/login';
           }
         },
@@ -107,7 +107,7 @@ export const contextualMessages = {
       action: {
         label: "라이선스 키 관리",
         onClick: () => {
-          if (typeof window !== 'undefined') {
+          if (typeof window !== 'undefined' && window.location) {
             window.location.href = '/admin/license-keys';
           }
         },

@@ -18,19 +18,56 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    // ✅ 입력값 검증 (빈 값 체크)
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedEmail || !trimmedPassword) {
+      setError("이메일과 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+    
+    // ✅ 이메일 형식 간단 체크
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("올바른 이메일 형식을 입력해주세요.");
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const response = await authAPI.login({ email, password });
+      const response = await authAPI.login({ 
+        email: trimmedEmail, 
+        password: trimmedPassword 
+      });
       const { accessToken, refreshToken, user } = response.data;
 
       setAuth(user, accessToken, refreshToken);
       router.push("/exams");
     } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(
-        error.response?.data?.message || "로그인에 실패했습니다.",
-      );
+      const error = err as { 
+        response?: { 
+          data?: { 
+            message?: string;
+            errors?: Array<{ property: string; constraints: any }>;
+          } 
+        } 
+      };
+      
+      // ✅ 상세한 에러 메시지 표시
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors
+          .map(err => {
+            const constraints = Object.values(err.constraints || {}).join(', ');
+            return `${err.property}: ${constraints}`;
+          })
+          .join('\n');
+        setError(errorMessages || error.response?.data?.message || "로그인에 실패했습니다.");
+      } else {
+        setError(error.response?.data?.message || "로그인에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -39,11 +76,11 @@ export default function LoginPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-theme-gradient-light py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-theme-gradient-primary rounded-2xl mb-4">
                 <svg
                   className="w-8 h-8 text-white"
                   fill="none"
@@ -65,7 +102,7 @@ export default function LoginPage() {
                 또는{" "}
                 <Link
                   href="/register"
-                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  className="font-medium text-theme-primary hover:opacity-80 transition-colors"
                 >
                   회원가입
                 </Link>
@@ -88,7 +125,7 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
                   placeholder="이메일 주소를 입력하세요"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -104,7 +141,7 @@ export default function LoginPage() {
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
                   placeholder="비밀번호를 입력하세요"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -116,7 +153,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-theme-gradient-button hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-primary disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {loading ? (
                   <span className="flex items-center">

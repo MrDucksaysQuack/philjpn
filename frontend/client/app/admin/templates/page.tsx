@@ -1,15 +1,14 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { adminAPI, ExamTemplate, CreateTemplateData } from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function TemplatesPage() {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -34,15 +33,27 @@ export default function TemplatesPage() {
     },
   });
 
-  if (!user || user.role !== "admin") {
-    router.push("/login");
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-theme-gradient-light">
         <div className="relative bg-theme-gradient-diagonal overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -50,7 +61,7 @@ export default function TemplatesPage() {
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">
                 시험 템플릿 관리
               </h1>
-              <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              <p className="text-xl text-theme-primary-light max-w-2xl mx-auto">
                 템플릿을 생성하고 관리하여 빠르게 시험을 만들 수 있습니다
               </p>
             </div>
@@ -84,7 +95,7 @@ export default function TemplatesPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => router.push(`/admin/templates/${template.id}`)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        className="p-2 text-theme-primary hover:bg-theme-primary-light rounded-lg"
                         title="수정"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +147,7 @@ export default function TemplatesPage() {
 
                   <button
                     onClick={() => setSelectedTemplate(template.id)}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all"
+                    className="w-full px-4 py-2 bg-theme-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-all"
                   >
                     이 템플릿으로 시험 생성
                   </button>
@@ -276,7 +287,7 @@ function CreateTemplateModal({
               <label className="block text-sm font-medium text-gray-700">섹션 구성</label>
               <button
                 onClick={addSection}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
+                className="px-4 py-2 bg-theme-primary text-white rounded-lg text-sm hover:opacity-90"
               >
                 + 섹션 추가
               </button>

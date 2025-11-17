@@ -266,6 +266,50 @@ html {
   border-color: var(--color-primary, #667eea);
 }
 
+/* 배경 그라데이션 유틸리티 (동적 테마 적용) */
+.bg-theme-gradient-light {
+  background: linear-gradient(to bottom right, 
+    rgba(var(--color-primary-rgb, 102, 126, 234), 0.1) 0%, 
+    rgba(255, 255, 255, 1) 50%, 
+    rgba(var(--color-secondary-rgb, 118, 75, 162), 0.1) 100%);
+}
+
+.bg-theme-gradient-icon-primary {
+  background: linear-gradient(to bottom right, 
+    var(--color-primary, #667eea), 
+    var(--color-primary, #667eea));
+}
+
+.bg-theme-gradient-icon-secondary {
+  background: linear-gradient(to bottom right, 
+    var(--color-secondary, #764ba2), 
+    var(--color-secondary, #764ba2));
+}
+
+.bg-theme-gradient-icon-accent {
+  background: linear-gradient(to bottom right, 
+    var(--color-accent, #4facfe), 
+    var(--color-accent, #4facfe));
+}
+
+.bg-theme-gradient-button {
+  background: linear-gradient(to right, 
+    var(--color-primary, #667eea), 
+    var(--color-secondary, #764ba2));
+}
+
+.bg-theme-gradient-button:hover {
+  background: linear-gradient(to right, 
+    var(--color-primary, #667eea), 
+    var(--color-secondary, #764ba2));
+  filter: brightness(0.9);
+}
+
+/* 텍스트 색상 (투명도 조절) */
+.text-theme-primary-light {
+  color: rgba(var(--color-primary-rgb, 102, 126, 234), 0.8);
+}
+
 /* About 페이지 애니메이션 */
 @keyframes fade-in-up {
   from {
