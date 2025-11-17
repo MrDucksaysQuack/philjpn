@@ -99,5 +99,29 @@ export class CreateExamDto {
   @ValidateNested()
   @Type(() => ExamConfigDto)
   config?: ExamConfigDto;
+
+  @ApiPropertyOptional({ default: false, description: '적응형 시험 여부' })
+  @IsOptional()
+  @IsBoolean()
+  isAdaptive?: boolean;
+
+  @ApiPropertyOptional({
+    description: '적응형 시험 설정',
+    example: {
+      initialDifficulty: 'medium',
+      questionPoolIds: ['pool-id-1', 'pool-id-2'],
+      minQuestions: 10,
+      maxQuestions: 50,
+      targetAccuracy: 0.7,
+    },
+  })
+  @IsOptional()
+  adaptiveConfig?: {
+    initialDifficulty?: 'easy' | 'medium' | 'hard';
+    questionPoolIds?: string[];
+    minQuestions?: number;
+    maxQuestions?: number;
+    targetAccuracy?: number;
+  };
 }
 

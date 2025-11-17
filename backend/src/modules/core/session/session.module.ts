@@ -4,11 +4,13 @@ import { SessionController } from './session.controller';
 import { GradingService } from '../grading/grading.service';
 import { MonitoringModule } from '../../monitoring/monitoring.module';
 import { LicenseModule } from '../../license/license.module';
+import { AdminModule } from '../../admin/admin.module';
 
 @Module({
   imports: [
     forwardRef(() => MonitoringModule),
     LicenseModule, // LicenseKeyGuard를 사용하기 위해 필요
+    AdminModule, // QuestionPoolService를 사용하기 위해 필요
   ],
   controllers: [SessionController],
   providers: [SessionService, GradingService],

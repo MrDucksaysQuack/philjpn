@@ -68,12 +68,14 @@ export class ExamService {
   }
 
   async create(createExamDto: CreateExamDto, userId?: string) {
-    const { config, ...examData } = createExamDto;
+    const { config, isAdaptive, adaptiveConfig, ...examData } = createExamDto;
 
     // 시험 생성
     const exam = await this.prisma.exam.create({
       data: {
         ...examData,
+        isAdaptive: isAdaptive || false,
+        adaptiveConfig: adaptiveConfig ? (adaptiveConfig as any) : null,
         createdBy: userId,
         config: config
           ? {

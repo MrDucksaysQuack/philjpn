@@ -63,18 +63,22 @@ model Exam {
   deletedAt      DateTime?
   templateId     String?
   randomSeed     Int?
+  isAdaptive     Boolean           @default(false)
+  adaptiveConfig Json?
   config         ExamConfig?
   examResults    ExamResult[]
   creator        User?             @relation(fields: [createdBy], references: [id])
   template       ExamTemplate?     @relation("TemplateBased", fields: [templateId], references: [id])
   sections       Section[]
   examSessions   UserExamSession[]
+  adaptiveQuestions AdaptiveQuestion[]
 
   @@index([examType])
   @@index([subject])
   @@index([isActive])
   @@index([createdAt])
   @@index([templateId])
+  @@index([isAdaptive])
   @@map("exams")
 }
 
@@ -131,8 +135,9 @@ model Question {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   questionResults QuestionResult[]
-  questionBank    QuestionBank?    @relation(fields: [questionBankId], references: [id])
-  section         Section          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  questionBank    QuestionBank?      @relation(fields: [questionBankId], references: [id])
+  section         Section            @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  adaptiveQuestions AdaptiveQuestion[]
 
   @@index([sectionId])
   @@index([sectionId, questionNumber])
@@ -229,25 +234,47 @@ model QuestionResult {
 }
 
 model UserExamSession {
-  id                    String    @id @default(uuid())
+  id                    String             @id @default(uuid())
   userId                String
   examId                String
   examResultId          String?
   currentSectionId      String?
   currentQuestionNumber Int?
-  answers               Json      @default("{}")
-  startTime             DateTime  @default(now())
-  lastActivityAt        DateTime  @default(now()) @updatedAt
+  answers               Json               @default("{}")
+  startTime             DateTime           @default(now())
+  lastActivityAt        DateTime           @default(now()) @updatedAt
   expiresAt             DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  exam                  Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  exam                  Exam               @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adaptiveQuestions     AdaptiveQuestion[]
 
   @@index([userId])
   @@index([examId])
   @@index([expiresAt])
   @@map("user_exam_sessions")
+}
+
+model AdaptiveQuestion {
+  id              String           @id @default(uuid())
+  sessionId       String
+  questionId      String
+  difficulty      Difficulty
+  order           Int
+  answeredAt      DateTime?
+  isCorrect       Boolean?
+  selectedAt      DateTime          @default(now())
+  session         UserExamSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question        Question         @relation(fields: [questionId], references: [id])
+  exam            Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId          String
+
+  @@index([sessionId])
+  @@index([questionId])
+  @@index([examId])
+  @@index([sessionId, order])
+  @@map("adaptive_questions")
 }
 
 model LicenseKey {

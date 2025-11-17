@@ -5,6 +5,7 @@ import {
   Put,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -16,6 +17,7 @@ import { StartExamDto } from './dto/start-exam.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { MoveSectionDto } from './dto/move-section.dto';
 import { SubmitQuestionDto } from './dto/submit-question.dto';
+import { GetNextQuestionDto } from './dto/get-next-question.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { LicenseKeyGuard } from '../../license/guards/license-key.guard';
@@ -109,6 +111,23 @@ export class SessionController {
       user.id,
       dto,
     );
+  }
+
+  // ==================== 적응형 시험 ====================
+
+  @Get('sessions/:sessionId/next-question')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '적응형 시험: 다음 문제 가져오기' })
+  @ApiResponse({ status: 200, description: '다음 문제 조회 성공' })
+  @ApiResponse({ status: 400, description: '적응형 시험이 아님' })
+  @ApiResponse({ status: 404, description: '세션을 찾을 수 없음' })
+  getNextQuestion(
+    @Param('sessionId') sessionId: string,
+    @Query() dto: GetNextQuestionDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.sessionService.getNextQuestion(sessionId, user.id, dto);
   }
 }
 
