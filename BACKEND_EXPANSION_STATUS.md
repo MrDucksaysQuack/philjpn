@@ -58,20 +58,39 @@
 
 ---
 
+## ✅ 완료된 항목 (추가)
+
+### 3. Adaptive Testing - Phase 1 ✅
+**완료일**: 2024년 11월
+
+**구현 내용**:
+- ✅ `AdaptiveQuestion` 모델 추가
+- ✅ `Exam.isAdaptive` 필드 추가
+- ✅ `Exam.adaptiveConfig` 필드 추가
+- ✅ `SessionService.getNextQuestion()` 메서드 구현
+- ✅ 능력 추정 알고리즘 구현 (가중 평균 기반)
+- ✅ 동적 문제 선택 로직 구현
+
+**파일**:
+- `backend/prisma/schema.prisma`: AdaptiveQuestion 모델 추가
+- `backend/src/modules/core/session/session.service.ts`: 적응형 로직 구현
+- `backend/src/modules/core/session/session.controller.ts`: GET /api/sessions/:sessionId/next-question 엔드포인트
+- `backend/src/modules/core/session/dto/get-next-question.dto.ts`: DTO 추가
+- `backend/src/modules/core/exam/dto/create-exam.dto.ts`: isAdaptive, adaptiveConfig 필드 추가
+- `backend/src/modules/core/exam/exam.service.ts`: 적응형 필드 저장 로직
+
+**API 엔드포인트**:
+- `GET /api/sessions/:sessionId/next-question`: 다음 문제 가져오기 (적응형 시험)
+
+**특징**:
+- Question Pool 우선 사용, 없으면 전체 문제에서 필터링
+- 난이도별 가중치 기반 능력 추정
+- 능력에 따른 자동 난이도 조정 (easy/medium/hard)
+- 이미 푼 문제 자동 제외
+
+---
+
 ## ⚠️ 미완료 항목
-
-### 3. Adaptive Testing - Phase 1 ❌
-**예상 시간**: 5-7일
-
-**필요한 작업**:
-- ❌ `AdaptiveQuestion` 모델 추가
-- ❌ `Exam.isAdaptive` 필드 추가
-- ❌ `Exam.adaptiveConfig` 필드 추가
-- ❌ `SessionService.getNextQuestion()` 메서드 구현
-- ❌ 능력 추정 알고리즘 구현
-- ❌ 동적 문제 선택 로직 구현
-
-**현재 상태**: 미구현
 
 ---
 
@@ -102,24 +121,20 @@
 
 ## 📊 완료율
 
-### 전체 진행률: **40%** (2/5 Phase 완료)
+### 전체 진행률: **60%** (3/5 Phase 완료)
 
 | 항목 | Phase 1 | Phase 2 | Phase 3 | 상태 |
 |------|---------|---------|---------|------|
 | 대량 배포 모드 | ✅ | ⚠️ | ⚠️ | Phase 1 완료 |
 | AI 분석 통합 | ✅ | ❌ | ❌ | Phase 1 완료 |
-| Adaptive Testing | ❌ | ❌ | ❌ | 미시작 |
+| Adaptive Testing | ✅ | ❌ | ❌ | Phase 1 완료 |
 
 ---
 
 ## 🎯 다음 우선순위
 
 ### 권장 순서:
-1. **Adaptive Testing - Phase 1** (5-7일)
-   - 가장 복잡하지만 차별화 요소
-   - 기본 적응형 구조 구현
-
-2. **AI 분석 통합 - Phase 2** (3-5일)
+1. **AI 분석 통합 - Phase 2** (3-5일)
    - 비동기 처리로 사용자 경험 개선
    - Bull Queue 도입
 
