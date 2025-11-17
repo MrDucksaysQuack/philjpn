@@ -144,6 +144,34 @@ export interface ExamConfig {
   preventTabSwitch?: boolean;
 }
 
+// Category/Subcategory 인터페이스를 먼저 정의 (Exam에서 참조)
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  order: number;
+  isActive: boolean;
+  subcategories?: Subcategory[];
+  _count?: {
+    exams: number;
+  };
+}
+
+export interface Subcategory {
+  id: string;
+  categoryId: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  order: number;
+  isActive: boolean;
+  category?: Category;
+  _count?: {
+    exams: number;
+  };
+}
+
 export interface Exam {
   id: string;
   title: string;
@@ -158,11 +186,27 @@ export interface Exam {
   difficulty?: string;
   isPublic?: boolean;
   config?: ExamConfig;
+  // Category/Subcategory 연결
+  categoryId?: string;
+  subcategoryId?: string;
+  category?: Category;
+  subcategory?: Subcategory;
+  // 적응형 시험
+  isAdaptive?: boolean;
+  adaptiveConfig?: any;
+  // 메타데이터
+  publishedAt?: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  templateId?: string;
 }
 
 export interface ExamResult {
   id: string;
+  userId?: string; // 옵셔널로 변경 (기존 코드 호환성)
   examId: string;
+  licenseKeyId?: string;
   status: string;
   totalScore?: number;
   maxScore?: number;
@@ -170,6 +214,13 @@ export interface ExamResult {
   timeSpent?: number;
   startedAt: string;
   submittedAt?: string;
+  gradedAt?: string;
+  extractedWords?: string[];
+  learningInsights?: any;
+  aiAnalysis?: any;
+  aiAnalyzedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Learning Pattern Types
@@ -237,7 +288,7 @@ export interface UserGoal {
   currentValue: number;
   deadline: string;
   status: "active" | "achieved" | "failed" | "paused";
-  milestones?: Array<{ date: string; target: number }>;
+  milestones?: any; // JSONB 형식 (유연한 구조)
   createdAt: string;
   updatedAt: string;
 }
@@ -282,11 +333,15 @@ export interface LicenseKey {
   userId?: string;
   examIds: string[];
   usageLimit?: number;
-  usedCount: number;
+  usageCount: number; // Supabase 스키마와 일치: usedCount → usageCount
   validFrom?: string;
   validUntil?: string;
   isActive: boolean;
+  issuedBy?: string;
+  issuedAt?: string;
+  batchId?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CreateLicenseKeyPayload {
@@ -435,32 +490,7 @@ export const examAPI = {
 };
 
 // Category API
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  order: number;
-  isActive: boolean;
-  subcategories?: Subcategory[];
-  _count?: {
-    exams: number;
-  };
-}
-
-export interface Subcategory {
-  id: string;
-  categoryId: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  order: number;
-  isActive: boolean;
-  category?: Category;
-  _count?: {
-    exams: number;
-  };
-}
+// Category와 Subcategory 인터페이스는 위에서 이미 정의됨
 
 export const categoryAPI = {
   // Public API
@@ -508,6 +538,7 @@ export const categoryAPI = {
 export interface Question {
   id: string;
   sectionId: string;
+  questionBankId?: string;
   questionNumber: number;
   questionType: 'multiple_choice' | 'fill_blank' | 'essay';
   content: string;

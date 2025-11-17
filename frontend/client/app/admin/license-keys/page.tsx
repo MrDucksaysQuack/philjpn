@@ -203,7 +203,7 @@ export default function AdminLicenseKeysPage() {
     if (newBatch.validDays) payload.validDays = parseInt(newBatch.validDays);
     if (newBatch.prefix) payload.prefix = newBatch.prefix;
 
-    if (confirm(`${newBatch.count}개의 라이선스 키를 생성하시겠습니까?`)) {
+    if (typeof window !== 'undefined' && confirm(`${newBatch.count}개의 라이선스 키를 생성하시겠습니까?`)) {
       createBatchMutation.mutate(payload);
     }
   };
@@ -254,10 +254,10 @@ export default function AdminLicenseKeysPage() {
       }
       
       // 사용 횟수 필터
-      if (filters.minUsage && key.usedCount < parseFloat(filters.minUsage)) {
+      if (filters.minUsage && key.usageCount < parseFloat(filters.minUsage)) {
         return false;
       }
-      if (filters.maxUsage && key.usedCount > parseFloat(filters.maxUsage)) {
+      if (filters.maxUsage && key.usageCount > parseFloat(filters.maxUsage)) {
         return false;
       }
       
@@ -294,7 +294,7 @@ export default function AdminLicenseKeysPage() {
 
   const handleBulkActivate = () => {
     if (selectedKeys.size === 0) return;
-    if (confirm(`${selectedKeys.size}개의 키를 활성화하시겠습니까?`)) {
+    if (typeof window !== 'undefined' && confirm(`${selectedKeys.size}개의 키를 활성화하시겠습니까?`)) {
       Array.from(selectedKeys).forEach((keyId) => {
         const key = data?.data?.find((k: LicenseKey) => k.id === keyId);
         if (key && !key.isActive) {
@@ -310,7 +310,7 @@ export default function AdminLicenseKeysPage() {
 
   const handleBulkDeactivate = () => {
     if (selectedKeys.size === 0) return;
-    if (confirm(`${selectedKeys.size}개의 키를 비활성화하시겠습니까?`)) {
+    if (typeof window !== 'undefined' && confirm(`${selectedKeys.size}개의 키를 비활성화하시겠습니까?`)) {
       Array.from(selectedKeys).forEach((keyId) => {
         const key = data?.data?.find((k: LicenseKey) => k.id === keyId);
         if (key && key.isActive) {
@@ -922,8 +922,8 @@ export default function AdminLicenseKeysPage() {
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       {key.usageLimit
-                        ? `${key.usedCount}/${key.usageLimit}`
-                        : key.usedCount}
+                        ? `${key.usageCount}/${key.usageLimit}`
+                        : key.usageCount}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                       {key.validFrom
