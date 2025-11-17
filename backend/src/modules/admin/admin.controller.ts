@@ -432,8 +432,7 @@ export class AdminController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: (() => {
-        const service = (this as any).fileUploadService as FileUploadService;
-        if (!service) throw new Error('FileUploadService not initialized');
+        const service = new FileUploadService();
         const imageConfig = service.getImageUploadConfig();
         return service.createStorageConfig(imageConfig);
       })(),
@@ -441,8 +440,7 @@ export class AdminController {
         fileSize: 5 * 1024 * 1024, // 5MB 제한
       },
       fileFilter: (() => {
-        const service = (this as any).fileUploadService as FileUploadService;
-        if (!service) throw new Error('FileUploadService not initialized');
+        const service = new FileUploadService();
         const imageConfig = service.getImageUploadConfig();
         return service.createFileFilter(imageConfig);
       })(),
@@ -483,8 +481,7 @@ export class AdminController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: (() => {
-        const service = (this as any).fileUploadService as FileUploadService;
-        if (!service) throw new Error('FileUploadService not initialized');
+        const service = new FileUploadService();
         const audioConfig = service.getAudioUploadConfig();
         return service.createStorageConfig(audioConfig);
       })(),
@@ -492,8 +489,7 @@ export class AdminController {
         fileSize: 10 * 1024 * 1024, // 10MB 제한
       },
       fileFilter: (() => {
-        const service = (this as any).fileUploadService as FileUploadService;
-        if (!service) throw new Error('FileUploadService not initialized');
+        const service = new FileUploadService();
         const audioConfig = service.getAudioUploadConfig();
         return service.createFileFilter(audioConfig);
       })(),
