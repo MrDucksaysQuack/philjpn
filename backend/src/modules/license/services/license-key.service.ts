@@ -310,13 +310,20 @@ export class LicenseKeyService {
   }
 
   /**
-   * 배치 통계 조회
+   * 배치 통계 조회 (강화된 버전)
    */
   async getBatchStats(batchId: string) {
     const batch = await this.prisma.licenseKeyBatch.findUnique({
       where: { id: batchId },
       include: {
-        keys: true,
+        keys: {
+          include: {
+            usageLogs: {
+              orderBy: { createdAt: 'desc' },
+              take: 100,
+            },
+          },
+        },
         issuer: {
           select: {
             id: true,
@@ -335,6 +342,21 @@ export class LicenseKeyService {
     const usedKeys = batch.keys.filter((k) => k.usageCount > 0).length;
     const activeKeys = batch.keys.filter((k) => k.isActive).length;
     const totalUsage = batch.keys.reduce((sum, k) => sum + k.usageCount, 0);
+    const expiredKeys = batch.keys.filter(
+      (k) => k.validUntil && k.validUntil < new Date(),
+    ).length;
+    const expiringSoonKeys = batch.keys.filter(
+      (k) =>
+        k.validUntil &&
+        k.validUntil > new Date() &&
+        k.validUntil < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 이내
+    ).length;
+
+    // 일별 사용량 통계 (최근 30일)
+    const dailyUsage = this.calculateDailyUsage(batch.keys);
+    
+    // 사용량 분포
+    const usageDistribution = this.calculateUsageDistribution(batch.keys);
 
     return {
       batch: {
@@ -345,6 +367,7 @@ export class LicenseKeyService {
         keyType: batch.keyType,
         createdAt: batch.createdAt,
         issuer: batch.issuer,
+        validUntil: batch.validUntil,
       },
       stats: {
         totalKeys,
@@ -352,11 +375,82 @@ export class LicenseKeyService {
         unusedKeys: totalKeys - usedKeys,
         activeKeys,
         inactiveKeys: totalKeys - activeKeys,
+        expiredKeys,
+        expiringSoonKeys,
         totalUsage,
         averageUsage: totalKeys > 0 ? totalUsage / totalKeys : 0,
         usageRate: totalKeys > 0 ? (usedKeys / totalKeys) * 100 : 0,
+        expirationRate: totalKeys > 0 ? (expiredKeys / totalKeys) * 100 : 0,
+      },
+      trends: {
+        dailyUsage,
+        usageDistribution,
       },
     };
+  }
+
+  /**
+   * 일별 사용량 계산
+   */
+  private calculateDailyUsage(keys: any[]): Array<{ date: string; count: number }> {
+    const usageMap = new Map<string, number>();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // 모든 키의 사용 로그에서 일별 사용량 집계
+    for (const key of keys) {
+      if (key.usageLogs) {
+        for (const log of key.usageLogs) {
+          const logDate = new Date(log.createdAt);
+          if (logDate >= thirtyDaysAgo) {
+            const dateKey = logDate.toISOString().split('T')[0];
+            usageMap.set(dateKey, (usageMap.get(dateKey) || 0) + 1);
+          }
+        }
+      }
+    }
+
+    // 최근 30일 데이터 생성
+    const dailyUsage: Array<{ date: string; count: number }> = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dateKey = date.toISOString().split('T')[0];
+      dailyUsage.push({
+        date: dateKey,
+        count: usageMap.get(dateKey) || 0,
+      });
+    }
+
+    return dailyUsage;
+  }
+
+  /**
+   * 사용량 분포 계산
+   */
+  private calculateUsageDistribution(keys: any[]): {
+    zero: number;
+    low: number;
+    medium: number;
+    high: number;
+  } {
+    let zero = 0; // 0회
+    let low = 0; // 1-5회
+    let medium = 0; // 6-20회
+    let high = 0; // 21회 이상
+
+    for (const key of keys) {
+      const usage = key.usageCount || 0;
+      if (usage === 0) {
+        zero++;
+      } else if (usage <= 5) {
+        low++;
+      } else if (usage <= 20) {
+        medium++;
+      } else {
+        high++;
+      }
+    }
+
+    return { zero, low, medium, high };
   }
 
   /**
@@ -405,31 +499,160 @@ export class LicenseKeyService {
   }
 
   /**
-   * 사용량 대시보드
+   * 만료 예정 배치 조회
    */
-  async getDashboard(userId: string) {
-    const [totalKeys, activeKeys, totalUsage, recentBatches] = await Promise.all([
-      this.prisma.licenseKey.count({
-        where: { issuedBy: userId },
-      }),
-      this.prisma.licenseKey.count({
-        where: { issuedBy: userId, isActive: true },
-      }),
-      this.prisma.licenseKey.aggregate({
-        where: { issuedBy: userId },
-        _sum: { usageCount: true },
-      }),
-      this.prisma.licenseKeyBatch.findMany({
-        where: { createdBy: userId },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-        include: {
-          _count: {
-            select: { keys: true },
+  async getExpiringBatches(userId: string, days: number = 7) {
+    const cutoffDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+
+    return this.prisma.licenseKeyBatch.findMany({
+      where: {
+        createdBy: userId,
+        validUntil: {
+          gte: new Date(),
+          lte: cutoffDate,
+        },
+      },
+      include: {
+        _count: {
+          select: { keys: true },
+        },
+      },
+      orderBy: { validUntil: 'asc' },
+    });
+  }
+
+  /**
+   * 사용량 예측 (간단한 선형 회귀)
+   */
+  async predictUsage(batchId: string, days: number = 30): Promise<number> {
+    const batch = await this.prisma.licenseKeyBatch.findUnique({
+      where: { id: batchId },
+      include: {
+        keys: {
+          include: {
+            usageLogs: {
+              orderBy: { createdAt: 'asc' },
+            },
           },
         },
-      }),
-    ]);
+      },
+    });
+
+    if (!batch) {
+      throw new NotFoundException(`배치를 찾을 수 없습니다. ID: ${batchId}`);
+    }
+
+    // 최근 30일 사용량 데이터
+    const dailyUsage = this.calculateDailyUsage(batch.keys);
+    const recentUsage = dailyUsage.slice(-14); // 최근 14일
+
+    if (recentUsage.length < 7) {
+      // 데이터가 부족하면 평균 사용량 기반 예측
+      const avgDailyUsage =
+        recentUsage.reduce((sum, d) => sum + d.count, 0) / recentUsage.length || 0;
+      return Math.round(avgDailyUsage * days);
+    }
+
+    // 선형 회귀를 사용한 예측
+    const n = recentUsage.length;
+    const sumX = recentUsage.reduce((sum, _, i) => sum + i, 0);
+    const sumY = recentUsage.reduce((sum, d) => sum + d.count, 0);
+    const sumXY = recentUsage.reduce((sum, d, i) => sum + i * d.count, 0);
+    const sumX2 = recentUsage.reduce((sum, _, i) => sum + i * i, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    // 미래 예측
+    const futureDays = Array.from({ length: days }, (_, i) => n + i);
+    const predictedUsage = futureDays.reduce(
+      (sum, x) => sum + Math.max(0, slope * x + intercept),
+      0,
+    );
+
+    return Math.round(predictedUsage);
+  }
+
+  /**
+   * 사용량 대시보드 (강화된 버전)
+   */
+  async getDashboard(userId: string) {
+    const [totalKeys, activeKeys, totalUsage, recentBatches, expiringBatches, expiredBatches] =
+      await Promise.all([
+        this.prisma.licenseKey.count({
+          where: { issuedBy: userId },
+        }),
+        this.prisma.licenseKey.count({
+          where: { issuedBy: userId, isActive: true },
+        }),
+        this.prisma.licenseKey.aggregate({
+          where: { issuedBy: userId },
+          _sum: { usageCount: true },
+        }),
+        this.prisma.licenseKeyBatch.findMany({
+          where: { createdBy: userId },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          include: {
+            _count: {
+              select: { keys: true },
+            },
+            keys: {
+              select: {
+                usageCount: true,
+                isActive: true,
+                validUntil: true,
+              },
+            },
+          },
+        }),
+        this.prisma.licenseKeyBatch.findMany({
+          where: {
+            createdBy: userId,
+            validUntil: {
+              gte: new Date(),
+              lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 이내 만료
+            },
+          },
+          orderBy: { validUntil: 'asc' },
+          take: 5,
+        }),
+        this.prisma.licenseKeyBatch.findMany({
+          where: {
+            createdBy: userId,
+            validUntil: {
+              lt: new Date(),
+            },
+          },
+          orderBy: { validUntil: 'desc' },
+          take: 5,
+        }),
+      ]);
+
+    // 배치별 통계 계산
+    const batchStats = recentBatches.map((batch) => {
+      const keys = batch.keys || [];
+      const totalKeys = keys.length;
+      const usedKeys = keys.filter((k) => k.usageCount > 0).length;
+      const activeKeys = keys.filter((k) => k.isActive).length;
+      const totalUsage = keys.reduce((sum, k) => sum + (k.usageCount || 0), 0);
+
+      return {
+        id: batch.id,
+        name: batch.name,
+        count: batch.count,
+        keyType: batch.keyType,
+        createdAt: batch.createdAt,
+        keyCount: batch._count.keys,
+        stats: {
+          totalKeys,
+          usedKeys,
+          activeKeys,
+          totalUsage,
+          usageRate: totalKeys > 0 ? (usedKeys / totalKeys) * 100 : 0,
+        },
+      };
+    });
 
     return {
       overview: {
@@ -437,14 +660,29 @@ export class LicenseKeyService {
         activeKeys,
         inactiveKeys: totalKeys - activeKeys,
         totalUsage: totalUsage._sum.usageCount || 0,
+        expiringBatchesCount: expiringBatches.length,
+        expiredBatchesCount: expiredBatches.length,
       },
-      recentBatches: recentBatches.map((batch) => ({
+      recentBatches: batchStats,
+      expiringBatches: expiringBatches.map((batch) => ({
         id: batch.id,
         name: batch.name,
-        count: batch.count,
-        keyType: batch.keyType,
-        createdAt: batch.createdAt,
-        keyCount: batch._count.keys,
+        validUntil: batch.validUntil,
+        daysUntilExpiry: batch.validUntil
+          ? Math.ceil(
+              (batch.validUntil.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
+            )
+          : null,
+      })),
+      expiredBatches: expiredBatches.map((batch) => ({
+        id: batch.id,
+        name: batch.name,
+        validUntil: batch.validUntil,
+        daysSinceExpiry: batch.validUntil
+          ? Math.ceil(
+              (Date.now() - batch.validUntil.getTime()) / (24 * 60 * 60 * 1000),
+            )
+          : null,
       })),
     };
   }

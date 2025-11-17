@@ -190,5 +190,39 @@ export class LicenseKeyController {
   async getDashboard(@CurrentUser() user: any) {
     return this.licenseKeyService.getDashboard(user.id);
   }
+
+  @Get('batches/expiring')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '만료 예정 배치 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '만료 예정 배치 조회 성공' })
+  async getExpiringBatches(
+    @CurrentUser() user: any,
+    @Query('days') days?: string,
+  ) {
+    const daysNum = days ? parseInt(days, 10) : 7;
+    return this.licenseKeyService.getExpiringBatches(user.id, daysNum);
+  }
+
+  @Get('batch/:id/predict')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '배치 사용량 예측 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '사용량 예측 성공' })
+  async predictUsage(
+    @Param('id') batchId: string,
+    @Query('days') days?: string,
+  ) {
+    const daysNum = days ? parseInt(days, 10) : 30;
+    const predictedUsage = await this.licenseKeyService.predictUsage(batchId, daysNum);
+    return {
+      batchId,
+      predictedDays: daysNum,
+      predictedUsage,
+      message: `향후 ${daysNum}일간 예상 사용량: ${predictedUsage}회`,
+    };
+  }
 }
 
