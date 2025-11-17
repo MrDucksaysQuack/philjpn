@@ -70,16 +70,15 @@ async function bootstrap() {
   }
   
   // 프로덕션: Vercel 도메인 자동 추가
-  if (process.env.NODE_ENV === 'production') {
-    const vercelProdDomain = 'https://philjpn.vercel.app';
-    if (!allowedOriginsArray.includes(vercelProdDomain)) {
-      allowedOriginsArray.push(vercelProdDomain);
-    }
+  const vercelProdDomain = 'https://philjpn.vercel.app';
+  if (!allowedOriginsArray.includes(vercelProdDomain)) {
+    allowedOriginsArray.push(vercelProdDomain);
   }
   
-  // Vercel 도메인 패턴 검증
+  // Vercel 도메인 패턴 검증 (모든 Vercel 프리뷰 및 프로덕션 도메인 포함)
   const isVercelDomain = (origin: string): boolean => {
-    return /^https:\/\/philjpn(-[a-z0-9-]+)?(-[a-z0-9-]+)?\.vercel\.app$/.test(origin);
+    // philjpn.vercel.app 또는 philjpn-xxx-yyy.vercel.app 형식 모두 허용
+    return /^https:\/\/philjpn(-[a-z0-9-]+)*\.vercel\.app$/.test(origin);
   };
   
   // ✅ CORS 미들웨어: 모든 응답에 헤더 강제 설정
@@ -92,28 +91,36 @@ async function bootstrap() {
     // 허용된 Origin인지 확인
     const isAllowed = !origin || 
       allowedOriginsArray.includes(origin) ||
-      (process.env.NODE_ENV === 'production' && isVercelDomain(origin)) ||
+      isVercelDomain(origin) ||
       origin.startsWith('http://localhost:');
-    
-    if (!isAllowed) {
-      console.warn(`❌ CORS 차단: ${origin}`);
-      next();
-      return;
-    }
     
     // OPTIONS 프리플라이트 요청 즉시 처리
     if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Origin', origin || '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Max-Age', '86400');
-      console.log(`✅ OPTIONS CORS 헤더 설정: ${origin}`);
-      return res.status(200).end();
+      if (isAllowed && origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Max-Age', '86400');
+        console.log(`✅ OPTIONS CORS 헤더 설정: ${origin}`);
+        return res.status(200).end();
+      } else {
+        console.warn(`❌ OPTIONS CORS 차단: ${origin}`);
+        return res.status(403).end();
+      }
     }
     
-    // 일반 요청에도 CORS 헤더 즉시 설정 (응답 인터셉터로도 보강)
-    if (origin) {
+    // 허용되지 않은 Origin인 경우 차단
+    if (origin && !isAllowed) {
+      console.warn(`❌ CORS 차단: ${origin}`);
+      return res.status(403).json({ 
+        message: 'CORS policy: Origin not allowed',
+        origin 
+      });
+    }
+    
+    // 일반 요청에도 CORS 헤더 즉시 설정
+    if (origin && isAllowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       console.log(`✅ CORS 헤더 설정: ${origin}`);
@@ -123,7 +130,7 @@ async function bootstrap() {
     const originalEnd = res.end;
     res.end = function(chunk?: any, encoding?: any) {
       // 응답 전송 직전 CORS 헤더 재확인
-      if (origin && !res.getHeader('Access-Control-Allow-Origin')) {
+      if (origin && isAllowed && !res.getHeader('Access-Control-Allow-Origin')) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         console.log(`✅ 응답 전송 전 CORS 헤더 재설정: ${origin}`);
