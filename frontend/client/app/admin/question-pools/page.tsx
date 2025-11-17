@@ -7,6 +7,7 @@ import { adminAPI, QuestionPool } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { emotionalToast } from "@/components/common/Toast";
+import TagInput from "@/components/admin/TagInput";
 
 export default function QuestionPoolsPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
@@ -239,7 +240,7 @@ function QuestionPoolModal({
   const [formData, setFormData] = useState({
     name: pool?.name || "",
     description: pool?.description || "",
-    tags: pool?.tags?.join(", ") || "",
+    tags: pool?.tags || [],
     difficulty: pool?.difficulty || "",
     questionIds: pool?.questionIds?.join(", ") || "",
   });
@@ -249,9 +250,7 @@ function QuestionPoolModal({
       const payload = {
         name: data.name,
         description: data.description || undefined,
-        tags: data.tags
-          ? data.tags.split(",").map((t: string) => t.trim()).filter(Boolean)
-          : [],
+        tags: Array.isArray(data.tags) ? data.tags : [],
         difficulty: data.difficulty || undefined,
         questionIds: data.questionIds
           ? data.questionIds.split(",").map((id: string) => id.trim()).filter(Boolean)
@@ -328,14 +327,13 @@ function QuestionPoolModal({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              태그 (쉼표로 구분)
+              태그
             </label>
-            <input
-              type="text"
-              value={formData.tags}
-              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-all"
-              placeholder="예: 문법, 기초, 시제"
+            <TagInput
+              tags={formData.tags}
+              onChange={(tags) => setFormData({ ...formData, tags })}
+              suggestions={["문법", "어휘", "독해", "작문", "청해", "문법기초", "문법고급", "어휘기초", "어휘고급", "기초", "중급", "고급", "시제", "수동태", "가정법"]}
+              placeholder="태그를 입력하고 Enter를 누르세요"
             />
           </div>
 

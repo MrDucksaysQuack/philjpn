@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import { adminAPI, ExamTemplate, CreateTemplateData, QuestionPool } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import TagInput from "@/components/admin/TagInput";
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -238,7 +239,7 @@ function CreateTemplateModal({
       structure: {
         sections: [
           ...formData.structure.sections,
-          { type: "reading", questionCount: 10, tags: [], difficulty: "medium" },
+          { type: "", questionCount: 10, tags: [], difficulty: "medium" },
         ],
       },
     });
@@ -322,25 +323,51 @@ function CreateTemplateModal({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">타입</label>
-                        <input
-                          type="text"
+                        <label className="block text-xs text-gray-600 mb-1">타입 *</label>
+                        <select
                           value={section.type}
-                          onChange={(e) => updateSection(index, { type: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          placeholder="예: reading, grammar"
-                        />
+                          onChange={(e) => {
+                            const newType = e.target.value;
+                            if (newType === "custom") {
+                              // 사용자 정의 선택 시 입력 필드 표시
+                              updateSection(index, { type: "", isCustomType: true });
+                            } else {
+                              updateSection(index, { type: newType, isCustomType: false });
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        >
+                          <option value="">선택하세요</option>
+                          <option value="reading">독해 (Reading)</option>
+                          <option value="listening">청해 (Listening)</option>
+                          <option value="grammar">문법 (Grammar)</option>
+                          <option value="vocabulary">어휘 (Vocabulary)</option>
+                          <option value="writing">작문 (Writing)</option>
+                          <option value="speaking">회화 (Speaking)</option>
+                          <option value="custom">사용자 정의</option>
+                        </select>
+                        {(section as any).isCustomType && (
+                          <input
+                            type="text"
+                            value={section.type}
+                            onChange={(e) => updateSection(index, { type: e.target.value, isCustomType: true })}
+                            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="사용자 정의 타입 입력"
+                            autoFocus
+                          />
+                        )}
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">문제 개수</label>
+                        <label className="block text-xs text-gray-600 mb-1">문제 개수 *</label>
                         <input
                           type="number"
                           value={section.questionCount}
                           onChange={(e) =>
                             updateSection(index, { questionCount: parseInt(e.target.value) || 0 })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                           min={1}
+                          required
                         />
                       </div>
                     </div>
@@ -381,7 +408,7 @@ function CreateTemplateModal({
                           <select
                             value={section.difficulty || ""}
                             onChange={(e) => updateSection(index, { difficulty: e.target.value || undefined })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                           >
                             <option value="">전체</option>
                             <option value="easy">쉬움</option>
@@ -390,19 +417,13 @@ function CreateTemplateModal({
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">태그 (쉼표로 구분)</label>
-                          <input
-                            type="text"
-                            value={section.tags?.join(", ") || ""}
-                            onChange={(e) =>
-                              updateSection(index, {
-                                tags: e.target.value
-                                  ? e.target.value.split(",").map((t) => t.trim())
-                                  : [],
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="예: 문법, 어휘"
+                          <label className="block text-xs text-gray-600 mb-1">태그 (선택)</label>
+                          <TagInput
+                            tags={section.tags || []}
+                            onChange={(tags) => updateSection(index, { tags })}
+                            suggestions={["문법", "어휘", "독해", "작문", "청해", "문법기초", "문법고급", "어휘기초", "어휘고급"]}
+                            placeholder="태그를 입력하고 Enter를 누르세요"
+                            className="text-sm"
                           />
                         </div>
                       </div>
