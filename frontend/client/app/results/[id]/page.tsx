@@ -522,15 +522,17 @@ export default function ResultDetailPage() {
                     결과를 분석하고 약점을 개선하여 더 높은 점수를 목표로 해보세요!
                   </p>
                   <div className="flex flex-wrap gap-3">
-                    <Link href="/analysis" className="inline-block">
-                      <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
-                        내 학습 패턴 분석하기 →
-                      </button>
+                    <Link 
+                      href="/analysis" 
+                      className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      내 학습 패턴 분석하기 →
                     </Link>
-                    <Link href="/exams/recommended" className="inline-block">
-                      <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
-                        추천 시험 보기 →
-                      </button>
+                    <Link 
+                      href="/exams/recommended" 
+                      className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      추천 시험 보기 →
                     </Link>
                   </div>
                 </div>

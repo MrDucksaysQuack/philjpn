@@ -36,6 +36,7 @@ model User {
   examSessions         UserExamSession[]
   goals                UserGoal[]
   wordBooks            WordBook[]
+  badges               UserBadge[]
 
   @@index([email])
   @@index([role])
@@ -627,4 +628,58 @@ enum GoalStatus {
   achieved
   failed
   paused
+}
+
+enum BadgeType {
+  exam_completed      // 시험 완료
+  perfect_score       // 만점 달성
+  streak_days         // 연속 학습 일수
+  word_master         // 단어장 마스터
+  improvement         // 성적 향상
+  category_master     // 카테고리 마스터
+  speed_demon         // 빠른 완료
+  consistency         // 꾸준함
+}
+
+enum BadgeRarity {
+  common
+  rare
+  epic
+  legendary
+}
+
+// 배지 정의 (시스템 전체 배지 목록)
+model Badge {
+  id          String      @id @default(uuid())
+  badgeType   BadgeType
+  name        String      @db.VarChar(100)
+  description String?     @db.VarChar(500)
+  icon        String?     @db.VarChar(50) // 이모지 또는 아이콘 이름
+  rarity      BadgeRarity @default(common)
+  condition   Json?       // 획득 조건 (JSON 형식)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userBadges  UserBadge[]
+
+  @@index([badgeType])
+  @@index([isActive])
+  @@map("badges")
+}
+
+// 사용자 배지 (사용자가 획득한 배지)
+model UserBadge {
+  id          String    @id @default(uuid())
+  userId      String
+  badgeId     String
+  earnedAt    DateTime  @default(now())
+  progress    Int?      @default(0) // 진행도 (0-100)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge       Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@index([earnedAt])
+  @@map("user_badges")
 }

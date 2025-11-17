@@ -1392,3 +1392,19 @@ export const siteSettingsAPI = {
   getAboutSection: (section: string) =>
     apiClient.get<{ data: any }>(`/site-settings/about?section=${section}`),
 };
+
+// Contact API (Public)
+export interface SubmitContactDto {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export const contactAPI = {
+  submit: (data: SubmitContactDto) =>
+    apiClient.post<{
+      success: boolean;
+      message: string;
+    }>("/contact/submit", data),
+};

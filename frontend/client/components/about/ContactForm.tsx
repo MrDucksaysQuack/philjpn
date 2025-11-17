@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { contactAPI } from "@/lib/api";
+import { toast } from "@/components/common/Toast";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -17,16 +19,27 @@ export default function ContactForm() {
     setIsSubmitting(true);
     setSubmitStatus("idle");
 
-    // TODO: 실제 API 연동
-    // 현재는 시뮬레이션
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
+    try {
+      const response = await contactAPI.submit(formData);
       
-      // 3초 후 상태 초기화
-      setTimeout(() => setSubmitStatus("idle"), 3000);
-    }, 1000);
+      if (response.data.success) {
+        setSubmitStatus("success");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+        toast.success("문의가 성공적으로 접수되었습니다!");
+        
+        // 3초 후 상태 초기화
+        setTimeout(() => setSubmitStatus("idle"), 3000);
+      } else {
+        setSubmitStatus("error");
+        toast.error("전송 중 오류가 발생했습니다.");
+      }
+    } catch (error: any) {
+      setSubmitStatus("error");
+      const errorMessage = error.response?.data?.message || "전송 중 오류가 발생했습니다. 다시 시도해주세요.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (

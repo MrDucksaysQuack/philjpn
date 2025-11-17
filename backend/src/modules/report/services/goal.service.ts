@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { CreateGoalDto } from '../dto/goal.dto';
+import { BadgeService } from './badge.service';
 
 @Injectable()
 export class GoalService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private badgeService: BadgeService,
+  ) {}
 
   /**
    * 목표 생성
@@ -115,8 +119,8 @@ export class GoalService {
             break;
 
           case 'weakness_recovery':
-            // TODO: 약점 회복률 계산
-            currentValue = 0;
+            // 약점 회복률 계산
+            currentValue = await this.calculateWeaknessRecoveryRate(userId, goal.createdAt);
             break;
         }
 
@@ -204,9 +208,12 @@ export class GoalService {
       }),
     );
 
+    // 배지 조회
+    const achievements = await this.badgeService.getUserBadges(userId);
+
     return {
       activeGoals,
-      achievements: [], // TODO: 배지 시스템 구현
+      achievements,
     };
   }
 
@@ -233,6 +240,161 @@ export class GoalService {
     });
 
     return { message: '목표가 삭제되었습니다.' };
+  }
+
+  /**
+   * 약점 회복률 계산
+   * 과거 약점 태그들이 최근 시험에서 얼마나 개선되었는지 측정
+   */
+  private async calculateWeaknessRecoveryRate(
+    userId: string,
+    since: Date,
+  ): Promise<number> {
+    // 목표 생성 시점 이전의 시험 결과 (과거 약점 식별용)
+    const pastResults = await this.prisma.examResult.findMany({
+      where: {
+        userId,
+        status: 'completed',
+        startedAt: {
+          lt: since, // 목표 생성 이전
+        },
+      },
+      include: {
+        sectionResults: {
+          include: {
+            questionResults: {
+              include: {
+                question: {
+                  select: {
+                    tags: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        startedAt: 'desc',
+      },
+      take: 10, // 최근 10개 시험
+    });
+
+    // 목표 생성 이후의 시험 결과 (최근 성과 확인용)
+    const recentResults = await this.prisma.examResult.findMany({
+      where: {
+        userId,
+        status: 'completed',
+        startedAt: {
+          gte: since, // 목표 생성 이후
+        },
+      },
+      include: {
+        sectionResults: {
+          include: {
+            questionResults: {
+              include: {
+                question: {
+                  select: {
+                    tags: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        startedAt: 'desc',
+      },
+      take: 10, // 최근 10개 시험
+    });
+
+    if (pastResults.length === 0 || recentResults.length === 0) {
+      return 0; // 비교할 데이터가 없으면 0%
+    }
+
+    // 과거 약점 태그 식별 (정답률 70% 미만)
+    const pastTagStats = new Map<string, { correct: number; total: number }>();
+    
+    pastResults.forEach((result) => {
+      result.sectionResults.forEach((sr) => {
+        sr.questionResults.forEach((qr) => {
+          const question = qr.question;
+          if (question.tags && question.tags.length > 0) {
+            question.tags.forEach((tag: string) => {
+              if (!pastTagStats.has(tag)) {
+                pastTagStats.set(tag, { correct: 0, total: 0 });
+              }
+              const stats = pastTagStats.get(tag)!;
+              stats.total++;
+              if (qr.isCorrect) {
+                stats.correct++;
+              }
+            });
+          }
+        });
+      });
+    });
+
+    // 약점 태그 필터링 (정답률 70% 미만, 최소 3문제 이상)
+    const weaknessTags = Array.from(pastTagStats.entries())
+      .filter(([_, stats]) => stats.total >= 3 && (stats.correct / stats.total) < 0.7)
+      .map(([tag, stats]) => ({
+        tag,
+        pastCorrectRate: (stats.correct / stats.total) * 100,
+      }));
+
+    if (weaknessTags.length === 0) {
+      return 100; // 약점이 없으면 100% 회복
+    }
+
+    // 최근 시험에서 같은 태그의 정답률 확인
+    const recentTagStats = new Map<string, { correct: number; total: number }>();
+    
+    recentResults.forEach((result) => {
+      result.sectionResults.forEach((sr) => {
+        sr.questionResults.forEach((qr) => {
+          const question = qr.question;
+          if (question.tags && question.tags.length > 0) {
+            question.tags.forEach((tag: string) => {
+              if (!recentTagStats.has(tag)) {
+                recentTagStats.set(tag, { correct: 0, total: 0 });
+              }
+              const stats = recentTagStats.get(tag)!;
+              stats.total++;
+              if (qr.isCorrect) {
+                stats.correct++;
+              }
+            });
+          }
+        });
+      });
+    });
+
+    // 각 약점 태그의 회복률 계산
+    let totalRecoveryRate = 0;
+    let validTags = 0;
+
+    weaknessTags.forEach(({ tag, pastCorrectRate }) => {
+      const recentStats = recentTagStats.get(tag);
+      if (recentStats && recentStats.total >= 2) {
+        const recentCorrectRate = (recentStats.correct / recentStats.total) * 100;
+        
+        // 회복률 = (최근 정답률 - 과거 정답률) / (100 - 과거 정답률) * 100
+        // 예: 과거 50% -> 최근 80% = (80-50)/(100-50) * 100 = 60% 회복
+        const recoveryRate = Math.max(
+          0,
+          Math.min(100, ((recentCorrectRate - pastCorrectRate) / (100 - pastCorrectRate)) * 100),
+        );
+        
+        totalRecoveryRate += recoveryRate;
+        validTags++;
+      }
+    });
+
+    // 평균 회복률 반환
+    return validTags > 0 ? Math.round(totalRecoveryRate / validTags) : 0;
   }
 }
 

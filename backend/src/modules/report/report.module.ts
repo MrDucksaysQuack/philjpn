@@ -4,11 +4,12 @@ import { ReportController } from './report.controller';
 import { GoalService } from './services/goal.service';
 import { RecommendationService } from './services/recommendation.service';
 import { LearningCycleService } from './services/learning-cycle.service';
+import { BadgeService } from './services/badge.service';
 
 @Module({
   controllers: [ReportController],
-  providers: [ReportService, GoalService, RecommendationService, LearningCycleService],
-  exports: [ReportService, GoalService, RecommendationService, LearningCycleService],
+  providers: [ReportService, GoalService, RecommendationService, LearningCycleService, BadgeService],
+  exports: [ReportService, GoalService, RecommendationService, LearningCycleService, BadgeService],
 })
 export class ReportModule {}
 

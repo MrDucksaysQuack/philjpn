@@ -11,6 +11,7 @@ import { PrismaService } from '../../common/utils/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
+import { TokenBlacklistService } from './services/token-blacklist.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private tokenBlacklistService: TokenBlacklistService,
   ) {}
 
   /**
@@ -172,6 +174,12 @@ export class AuthService {
    */
   async refreshToken(refreshToken: string) {
     try {
+      // 블랙리스트 확인
+      const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(refreshToken);
+      if (isBlacklisted) {
+        throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+      }
+
       const payload = this.jwtService.verify<JwtPayload>(refreshToken);
 
       // 사용자 확인
@@ -201,6 +209,38 @@ export class AuthService {
       };
     } catch (error) {
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
+  }
+
+  /**
+   * 로그아웃 (토큰 블랙리스트에 추가)
+   */
+  async logout(accessToken: string, refreshToken?: string): Promise<void> {
+    try {
+      // Access Token 블랙리스트에 추가
+      // JWT의 만료 시간을 확인하여 그만큼 블랙리스트에 유지
+      const accessTokenPayload = this.jwtService.decode(accessToken) as JwtPayload & { exp?: number };
+      const accessTokenExpiresIn = accessTokenPayload.exp 
+        ? Math.max(0, accessTokenPayload.exp - Math.floor(Date.now() / 1000))
+        : 3600; // 기본 1시간
+
+      await this.tokenBlacklistService.addToBlacklist(accessToken, accessTokenExpiresIn);
+
+      // Refresh Token도 블랙리스트에 추가
+      if (refreshToken) {
+        const refreshTokenPayload = this.jwtService.decode(refreshToken) as JwtPayload & { exp?: number };
+        const refreshTokenExpiresIn = refreshTokenPayload.exp
+          ? Math.max(0, refreshTokenPayload.exp - Math.floor(Date.now() / 1000))
+          : 7 * 24 * 60 * 60; // 기본 7일
+
+        await this.tokenBlacklistService.addToBlacklist(refreshToken, refreshTokenExpiresIn);
+      }
+    } catch (error) {
+      // 토큰 파싱 실패 시에도 블랙리스트에 추가 (안전을 위해)
+      await this.tokenBlacklistService.addToBlacklist(accessToken, 3600);
+      if (refreshToken) {
+        await this.tokenBlacklistService.addToBlacklist(refreshToken, 7 * 24 * 60 * 60);
+      }
     }
   }
 

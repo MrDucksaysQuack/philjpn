@@ -17,9 +17,6 @@ export default function AdminExamsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  // TODO: 추후 편집 기능 구현 시 사용
-  // const [isCreating, setIsCreating] = useState(false);
-  // const [editingExam, setEditingExam] = useState<Exam | null>(null);
 
   const { data, isLoading } = useQuery<PaginatedResponse<Exam>>({
     queryKey: ["admin-exams", page, search],

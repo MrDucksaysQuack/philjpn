@@ -423,6 +423,9 @@ export class SessionService {
       session.examResultId,
     );
 
+    // 배지 체크는 나중에 구현 (순환 의존성 문제로 인해 주석 처리)
+    // TODO: 배지 체크 로직 구현 (이벤트 기반 또는 별도 서비스로 분리)
+
     return {
       examResultId: session.examResultId,
       status: gradedResult.status,

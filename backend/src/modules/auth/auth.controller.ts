@@ -1,5 +1,7 @@
-import { Controller, Post, Get, Body, UseGuards, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, HttpCode, HttpStatus, BadRequestException, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -13,6 +15,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ default: { ttl: 60000, limit: 3 } }) // 1분에 3회 제한
   @ApiOperation({ summary: '회원가입' })
   @ApiResponse({ status: 201, description: '회원가입 성공' })
   @ApiResponse({ status: 409, description: '이미 가입된 이메일' })
@@ -22,6 +25,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ default: { ttl: 60000, limit: 5 } }) // 1분에 5회 제한 (브루트포스 방지)
   @ApiOperation({ summary: '로그인' })
   @ApiResponse({ status: 200, description: '로그인 성공' })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
@@ -51,8 +55,15 @@ export class AuthController {
   @ApiOperation({ summary: '로그아웃' })
   @ApiResponse({ status: 200, description: '로그아웃 성공' })
   @HttpCode(HttpStatus.OK)
-  async logout() {
-    // TODO: 토큰 블랙리스트 관리 (선택사항)
+  async logout(@Req() request: Request, @CurrentUser() user: { id: string }, @Body() body?: { refreshToken?: string }) {
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = request.headers?.authorization;
+    const accessToken = authHeader?.replace('Bearer ', '');
+
+    if (accessToken) {
+      await this.authService.logout(accessToken, body?.refreshToken);
+    }
+
     return { message: '로그아웃되었습니다.' };
   }
 

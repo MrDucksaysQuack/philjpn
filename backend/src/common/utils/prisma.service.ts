@@ -10,6 +10,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   get licenseKeyBatch() {
     return (this as unknown as PrismaClient).licenseKeyBatch;
   }
+  
+  get badge() {
+    return (this as unknown as PrismaClient).badge;
+  }
+  
+  get userBadge() {
+    return (this as unknown as PrismaClient).userBadge;
+  }
   private readonly MAX_RETRIES = 5;
   private readonly RETRY_DELAY_MS = 5000; // 5초
 
