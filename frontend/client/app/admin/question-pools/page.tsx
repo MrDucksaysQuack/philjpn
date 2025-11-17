@@ -8,6 +8,7 @@ import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { emotionalToast } from "@/components/common/Toast";
 import TagInput from "@/components/admin/TagInput";
+import QuestionSelector from "@/components/admin/QuestionSelector";
 
 export default function QuestionPoolsPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
@@ -242,7 +243,7 @@ function QuestionPoolModal({
     description: pool?.description || "",
     tags: pool?.tags || [],
     difficulty: pool?.difficulty || "",
-    questionIds: pool?.questionIds?.join(", ") || "",
+    questionIds: pool?.questionIds || [],
   });
 
   const createMutation = useMutation({
@@ -252,9 +253,7 @@ function QuestionPoolModal({
         description: data.description || undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
         difficulty: data.difficulty || undefined,
-        questionIds: data.questionIds
-          ? data.questionIds.split(",").map((id: string) => id.trim()).filter(Boolean)
-          : [],
+        questionIds: Array.isArray(data.questionIds) ? data.questionIds : [],
       };
       if (pool) {
         await adminAPI.updateQuestionPool(pool.id, payload);
@@ -355,17 +354,18 @@ function QuestionPoolModal({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              문제 ID 목록 (쉼표로 구분, UUID)
+              문제 선택
             </label>
-            <textarea
-              value={formData.questionIds}
-              onChange={(e) => setFormData({ ...formData, questionIds: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-all font-mono text-sm"
-              placeholder="예: uuid1, uuid2, uuid3"
-              rows={4}
+            <QuestionSelector
+              selectedIds={formData.questionIds}
+              onChange={(ids) => setFormData({ ...formData, questionIds: ids })}
+              filters={{
+                tags: formData.tags.length > 0 ? formData.tags : undefined,
+                difficulty: formData.difficulty || undefined,
+              }}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              나중에 문제 관리 페이지에서 문제를 추가할 수 있습니다.
+            <p className="text-xs text-gray-500 mt-2">
+              💡 태그와 난이도 필터를 설정하면 문제 선택 시 자동으로 필터링됩니다.
             </p>
           </div>
 

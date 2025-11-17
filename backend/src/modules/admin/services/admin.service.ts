@@ -888,5 +888,78 @@ export class AdminService {
       };
     });
   }
+
+  /**
+   * 문제 목록 조회 (검색 및 필터링 지원)
+   */
+  async getQuestions(params: {
+    search?: string;
+    tags?: string[];
+    difficulty?: 'easy' | 'medium' | 'hard';
+    examId?: string;
+    limit?: number;
+  }) {
+    const where: any = {};
+
+    // 검색어 필터 (제목, 내용)
+    if (params.search) {
+      where.OR = [
+        { content: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
+
+    // 태그 필터
+    if (params.tags && params.tags.length > 0) {
+      where.tags = { hasSome: params.tags };
+    }
+
+    // 난이도 필터
+    if (params.difficulty) {
+      where.difficulty = params.difficulty;
+    }
+
+    // 시험 필터
+    if (params.examId) {
+      where.section = {
+        examId: params.examId,
+      };
+    }
+
+    const questions = await this.prisma.question.findMany({
+      where,
+      include: {
+        section: {
+          select: {
+            id: true,
+            title: true,
+            examId: true,
+            exam: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: params.limit || 100,
+    });
+
+    return {
+      data: questions.map((q) => ({
+        id: q.id,
+        content: q.content,
+        questionType: q.questionType,
+        difficulty: q.difficulty,
+        tags: q.tags,
+        points: q.points,
+        section: q.section,
+        createdAt: q.createdAt,
+      })),
+    };
+  }
 }
 

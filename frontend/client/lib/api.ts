@@ -883,6 +883,32 @@ export const adminAPI = {
     apiClient.delete(`/admin/templates/${id}`),
   createExamFromTemplate: (data: CreateExamFromTemplateData) =>
     apiClient.post<{ data: Exam }>(`/admin/exams/from-template`, data),
+  // Question APIs
+  getQuestions: (params?: {
+    search?: string;
+    tags?: string[];
+    difficulty?: 'easy' | 'medium' | 'hard';
+    examId?: string;
+    limit?: number;
+  }) =>
+    apiClient.get<{ data: Array<{
+      id: string;
+      content: string;
+      questionType: string;
+      difficulty?: string;
+      tags: string[];
+      points: number;
+      section: {
+        id: string;
+        title: string;
+        examId: string;
+        exam: {
+          id: string;
+          title: string;
+        };
+      };
+      createdAt: string;
+    }> }>('/admin/questions', { params }),
   // Question Pool APIs
   createQuestionPool: (data: {
     name: string;

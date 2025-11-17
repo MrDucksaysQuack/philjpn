@@ -249,6 +249,27 @@ export class AdminController {
     );
   }
 
+  // ==================== 문제 관리 ====================
+
+  @Get('questions')
+  @ApiOperation({ summary: '문제 목록 조회 (Admin Only, 검색 및 필터링 지원)' })
+  @ApiResponse({ status: 200, description: '문제 목록 조회 성공' })
+  getQuestions(
+    @Query('search') search?: string,
+    @Query('tags') tags?: string,
+    @Query('difficulty') difficulty?: string,
+    @Query('examId') examId?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminService.getQuestions({
+      search,
+      tags: tags ? tags.split(',') : undefined,
+      difficulty: difficulty as any,
+      examId,
+      limit: limit ? parseInt(limit) : 100,
+    });
+  }
+
   // ==================== 문제 풀 관리 ====================
 
   @Post('question-pools')
