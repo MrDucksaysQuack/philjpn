@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../common/utils/prisma.service';
+import { NotificationService } from '../../../common/services/notification.service';
 
 @Injectable()
 export class ExpirationNotificationService {
   private readonly logger = new Logger(ExpirationNotificationService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   /**
    * 매일 오전 9시에 만료 예정 배치 확인 및 알림
@@ -58,13 +62,15 @@ export class ExpirationNotificationService {
         `배치 "${batch.name}" (ID: ${batch.id})가 ${daysUntilExpiry}일 후 만료됩니다.`,
       );
 
-      // TODO: 실제 알림 전송 로직
-      // await this.sendNotification(batch.issuer.email, {
-      //   type: 'expiration_warning',
-      //   batchName: batch.name,
-      //   daysUntilExpiry,
-      //   keyCount: batch._count.keys,
-      // });
+      // 알림 전송
+      if (batch.issuer.email && daysUntilExpiry !== null) {
+        await this.notificationService.sendBatchExpirationNotification(
+          batch.issuer.email,
+          batch.name,
+          daysUntilExpiry,
+          batch._count.keys,
+        );
+      }
     }
 
     // 내일 만료 예정 배치에 대한 긴급 알림
@@ -73,12 +79,14 @@ export class ExpirationNotificationService {
         `[긴급] 배치 "${batch.name}" (ID: ${batch.id})가 내일 만료됩니다!`,
       );
 
-      // TODO: 긴급 알림 전송
-      // await this.sendUrgentNotification(batch.issuer.email, {
-      //   type: 'expiration_urgent',
-      //   batchName: batch.name,
-      //   keyCount: batch._count.keys,
-      // });
+      // 긴급 알림 전송
+      if (batch.issuer.email) {
+        await this.notificationService.sendUrgentExpirationNotification(
+          batch.issuer.email,
+          batch.name,
+          batch._count.keys,
+        );
+      }
     }
 
     this.logger.log(
@@ -160,13 +168,15 @@ export class ExpirationNotificationService {
       `만료 알림 전송: 배치 "${batch.name}" (${daysUntilExpiry}일 후 만료)`,
     );
 
-    // TODO: 실제 알림 전송
-    // await this.sendNotification(batch.issuer.email, {
-    //   type: 'expiration_warning',
-    //   batchName: batch.name,
-    //   daysUntilExpiry,
-    //   keyCount: batch._count.keys,
-    // });
+    // 알림 전송
+    if (batch.issuer.email) {
+      await this.notificationService.sendBatchExpirationNotification(
+        batch.issuer.email,
+        batch.name,
+        daysUntilExpiry,
+        batch._count.keys,
+      );
+    }
 
     return {
       success: true,
@@ -174,4 +184,3 @@ export class ExpirationNotificationService {
     };
   }
 }
-

@@ -230,6 +230,8 @@ model QuestionResult {
 
   @@index([sectionResultId])
   @@index([questionId])
+  @@index([isCorrect])
+  @@index([answeredAt])
   @@map("question_results")
 }
 
@@ -323,6 +325,8 @@ model LicenseKeyBatch {
 
   @@index([createdBy])
   @@index([createdAt])
+  @@index([validUntil])
+  @@index([keyType])
   @@map("license_key_batches")
 }
 

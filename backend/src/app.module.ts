@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import { WinstonModule } from 'nest-winston';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './common/utils/prisma.module';
+import { CommonModule } from './common/utils/common.module';
 import { CoreModule } from './modules/core/core.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { LicenseModule } from './modules/license/license.module';
@@ -14,6 +17,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { AIModule } from './modules/ai/ai.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
+import { loggerConfig } from './common/config/logger.config';
 
 @Module({
   imports: [
@@ -22,6 +26,21 @@ import databaseConfig from './config/database.config';
       load: [appConfig, databaseConfig],
     }),
     ScheduleModule.forRoot(),
+    WinstonModule.forRoot(loggerConfig),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        // 현재는 메모리 캐시 사용
+        // Redis를 사용하려면 cache-manager-redis-yet 또는 @nestjs/cache-manager-redis-store 사용 필요
+        return {
+          ttl: 3600, // 기본 TTL 1시간
+          max: 1000, // 최대 1000개 항목
+        };
+      },
+      inject: [ConfigService],
+      isGlobal: true,
+    }),
+    CommonModule,
     PrismaModule,
     AuthModule, // Phase 3: 인증
     LicenseModule, // Phase 4: License Key System

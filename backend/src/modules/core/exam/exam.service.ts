@@ -1,12 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Optional } from '@nestjs/common';
 import { PrismaService } from '../../../common/utils/prisma.service';
+import { CacheService } from '../../../common/services/cache.service';
+import { MetricsService } from '../../../common/services/metrics.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { ExamQueryDto } from './dto/exam-query.dto';
 
 @Injectable()
 export class ExamService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheService: CacheService,
+    @Optional() @Inject(MetricsService) private metricsService?: MetricsService,
+  ) {}
 
   async findAll(query: ExamQueryDto) {
     const { page = 1, limit = 10, examType, subject, isPublic } = query;
@@ -148,6 +154,10 @@ export class ExamService {
         config: true,
       },
     });
+
+    // 캐시 무효화
+    const cacheKey = CacheService.createKey('exam', id);
+    await this.cacheService.del(cacheKey);
 
     return exam;
   }

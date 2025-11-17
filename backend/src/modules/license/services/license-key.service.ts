@@ -233,16 +233,36 @@ export class LicenseKeyService {
     });
 
     const keys: any[] = [];
-    const batchSize = 100; // 한 번에 처리할 개수
+    const batchSize = 500; // 한 번에 처리할 개수 (개선: 100 -> 500)
 
-    // 배치 단위로 키 생성
+    // 트랜잭션으로 배치 단위 키 생성 (성능 개선)
     for (let i = 0; i < count; i += batchSize) {
       const currentBatchSize = Math.min(batchSize, count - i);
-      const batchKeys = await Promise.all(
-        Array.from({ length: currentBatchSize }).map(() =>
-          this.createSingleKeyForBatch(batch.id, keyType, examIds, usageLimit, validDays, prefix, issuedBy),
-        ),
+      
+      // 트랜잭션으로 배치 생성 (원자성 보장 및 성능 향상)
+      const batchKeys = await this.prisma.$transaction(
+        async (tx) => {
+          const newKeys: any[] = [];
+          for (let j = 0; j < currentBatchSize; j++) {
+            const key = await this.createSingleKeyForBatch(
+              batch.id,
+              keyType,
+              examIds,
+              usageLimit,
+              validDays,
+              prefix,
+              issuedBy,
+              tx,
+            );
+            newKeys.push(key);
+          }
+          return newKeys;
+        },
+        {
+          timeout: 30000, // 30초 타임아웃
+        },
       );
+      
       keys.push(...batchKeys);
     }
 
@@ -264,7 +284,7 @@ export class LicenseKeyService {
   }
 
   /**
-   * 배치용 단일 키 생성 (내부 메서드)
+   * 배치용 단일 키 생성 (내부 메서드, 트랜잭션 지원)
    */
   private async createSingleKeyForBatch(
     batchId: string,
@@ -274,13 +294,16 @@ export class LicenseKeyService {
     validDays: number | undefined,
     prefix: string | undefined,
     issuedBy: string,
+    tx?: any, // 트랜잭션 클라이언트 (선택사항)
   ) {
+    const prismaClient = tx || this.prisma;
+
     // 키 생성 (중복 방지)
     let key: string;
     let attempts = 0;
     do {
       key = this.generateKey(prefix);
-      const existing = await this.prisma.licenseKey.findUnique({
+      const existing = await prismaClient.licenseKey.findUnique({
         where: { key },
       });
       if (!existing) break;
@@ -294,7 +317,7 @@ export class LicenseKeyService {
       ? new Date(Date.now() + validDays * 24 * 60 * 60 * 1000)
       : null;
 
-    return await this.prisma.licenseKey.create({
+    return await prismaClient.licenseKey.create({
       data: {
         key,
         keyType,
