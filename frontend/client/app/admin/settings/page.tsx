@@ -7,6 +7,8 @@ import { adminAPI, SiteSettings, UpdateSiteSettingsDto, ColorAnalysisResult } fr
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Link from "next/link";
+import IconPicker from "@/components/admin/IconPicker";
+import { getIconComponent } from "@/components/about/iconMapper";
 
 export default function SiteSettingsPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
@@ -629,64 +631,75 @@ export default function SiteSettingsPage() {
                   <p className="text-sm text-gray-600 mb-4">회사 소개 페이지 상단에 표시되는 통계 카드입니다.</p>
                   <div className="space-y-4">
                     {(formData.companyStats?.stats || []).map((stat, index) => (
-                      <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-theme-primary transition-colors">
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <input
-                            type="text"
-                            value={stat.icon || ""}
-                            onChange={(e) => {
-                              const newStats = [...(formData.companyStats?.stats || [])];
-                              newStats[index] = { ...stat, icon: e.target.value };
-                              setFormData({
-                                ...formData,
-                                companyStats: { stats: newStats },
-                              });
-                            }}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                            placeholder="아이콘 이름 (예: BuildingIcon)"
-                          />
-                          <input
-                            type="text"
-                            value={stat.value || ""}
-                            onChange={(e) => {
-                              const newStats = [...(formData.companyStats?.stats || [])];
-                              newStats[index] = { ...stat, value: e.target.value };
-                              setFormData({
-                                ...formData,
-                                companyStats: { stats: newStats },
-                              });
-                            }}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                            placeholder="숫자"
-                          />
-                          <input
-                            type="text"
-                            value={stat.suffix || ""}
-                            onChange={(e) => {
-                              const newStats = [...(formData.companyStats?.stats || [])];
-                              newStats[index] = { ...stat, suffix: e.target.value };
-                              setFormData({
-                                ...formData,
-                                companyStats: { stats: newStats },
-                              });
-                            }}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                            placeholder="접미사 (예: +, %)"
-                          />
-                          <input
-                            type="text"
-                            value={stat.label || ""}
-                            onChange={(e) => {
-                              const newStats = [...(formData.companyStats?.stats || [])];
-                              newStats[index] = { ...stat, label: e.target.value };
-                              setFormData({
-                                ...formData,
-                                companyStats: { stats: newStats },
-                              });
-                            }}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                            placeholder="라벨"
-                          />
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">아이콘</label>
+                            <IconPicker
+                              value={stat.icon}
+                              onChange={(iconName) => {
+                                const newStats = [...(formData.companyStats?.stats || [])];
+                                newStats[index] = { ...stat, icon: iconName };
+                                setFormData({
+                                  ...formData,
+                                  companyStats: { stats: newStats },
+                                });
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">값 *</label>
+                            <input
+                              type="text"
+                              value={stat.value || ""}
+                              onChange={(e) => {
+                                const newStats = [...(formData.companyStats?.stats || [])];
+                                newStats[index] = { ...stat, value: e.target.value };
+                                setFormData({
+                                  ...formData,
+                                  companyStats: { stats: newStats },
+                                });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                              placeholder="숫자"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">접미사</label>
+                            <input
+                              type="text"
+                              value={stat.suffix || ""}
+                              onChange={(e) => {
+                                const newStats = [...(formData.companyStats?.stats || [])];
+                                newStats[index] = { ...stat, suffix: e.target.value };
+                                setFormData({
+                                  ...formData,
+                                  companyStats: { stats: newStats },
+                                });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                              placeholder="예: +, %"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">라벨 *</label>
+                            <input
+                              type="text"
+                              value={stat.label || ""}
+                              onChange={(e) => {
+                                const newStats = [...(formData.companyStats?.stats || [])];
+                                newStats[index] = { ...stat, label: e.target.value };
+                                setFormData({
+                                  ...formData,
+                                  companyStats: { stats: newStats },
+                                });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                              placeholder="라벨"
+                              required
+                            />
+                          </div>
                         </div>
                         <button
                           type="button"
@@ -697,9 +710,12 @@ export default function SiteSettingsPage() {
                               companyStats: { stats: newStats },
                             });
                           }}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm transition-colors"
+                          title="삭제"
                         >
-                          삭제
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     ))}
@@ -726,49 +742,57 @@ export default function SiteSettingsPage() {
                   <p className="text-sm text-gray-600 mb-4">회사 소개 페이지의 "우리의 가치" 섹션에 표시됩니다.</p>
                   <div className="space-y-4">
                     {(formData.companyValues?.values || []).map((value, index) => (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
-                        <input
-                          type="text"
-                          value={value.icon || ""}
-                          onChange={(e) => {
-                            const newValues = [...(formData.companyValues?.values || [])];
-                            newValues[index] = { ...value, icon: e.target.value };
-                            setFormData({
-                              ...formData,
-                              companyValues: { values: newValues },
-                            });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="아이콘 이름"
-                        />
-                        <input
-                          type="text"
-                          value={value.title || ""}
-                          onChange={(e) => {
-                            const newValues = [...(formData.companyValues?.values || [])];
-                            newValues[index] = { ...value, title: e.target.value };
-                            setFormData({
-                              ...formData,
-                              companyValues: { values: newValues },
-                            });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="제목 (예: 미션, 비전, 가치)"
-                        />
-                        <textarea
-                          value={value.description || ""}
-                          onChange={(e) => {
-                            const newValues = [...(formData.companyValues?.values || [])];
-                            newValues[index] = { ...value, description: e.target.value };
-                            setFormData({
-                              ...formData,
-                              companyValues: { values: newValues },
-                            });
-                          }}
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="설명"
-                        />
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-theme-primary transition-colors space-y-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">아이콘</label>
+                          <IconPicker
+                            value={value.icon}
+                            onChange={(iconName) => {
+                              const newValues = [...(formData.companyValues?.values || [])];
+                              newValues[index] = { ...value, icon: iconName };
+                              setFormData({
+                                ...formData,
+                                companyValues: { values: newValues },
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">제목 *</label>
+                          <input
+                            type="text"
+                            value={value.title || ""}
+                            onChange={(e) => {
+                              const newValues = [...(formData.companyValues?.values || [])];
+                              newValues[index] = { ...value, title: e.target.value };
+                              setFormData({
+                                ...formData,
+                                companyValues: { values: newValues },
+                              });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                            placeholder="제목 (예: 미션, 비전, 가치)"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">설명 *</label>
+                          <textarea
+                            value={value.description || ""}
+                            onChange={(e) => {
+                              const newValues = [...(formData.companyValues?.values || [])];
+                              newValues[index] = { ...value, description: e.target.value };
+                              setFormData({
+                                ...formData,
+                                companyValues: { values: newValues },
+                              });
+                            }}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                            placeholder="설명"
+                            required
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -778,9 +802,12 @@ export default function SiteSettingsPage() {
                               companyValues: { values: newValues },
                             });
                           }}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm transition-colors"
+                          title="삭제"
                         >
-                          삭제
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     ))}
@@ -1006,49 +1033,57 @@ export default function SiteSettingsPage() {
                   <p className="text-sm text-gray-600 mb-4">팀 소개 페이지의 "팀 문화" 섹션에 표시됩니다.</p>
                   <div className="space-y-4">
                     {(formData.teamCulture?.culture || []).map((culture, index) => (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
-                        <input
-                          type="text"
-                          value={culture.icon || ""}
-                          onChange={(e) => {
-                            const newCulture = [...(formData.teamCulture?.culture || [])];
-                            newCulture[index] = { ...culture, icon: e.target.value };
-                            setFormData({
-                              ...formData,
-                              teamCulture: { culture: newCulture },
-                            });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="아이콘 이름"
-                        />
-                        <input
-                          type="text"
-                          value={culture.title || ""}
-                          onChange={(e) => {
-                            const newCulture = [...(formData.teamCulture?.culture || [])];
-                            newCulture[index] = { ...culture, title: e.target.value };
-                            setFormData({
-                              ...formData,
-                              teamCulture: { culture: newCulture },
-                            });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="제목"
-                        />
-                        <textarea
-                          value={culture.description || ""}
-                          onChange={(e) => {
-                            const newCulture = [...(formData.teamCulture?.culture || [])];
-                            newCulture[index] = { ...culture, description: e.target.value };
-                            setFormData({
-                              ...formData,
-                              teamCulture: { culture: newCulture },
-                            });
-                          }}
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="설명"
-                        />
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-theme-primary transition-colors space-y-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">아이콘</label>
+                          <IconPicker
+                            value={culture.icon}
+                            onChange={(iconName) => {
+                              const newCulture = [...(formData.teamCulture?.culture || [])];
+                              newCulture[index] = { ...culture, icon: iconName };
+                              setFormData({
+                                ...formData,
+                                teamCulture: { culture: newCulture },
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">제목 *</label>
+                          <input
+                            type="text"
+                            value={culture.title || ""}
+                            onChange={(e) => {
+                              const newCulture = [...(formData.teamCulture?.culture || [])];
+                              newCulture[index] = { ...culture, title: e.target.value };
+                              setFormData({
+                                ...formData,
+                                teamCulture: { culture: newCulture },
+                              });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                            placeholder="제목"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">설명 *</label>
+                          <textarea
+                            value={culture.description || ""}
+                            onChange={(e) => {
+                              const newCulture = [...(formData.teamCulture?.culture || [])];
+                              newCulture[index] = { ...culture, description: e.target.value };
+                              setFormData({
+                                ...formData,
+                                teamCulture: { culture: newCulture },
+                              });
+                            }}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                            placeholder="설명"
+                            required
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -1058,9 +1093,12 @@ export default function SiteSettingsPage() {
                               teamCulture: { culture: newCulture },
                             });
                           }}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm transition-colors"
+                          title="삭제"
                         >
-                          삭제
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     ))}
@@ -1120,49 +1158,57 @@ export default function SiteSettingsPage() {
                   <p className="text-sm text-gray-600 mb-4">서비스 소개 페이지의 "주요 기능" 섹션에 표시됩니다.</p>
                   <div className="space-y-4">
                     {(formData.serviceFeatures?.features || []).map((feature, index) => (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg space-y-3">
-                        <input
-                          type="text"
-                          value={feature.icon || ""}
-                          onChange={(e) => {
-                            const newFeatures = [...(formData.serviceFeatures?.features || [])];
-                            newFeatures[index] = { ...feature, icon: e.target.value };
-                            setFormData({
-                              ...formData,
-                              serviceFeatures: { features: newFeatures },
-                            });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="아이콘 이름"
-                        />
-                        <input
-                          type="text"
-                          value={feature.title || ""}
-                          onChange={(e) => {
-                            const newFeatures = [...(formData.serviceFeatures?.features || [])];
-                            newFeatures[index] = { ...feature, title: e.target.value };
-                            setFormData({
-                              ...formData,
-                              serviceFeatures: { features: newFeatures },
-                            });
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="제목"
-                        />
-                        <textarea
-                          value={feature.description || ""}
-                          onChange={(e) => {
-                            const newFeatures = [...(formData.serviceFeatures?.features || [])];
-                            newFeatures[index] = { ...feature, description: e.target.value };
-                            setFormData({
-                              ...formData,
-                              serviceFeatures: { features: newFeatures },
-                            });
-                          }}
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                          placeholder="설명"
-                        />
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-theme-primary transition-colors space-y-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">아이콘</label>
+                          <IconPicker
+                            value={feature.icon}
+                            onChange={(iconName) => {
+                              const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                              newFeatures[index] = { ...feature, icon: iconName };
+                              setFormData({
+                                ...formData,
+                                serviceFeatures: { features: newFeatures },
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">제목 *</label>
+                          <input
+                            type="text"
+                            value={feature.title || ""}
+                            onChange={(e) => {
+                              const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                              newFeatures[index] = { ...feature, title: e.target.value };
+                              setFormData({
+                                ...formData,
+                                serviceFeatures: { features: newFeatures },
+                              });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                            placeholder="제목"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">설명 *</label>
+                          <textarea
+                            value={feature.description || ""}
+                            onChange={(e) => {
+                              const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                              newFeatures[index] = { ...feature, description: e.target.value };
+                              setFormData({
+                                ...formData,
+                                serviceFeatures: { features: newFeatures },
+                              });
+                            }}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                            placeholder="설명"
+                            required
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -1172,9 +1218,12 @@ export default function SiteSettingsPage() {
                               serviceFeatures: { features: newFeatures },
                             });
                           }}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm transition-colors"
+                          title="삭제"
                         >
-                          삭제
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     ))}
