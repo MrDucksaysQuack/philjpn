@@ -254,13 +254,54 @@ Backend는 **전반적으로 잘 구현**되어 있으며, Frontend와의 일치
 
 ## 7. 📝 권장 액션 아이템
 
-1. ✅ **SRS 알고리즘 리팩토링** (우선순위: 높음)
-2. ✅ **컨트롤러 경로 일관성 개선** (우선순위: 중간)
-3. ✅ **에러 메시지 표준화** (우선순위: 낮음)
-4. ✅ **단위 테스트 추가** (우선순위: 중간)
+1. ✅ **SRS 알고리즘 리팩토링** (우선순위: 높음) - **완료**
+2. ✅ **컨트롤러 경로 일관성 개선** (우선순위: 중간) - **완료**
+3. ⚠️ **에러 메시지 표준화** (우선순위: 낮음) - **대기**
+4. ⚠️ **단위 테스트 추가** (우선순위: 중간) - **대기**
+
+---
+
+## 8. ✅ 개선 사항 적용 완료
+
+### 8.1 SRS 알고리즘 중복 제거 (완료)
+
+**변경사항**:
+- `WordBookModule`에 `SRSEnhancedService` 추가
+- `WordBookService`의 `recordReview()` 메서드가 `SRSEnhancedService.calculateNextReview()` 사용
+- 중복 코드 제거로 유지보수성 향상
+
+**파일**:
+- `backend/src/modules/wordbook/wordbook.module.ts`
+- `backend/src/modules/wordbook/services/wordbook.service.ts`
+
+### 8.2 컨트롤러 경로 일관성 개선 (완료)
+
+**변경사항**:
+- `QuestionController`: `@Controller('api')` → `@Controller('api/questions')`
+  - `GET /api/sections/:sectionId/questions` → `GET /api/questions/sections/:sectionId`
+  - `GET /api/questions/:id` → `GET /api/questions/:id` (유지)
+  - `POST /api/sections/:sectionId/questions` → `POST /api/questions/sections/:sectionId`
+  - `PATCH /api/questions/:id` → `PATCH /api/questions/:id` (유지)
+  - `DELETE /api/questions/:id` → `DELETE /api/questions/:id` (유지)
+
+- `SectionController`: `@Controller('api')` → `@Controller('api/sections')`
+  - `GET /api/exams/:examId/sections` → `GET /api/sections/exams/:examId`
+  - `GET /api/sections/:id` → `GET /api/sections/:id` (유지)
+  - `POST /api/exams/:examId/sections` → `POST /api/sections/exams/:examId`
+  - `PATCH /api/sections/:id` → `PATCH /api/sections/:id` (유지)
+  - `DELETE /api/sections/:id` → `DELETE /api/sections/:id` (유지)
+
+- Frontend API 경로 업데이트:
+  - `GET /exams/:examId/sections` → `GET /sections/exams/:examId`
+
+**파일**:
+- `backend/src/modules/core/question/question.controller.ts`
+- `backend/src/modules/core/section/section.controller.ts`
+- `frontend/client/lib/api.ts`
 
 ---
 
 **평가 완료일**: 2024년 11월  
-**다음 평가 예정일**: 개선 사항 적용 후
+**개선 적용일**: 2024년 11월  
+**다음 평가 예정일**: 추가 개선 사항 적용 후
 

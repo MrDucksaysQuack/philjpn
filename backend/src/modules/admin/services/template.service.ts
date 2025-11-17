@@ -217,6 +217,7 @@ export class TemplateService {
       overrides?: {
         questionCount?: number;
         structure?: any;
+        randomSeed?: number; // 랜덤 시드 (재현성 보장)
       };
     },
   ) {
