@@ -25,6 +25,7 @@ import { QuestionPoolService } from './services/question-pool.service';
 import { SiteSettingsService } from './services/site-settings.service';
 import { ColorAnalysisService } from './services/color-analysis.service';
 import { FileUploadService } from '../../common/services/file-upload.service';
+import { BadgeService } from '../report/services/badge.service';
 import { AdminUserQueryDto } from './dto/user-query.dto';
 import { AdminUpdateUserDto } from './dto/update-user.dto';
 import { AdminExamResultQueryDto } from './dto/exam-result-query.dto';
@@ -52,6 +53,7 @@ export class AdminController {
     private readonly siteSettingsService: SiteSettingsService,
     private readonly colorAnalysisService: ColorAnalysisService,
     private readonly fileUploadService: FileUploadService,
+    private readonly badgeService: BadgeService,
   ) {}
 
   // ==================== 사용자 관리 ====================
@@ -524,6 +526,99 @@ export class AdminController {
         size: fileInfo.size,
       },
     };
+  }
+
+  // ==================== 배지 관리 ====================
+
+  @Get('badges')
+  @ApiOperation({ summary: '배지 목록 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '배지 목록 조회 성공' })
+  async getBadges(@Query('includeInactive') includeInactive?: string) {
+    try {
+      const badges = await this.badgeService.getAllBadges(includeInactive === 'true');
+      return { data: badges };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getBadges 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('badges/:id')
+  @ApiOperation({ summary: '배지 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '배지 조회 성공' })
+  async getBadge(@Param('id') id: string) {
+    try {
+      const badge = await this.badgeService.getBadge(id);
+      if (!badge) {
+        throw new BadRequestException('배지를 찾을 수 없습니다.');
+      }
+      return { data: badge };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getBadge 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('badges')
+  @ApiOperation({ summary: '배지 생성 (Admin Only)' })
+  @ApiResponse({ status: 201, description: '배지 생성 성공' })
+  async createBadge(@Body() data: {
+    badgeType: string;
+    name: string;
+    description?: string;
+    icon?: string;
+    rarity?: string;
+    condition?: any;
+    isActive?: boolean;
+  }) {
+    try {
+      const badge = await this.badgeService.createBadge(data as any);
+      return { data: badge };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ createBadge 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Patch('badges/:id')
+  @ApiOperation({ summary: '배지 수정 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '배지 수정 성공' })
+  async updateBadge(
+    @Param('id') id: string,
+    @Body() data: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      rarity?: string;
+      condition?: any;
+      isActive?: boolean;
+    },
+  ) {
+    try {
+      const badge = await this.badgeService.updateBadge(id, data as any);
+      return { data: badge };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ updateBadge 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Delete('badges/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: '배지 삭제 (Admin Only)' })
+  @ApiResponse({ status: 204, description: '배지 삭제 성공' })
+  async deleteBadge(@Param('id') id: string) {
+    try {
+      await this.badgeService.deleteBadge(id);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ deleteBadge 에러:', errorMessage);
+      throw error;
+    }
   }
 }
 

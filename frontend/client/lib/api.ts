@@ -172,6 +172,20 @@ export interface Subcategory {
   };
 }
 
+// Badge API
+export interface Badge {
+  id: string;
+  badgeType: 'exam_completed' | 'perfect_score' | 'streak_days' | 'word_master' | 'improvement' | 'category_master' | 'speed_demon' | 'consistency';
+  name: string;
+  description?: string;
+  icon?: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  condition?: any; // JSONB
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Exam {
   id: string;
   title: string;
@@ -1288,6 +1302,34 @@ export const adminAPI = {
     apiClient.put<{ data: SiteSettings }>("/admin/site-settings", data),
   analyzeColors: (logoUrl: string) =>
     apiClient.post<{ data: ColorAnalysisResult }>("/admin/site-settings/analyze-colors", { logoUrl }),
+  // Badge APIs
+  getBadges: (includeInactive?: boolean) =>
+    apiClient.get<{ data: Badge[] }>("/admin/badges", {
+      params: includeInactive ? { includeInactive: "true" } : undefined,
+    }),
+  getBadge: (id: string) =>
+    apiClient.get<{ data: Badge }>(`/admin/badges/${id}`),
+  createBadge: (data: {
+    badgeType: string;
+    name: string;
+    description?: string;
+    icon?: string;
+    rarity?: string;
+    condition?: any;
+    isActive?: boolean;
+  }) => apiClient.post<{ data: Badge }>("/admin/badges", data),
+  updateBadge: (
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      rarity?: string;
+      condition?: any;
+      isActive?: boolean;
+    },
+  ) => apiClient.patch<{ data: Badge }>(`/admin/badges/${id}`, data),
+  deleteBadge: (id: string) => apiClient.delete(`/admin/badges/${id}`),
   // File Upload API
   uploadImage: (file: File) => {
     const formData = new FormData();

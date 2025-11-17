@@ -412,5 +412,86 @@ export class BadgeService {
 
     this.logger.log('Default badges initialized');
   }
+
+  /**
+   * 모든 배지 조회 (Admin)
+   */
+  async getAllBadges(includeInactive = false) {
+    return await this.prisma.badge.findMany({
+      where: includeInactive ? {} : { isActive: true },
+      orderBy: [
+        { badgeType: 'asc' },
+        { rarity: 'asc' },
+        { name: 'asc' },
+      ],
+    });
+  }
+
+  /**
+   * 배지 조회 (Admin)
+   */
+  async getBadge(id: string) {
+    return await this.prisma.badge.findUnique({
+      where: { id },
+    });
+  }
+
+  /**
+   * 배지 생성 (Admin)
+   */
+  async createBadge(data: {
+    badgeType: BadgeType;
+    name: string;
+    description?: string;
+    icon?: string;
+    rarity?: BadgeRarity;
+    condition?: BadgeCondition;
+    isActive?: boolean;
+  }) {
+    return await this.prisma.badge.create({
+      data: {
+        badgeType: data.badgeType,
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+        rarity: data.rarity || BadgeRarity.common,
+        condition: data.condition as any,
+        isActive: data.isActive ?? true,
+      },
+    });
+  }
+
+  /**
+   * 배지 수정 (Admin)
+   */
+  async updateBadge(id: string, data: {
+    name?: string;
+    description?: string;
+    icon?: string;
+    rarity?: BadgeRarity;
+    condition?: BadgeCondition;
+    isActive?: boolean;
+  }) {
+    return await this.prisma.badge.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.icon !== undefined && { icon: data.icon }),
+        ...(data.rarity !== undefined && { rarity: data.rarity }),
+        ...(data.condition !== undefined && { condition: data.condition as any }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    });
+  }
+
+  /**
+   * 배지 삭제 (Admin)
+   */
+  async deleteBadge(id: string) {
+    return await this.prisma.badge.delete({
+      where: { id },
+    });
+  }
 }
 
