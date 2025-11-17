@@ -118,7 +118,7 @@ export class ExpirationNotificationService {
         where: {
           batchId: batch.id,
           isActive: true,
-        } as any,
+        },
         data: {
           isActive: false,
         },
