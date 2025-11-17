@@ -30,6 +30,7 @@ model User {
   learningPatterns     LearningPattern[]
   issuedLicenseKeys    LicenseKey[]      @relation("IssuedBy")
   licenseKeys          LicenseKey[]
+  issuedLicenseKeyBatches LicenseKeyBatch[] @relation("BatchIssuer")
   createdQuestionPools QuestionPool[]
   updatedSiteSettings  SiteSettings[]    @relation("SiteSettingsUpdater")
   examSessions         UserExamSession[]
@@ -246,30 +247,52 @@ model UserExamSession {
 }
 
 model LicenseKey {
-  id          String        @id @default(uuid())
+  id          String            @id @default(uuid())
   userId      String?
-  key         String        @unique
+  key         String            @unique
   keyType     KeyType
   examIds     String[]
   usageLimit  Int?
-  usageCount  Int           @default(0)
-  validFrom   DateTime      @default(now())
+  usageCount  Int               @default(0)
+  validFrom   DateTime          @default(now())
   validUntil  DateTime?
-  isActive    Boolean       @default(true)
+  isActive    Boolean           @default(true)
   issuedBy    String?
-  issuedAt    DateTime      @default(now())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  issuedAt    DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  batchId     String?
   examResults ExamResult[]
   usageLogs   KeyUsageLog[]
-  issuer      User?         @relation("IssuedBy", fields: [issuedBy], references: [id])
-  user        User?         @relation(fields: [userId], references: [id])
+  issuer      User?             @relation("IssuedBy", fields: [issuedBy], references: [id])
+  user        User?             @relation(fields: [userId], references: [id])
+  batch       LicenseKeyBatch?  @relation(fields: [batchId], references: [id])
 
   @@index([key])
   @@index([userId])
   @@index([keyType])
   @@index([validUntil])
+  @@index([batchId])
   @@map("license_keys")
+}
+
+model LicenseKeyBatch {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  keyType     KeyType
+  count       Int
+  examIds     String[]
+  usageLimit  Int?
+  validUntil  DateTime?
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  keys        LicenseKey[]
+  issuer      User          @relation("BatchIssuer", fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("license_key_batches")
 }
 
 model KeyUsageLog {

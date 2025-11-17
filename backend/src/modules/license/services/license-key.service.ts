@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { CreateLicenseKeyDto } from '../dto/create-license-key.dto';
+import { CreateBatchLicenseKeysDto } from '../dto/create-batch-license-keys.dto';
 import { UpdateLicenseKeyDto } from '../dto/update-license-key.dto';
 import { LicenseKeyQueryDto } from '../dto/license-key-query.dto';
 import { ValidateKeyDto } from '../dto/validate-key.dto';
@@ -19,14 +20,15 @@ export class LicenseKeyService {
   /**
    * 라이선스 키 생성
    */
-  private generateKey(): string {
+  private generateKey(prefix?: string): string {
     // XXXX-XXXX-XXXX-XXXX 형식 생성
     const segments: string[] = [];
     for (let i = 0; i < 4; i++) {
       const segment = crypto.randomBytes(2).toString('hex').toUpperCase();
       segments.push(segment);
     }
-    return segments.join('-');
+    const key = segments.join('-');
+    return prefix ? `${prefix}-${key}` : key;
   }
 
   /**
@@ -193,6 +195,257 @@ export class LicenseKeyService {
       key: licenseKey.key,
       keyType: licenseKey.keyType,
       issuedAt: licenseKey.issuedAt,
+    };
+  }
+
+  /**
+   * 대량 라이선스 키 배치 생성
+   */
+  async createBatch(
+    dto: CreateBatchLicenseKeysDto,
+    issuedBy: string,
+  ): Promise<{ batch: any; keys: any[]; count: number }> {
+    const {
+      count,
+      name,
+      description,
+      keyType,
+      examIds,
+      usageLimit,
+      validDays,
+      prefix,
+    } = dto;
+
+    // 배치 생성
+    const batch = await this.prisma.licenseKeyBatch.create({
+      data: {
+        name,
+        description: description || null,
+        keyType,
+        count,
+        examIds: examIds || [],
+        usageLimit: usageLimit || null,
+        validUntil: validDays
+          ? new Date(Date.now() + validDays * 24 * 60 * 60 * 1000)
+          : null,
+        createdBy: issuedBy,
+      },
+    });
+
+    const keys: any[] = [];
+    const batchSize = 100; // 한 번에 처리할 개수
+
+    // 배치 단위로 키 생성
+    for (let i = 0; i < count; i += batchSize) {
+      const currentBatchSize = Math.min(batchSize, count - i);
+      const batchKeys = await Promise.all(
+        Array.from({ length: currentBatchSize }).map(() =>
+          this.createSingleKeyForBatch(batch.id, keyType, examIds, usageLimit, validDays, prefix, issuedBy),
+        ),
+      );
+      keys.push(...batchKeys);
+    }
+
+    return {
+      batch: {
+        id: batch.id,
+        name: batch.name,
+        description: batch.description,
+        count: batch.count,
+        createdAt: batch.createdAt,
+      },
+      keys: keys.map((k) => ({
+        id: k.id,
+        key: k.key,
+        keyType: k.keyType,
+      })),
+      count: keys.length,
+    };
+  }
+
+  /**
+   * 배치용 단일 키 생성 (내부 메서드)
+   */
+  private async createSingleKeyForBatch(
+    batchId: string,
+    keyType: KeyType,
+    examIds: string[] | undefined,
+    usageLimit: number | undefined,
+    validDays: number | undefined,
+    prefix: string | undefined,
+    issuedBy: string,
+  ) {
+    // 키 생성 (중복 방지)
+    let key: string;
+    let attempts = 0;
+    do {
+      key = this.generateKey(prefix);
+      const existing = await this.prisma.licenseKey.findUnique({
+        where: { key },
+      });
+      if (!existing) break;
+      attempts++;
+      if (attempts > 10) {
+        throw new BadRequestException('키 생성에 실패했습니다. 다시 시도해주세요.');
+      }
+    } while (true);
+
+    const validUntil = validDays
+      ? new Date(Date.now() + validDays * 24 * 60 * 60 * 1000)
+      : null;
+
+    return await this.prisma.licenseKey.create({
+      data: {
+        key,
+        keyType,
+        examIds: examIds || [],
+        usageLimit: usageLimit || null,
+        usageCount: 0,
+        validUntil,
+        isActive: true,
+        issuedBy,
+        batchId,
+      },
+    });
+  }
+
+  /**
+   * 배치 통계 조회
+   */
+  async getBatchStats(batchId: string) {
+    const batch = await this.prisma.licenseKeyBatch.findUnique({
+      where: { id: batchId },
+      include: {
+        keys: true,
+        issuer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!batch) {
+      throw new NotFoundException(`배치를 찾을 수 없습니다. ID: ${batchId}`);
+    }
+
+    const totalKeys = batch.keys.length;
+    const usedKeys = batch.keys.filter((k) => k.usageCount > 0).length;
+    const activeKeys = batch.keys.filter((k) => k.isActive).length;
+    const totalUsage = batch.keys.reduce((sum, k) => sum + k.usageCount, 0);
+
+    return {
+      batch: {
+        id: batch.id,
+        name: batch.name,
+        description: batch.description,
+        count: batch.count,
+        keyType: batch.keyType,
+        createdAt: batch.createdAt,
+        issuer: batch.issuer,
+      },
+      stats: {
+        totalKeys,
+        usedKeys,
+        unusedKeys: totalKeys - usedKeys,
+        activeKeys,
+        inactiveKeys: totalKeys - activeKeys,
+        totalUsage,
+        averageUsage: totalKeys > 0 ? totalUsage / totalKeys : 0,
+        usageRate: totalKeys > 0 ? (usedKeys / totalKeys) * 100 : 0,
+      },
+    };
+  }
+
+  /**
+   * 배치 키 CSV 내보내기
+   */
+  async exportBatchToCSV(batchId: string): Promise<string> {
+    const batch = await this.prisma.licenseKeyBatch.findUnique({
+      where: { id: batchId },
+      include: {
+        keys: {
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    if (!batch) {
+      throw new NotFoundException(`배치를 찾을 수 없습니다. ID: ${batchId}`);
+    }
+
+    // CSV 헤더
+    const headers = [
+      'Key',
+      'Type',
+      'Usage Count',
+      'Usage Limit',
+      'Valid Until',
+      'Is Active',
+    ];
+
+    // CSV 행 생성
+    const rows = batch.keys.map((k) => [
+      k.key,
+      k.keyType,
+      k.usageCount.toString(),
+      k.usageLimit?.toString() || 'Unlimited',
+      k.validUntil?.toISOString() || 'Never',
+      k.isActive ? 'Yes' : 'No',
+    ]);
+
+    // CSV 형식으로 변환
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(','))
+      .join('\n');
+
+    return csvContent;
+  }
+
+  /**
+   * 사용량 대시보드
+   */
+  async getDashboard(userId: string) {
+    const [totalKeys, activeKeys, totalUsage, recentBatches] = await Promise.all([
+      this.prisma.licenseKey.count({
+        where: { issuedBy: userId },
+      }),
+      this.prisma.licenseKey.count({
+        where: { issuedBy: userId, isActive: true },
+      }),
+      this.prisma.licenseKey.aggregate({
+        where: { issuedBy: userId },
+        _sum: { usageCount: true },
+      }),
+      this.prisma.licenseKeyBatch.findMany({
+        where: { createdBy: userId },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        include: {
+          _count: {
+            select: { keys: true },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      overview: {
+        totalKeys,
+        activeKeys,
+        inactiveKeys: totalKeys - activeKeys,
+        totalUsage: totalUsage._sum.usageCount || 0,
+      },
+      recentBatches: recentBatches.map((batch) => ({
+        id: batch.id,
+        name: batch.name,
+        count: batch.count,
+        keyType: batch.keyType,
+        createdAt: batch.createdAt,
+        keyCount: batch._count.keys,
+      })),
     };
   }
 

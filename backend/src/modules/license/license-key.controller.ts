@@ -10,10 +10,13 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { LicenseKeyService } from './services/license-key.service';
 import { CreateLicenseKeyDto } from './dto/create-license-key.dto';
+import { CreateBatchLicenseKeysDto } from './dto/create-batch-license-keys.dto';
 import { UpdateLicenseKeyDto } from './dto/update-license-key.dto';
 import { LicenseKeyQueryDto } from './dto/license-key-query.dto';
 import { ValidateKeyDto } from './dto/validate-key.dto';
@@ -130,6 +133,62 @@ export class LicenseKeyController {
     @CurrentUser() user: any,
   ) {
     return this.licenseKeyService.findUsageLogs(id, user.id, user.role, query);
+  }
+
+  // ==================== 배치 관리 ====================
+
+  @Post('batch')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '대량 라이선스 키 배치 생성 (Admin Only)' })
+  @ApiResponse({ status: 201, description: '배치 생성 성공' })
+  @HttpCode(HttpStatus.CREATED)
+  async createBatch(
+    @Body() dto: CreateBatchLicenseKeysDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.licenseKeyService.createBatch(dto, user.id);
+  }
+
+  @Get('batch/:id/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '배치 사용량 통계 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '통계 조회 성공' })
+  async getBatchStats(@Param('id') batchId: string) {
+    return this.licenseKeyService.getBatchStats(batchId);
+  }
+
+  @Get('batch/:id/export')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '배치 키 CSV 내보내기 (Admin Only)' })
+  @ApiResponse({ status: 200, description: 'CSV 내보내기 성공' })
+  async exportBatchKeys(
+    @Param('id') batchId: string,
+    @Res() res: Response,
+  ) {
+    const csv = await this.licenseKeyService.exportBatchToCSV(batchId);
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="batch-${batchId}-${Date.now()}.csv"`,
+    );
+    res.send(csv);
+  }
+
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '라이선스 키 사용량 대시보드 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '대시보드 조회 성공' })
+  async getDashboard(@CurrentUser() user: any) {
+    return this.licenseKeyService.getDashboard(user.id);
   }
 }
 
