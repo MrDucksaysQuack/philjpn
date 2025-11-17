@@ -118,8 +118,9 @@ export function useRequireAuth(options?: {
     return () => {
       mounted = false;
     };
+    // user를 의존성에서 제거하여 무한 루프 방지 (user는 useEffect 내부에서 설정되므로)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, redirectTo, requireRole, showMessage]);
+  }, [redirectTo, requireRole, showMessage]);
 
   return {
     user: user || null,

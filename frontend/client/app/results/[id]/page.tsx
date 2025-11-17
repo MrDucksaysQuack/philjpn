@@ -60,7 +60,9 @@ export default function ResultDetailPage() {
       }
       setCheckedBadges(true);
     }
-  }, [result, badgesResponse, checkedBadges]);
+    // checkedBadges를 의존성에서 제거하여 무한 루프 방지
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, badgesResponse]);
 
   const { data: report } = useQuery({
     queryKey: ["result-report", resultId],
