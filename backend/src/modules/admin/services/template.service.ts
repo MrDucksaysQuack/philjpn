@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { CreateTemplateDto } from '../dto/create-template.dto';
+import { QuestionPoolService } from './question-pool.service';
+import { SeededRandom } from '../../../common/utils/seeded-random';
 
 @Injectable()
 export class TemplateService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private questionPoolService: QuestionPoolService,
+  ) {}
 
   /**
    * 템플릿 생성
@@ -221,19 +226,8 @@ export class TemplateService {
     const structure = template.structure as any;
     const sections = structure.sections || [];
 
-    // 문제 선택 (태그/난이도 기반)
-    const allQuestions = await this.prisma.question.findMany({
-      where: {
-        // deletedAt 필드는 Question 모델에 없으므로 제거
-      },
-      include: {
-        section: {
-          include: {
-            exam: true,
-          },
-        },
-      },
-    });
+    // 랜덤 시드 생성 (제공되지 않으면 타임스탬프 사용)
+    const randomSeed = examData.overrides?.randomSeed || Date.now();
 
     // 새 시험 생성
     const exam = await this.prisma.exam.create({
@@ -244,6 +238,7 @@ export class TemplateService {
         subject: examData.subject,
         createdBy: userId,
         templateId: templateId,
+        randomSeed: randomSeed,
         totalQuestions: 0,
         totalSections: sections.length,
       },
@@ -253,22 +248,64 @@ export class TemplateService {
     let sectionOrder = 1;
 
     for (const sectionDef of sections) {
-      // 필터링된 문제 선택
-      let filteredQuestions = allQuestions;
+      let filteredQuestions: any[] = [];
 
-      if (sectionDef.tags && sectionDef.tags.length > 0) {
-        filteredQuestions = filteredQuestions.filter((q) =>
-          q.tags?.some((tag) => sectionDef.tags.includes(tag)),
-        );
+      // 우선순위 1: questionPoolId가 있으면 Pool에서 문제 선택
+      if (sectionDef.questionPoolId) {
+        try {
+          const pool = await this.questionPoolService.getQuestionPool(
+            sectionDef.questionPoolId,
+            userId,
+          );
+          
+          if (pool.questionIds && pool.questionIds.length > 0) {
+            // Pool의 questionIds로 문제 조회
+            filteredQuestions = await this.prisma.question.findMany({
+              where: {
+                id: { in: pool.questionIds },
+              },
+              include: {
+                section: {
+                  include: {
+                    exam: true,
+                  },
+                },
+              },
+            });
+          }
+        } catch (error) {
+          // Pool을 찾을 수 없으면 태그/난이도 기반 필터링으로 fallback
+          console.warn(`Question Pool ${sectionDef.questionPoolId} not found, falling back to tag/difficulty filter`);
+        }
       }
 
-      if (sectionDef.difficulty) {
-        filteredQuestions = filteredQuestions.filter(
-          (q) => q.difficulty === sectionDef.difficulty,
-        );
+      // 우선순위 2: questionPoolId가 없거나 Pool에 문제가 없으면 태그/난이도 기반 필터링
+      if (filteredQuestions.length === 0) {
+        const whereClause: any = {};
+        
+        // 태그 필터
+        if (sectionDef.tags && sectionDef.tags.length > 0) {
+          whereClause.tags = { hasSome: sectionDef.tags };
+        }
+        
+        // 난이도 필터
+        if (sectionDef.difficulty) {
+          whereClause.difficulty = sectionDef.difficulty;
+        }
+
+        filteredQuestions = await this.prisma.question.findMany({
+          where: whereClause,
+          include: {
+            section: {
+              include: {
+                exam: true,
+              },
+            },
+          },
+        });
       }
 
-      // 무작위로 문제 선택 (오버라이드된 개수 사용)
+      // 무작위로 문제 선택 (시드 기반 결정적 랜덤)
       const questionCount = examData.overrides?.questionCount
         ? Math.min(
             examData.overrides.questionCount,
@@ -276,8 +313,12 @@ export class TemplateService {
           )
         : sectionDef.questionCount || filteredQuestions.length;
 
-      const selectedQuestions = filteredQuestions
-        .sort(() => Math.random() - 0.5)
+      // 시드 기반 결정적 랜덤 선택
+      // 섹션별로 다른 시드 사용 (섹션 인덱스 추가)
+      const sectionSeed = randomSeed + sectionOrder;
+      const rng = new SeededRandom(sectionSeed);
+      const selectedQuestions = rng
+        .shuffle(filteredQuestions)
         .slice(0, Math.min(questionCount, filteredQuestions.length));
 
       // 섹션 생성

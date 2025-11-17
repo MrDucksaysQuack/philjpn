@@ -116,6 +116,7 @@ model Exam {
   isActive       Boolean     @default(true)
   isPublic       Boolean     @default(false)
   publishedAt    DateTime?
+  randomSeed     Int? // 랜덤 시드 (템플릿 기반 생성 시 사용, 재현성 보장)
   createdBy      String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt

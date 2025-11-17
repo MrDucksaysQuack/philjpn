@@ -578,8 +578,9 @@ export interface ExamTemplate {
     sections: Array<{
       type: string;
       questionCount: number;
-      tags?: string[];
-      difficulty?: string;
+      questionPoolId?: string; // 문제 풀 ID (우선순위 1)
+      tags?: string[]; // 태그 필터 (questionPoolId가 없을 때 사용)
+      difficulty?: string; // 난이도 필터 (questionPoolId가 없을 때 사용)
     }>;
   };
   questionPoolIds: string[];
@@ -603,8 +604,9 @@ export interface CreateTemplateData {
     sections: Array<{
       type: string;
       questionCount: number;
-      tags?: string[];
-      difficulty?: string;
+      questionPoolId?: string; // 문제 풀 ID (우선순위 1)
+      tags?: string[]; // 태그 필터 (questionPoolId가 없을 때 사용)
+      difficulty?: string; // 난이도 필터 (questionPoolId가 없을 때 사용)
     }>;
   };
   questionPoolIds?: string[];
@@ -619,6 +621,7 @@ export interface CreateExamFromTemplateData {
   overrides?: {
     questionCount?: number;
     structure?: any;
+    randomSeed?: number; // 랜덤 시드 (재현성 보장, 선택사항)
   };
 }
 

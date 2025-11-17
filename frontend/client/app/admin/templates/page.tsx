@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
-import { adminAPI, ExamTemplate, CreateTemplateData } from "@/lib/api";
+import { adminAPI, ExamTemplate, CreateTemplateData, QuestionPool } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
@@ -204,6 +204,17 @@ function CreateTemplateModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  // Question Pool 목록 조회
+  const { data: poolsResponse } = useQuery({
+    queryKey: ["admin-question-pools"],
+    queryFn: async () => {
+      const response = await adminAPI.getQuestionPools();
+      return response.data;
+    },
+  });
+
+  const pools = poolsResponse?.data || [];
+
   const [formData, setFormData] = useState<CreateTemplateData>({
     name: "",
     description: "",
@@ -308,58 +319,94 @@ function CreateTemplateModal({
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">타입</label>
-                      <input
-                        type="text"
-                        value={section.type}
-                        onChange={(e) => updateSection(index, { type: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        placeholder="예: reading, grammar"
-                      />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">타입</label>
+                        <input
+                          type="text"
+                          value={section.type}
+                          onChange={(e) => updateSection(index, { type: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          placeholder="예: reading, grammar"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">문제 개수</label>
+                        <input
+                          type="number"
+                          value={section.questionCount}
+                          onChange={(e) =>
+                            updateSection(index, { questionCount: parseInt(e.target.value) || 0 })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          min={1}
+                        />
+                      </div>
                     </div>
+                    
+                    {/* Question Pool 선택 (우선순위 1) */}
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">문제 개수</label>
-                      <input
-                        type="number"
-                        value={section.questionCount}
-                        onChange={(e) =>
-                          updateSection(index, { questionCount: parseInt(e.target.value) || 0 })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        min={1}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">난이도 (선택)</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        문제 풀 선택 (우선순위 1) <span className="text-gray-400 text-xs">(선택사항)</span>
+                      </label>
                       <select
-                        value={section.difficulty || ""}
-                        onChange={(e) => updateSection(index, { difficulty: e.target.value || undefined })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        value={section.questionPoolId || ""}
+                        onChange={(e) => {
+                          const updates: any = { questionPoolId: e.target.value || undefined };
+                          // Pool을 선택하면 태그/난이도 필터는 비활성화 (하지만 값은 유지)
+                          updateSection(index, updates);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       >
-                        <option value="">전체</option>
-                        <option value="easy">쉬움</option>
-                        <option value="medium">중급</option>
-                        <option value="hard">어려움</option>
+                        <option value="">문제 풀 선택 안 함 (태그/난이도 필터 사용)</option>
+                        {pools.map((pool) => (
+                          <option key={pool.id} value={pool.id}>
+                            {pool.name} ({pool.questionIds?.length || 0}개 문제)
+                          </option>
+                        ))}
                       </select>
+                      {section.questionPoolId && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          ✓ 문제 풀을 선택하면 태그/난이도 필터는 무시됩니다.
+                        </p>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">태그 (쉼표로 구분)</label>
-                      <input
-                        type="text"
-                        value={section.tags?.join(", ") || ""}
-                        onChange={(e) =>
-                          updateSection(index, {
-                            tags: e.target.value
-                              ? e.target.value.split(",").map((t) => t.trim())
-                              : [],
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        placeholder="예: 문법, 어휘"
-                      />
-                    </div>
+
+                    {/* 태그/난이도 필터 (questionPoolId가 없을 때만 사용) */}
+                    {!section.questionPoolId && (
+                      <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">난이도 (선택)</label>
+                          <select
+                            value={section.difficulty || ""}
+                            onChange={(e) => updateSection(index, { difficulty: e.target.value || undefined })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          >
+                            <option value="">전체</option>
+                            <option value="easy">쉬움</option>
+                            <option value="medium">중급</option>
+                            <option value="hard">어려움</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">태그 (쉼표로 구분)</label>
+                          <input
+                            type="text"
+                            value={section.tags?.join(", ") || ""}
+                            onChange={(e) =>
+                              updateSection(index, {
+                                tags: e.target.value
+                                  ? e.target.value.split(",").map((t) => t.trim())
+                                  : [],
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            placeholder="예: 문법, 어휘"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

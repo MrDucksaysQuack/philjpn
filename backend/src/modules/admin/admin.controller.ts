@@ -237,6 +237,7 @@ export class AdminController {
       overrides?: {
         questionCount?: number;
         structure?: any;
+        randomSeed?: number; // 랜덤 시드 (재현성 보장)
       };
     },
     @CurrentUser() user: any,

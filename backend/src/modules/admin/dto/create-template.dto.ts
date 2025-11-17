@@ -10,12 +10,17 @@ class SectionStructure {
   @ApiProperty({ description: '문제 개수' })
   questionCount: number;
 
-  @ApiProperty({ description: '태그 필터', required: false })
+  @ApiProperty({ description: '문제 풀 ID (우선순위 1)', required: false })
+  @IsOptional()
+  @IsString()
+  questionPoolId?: string;
+
+  @ApiProperty({ description: '태그 필터 (questionPoolId가 없을 때 사용)', required: false })
   @IsOptional()
   @IsArray()
   tags?: string[];
 
-  @ApiProperty({ description: '난이도 필터', required: false, enum: ['easy', 'medium', 'hard'] })
+  @ApiProperty({ description: '난이도 필터 (questionPoolId가 없을 때 사용)', required: false, enum: ['easy', 'medium', 'hard'] })
   @IsOptional()
   @IsString()
   difficulty?: string;
