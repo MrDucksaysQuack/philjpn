@@ -56,15 +56,171 @@ export default function HomePage() {
       {/* Hero Section with Gradient Background */}
       <div className="relative min-h-[600px] bg-theme-gradient-diagonal overflow-hidden">
         {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-72 h-72 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
-          <div 
-            className="absolute bottom-0 right-1/4 w-96 h-96 opacity-10 rounded-full blur-3xl animate-pulse delay-700"
-            style={{ 
-              backgroundColor: `var(--color-secondary, #764ba2)`,
-            }}
-          ></div>
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Floating Orbs - Multiple layers with different animations */}
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl animate-float-slow"></div>
+          <div className="absolute top-20 right-20 w-80 h-80 bg-purple-400 opacity-8 rounded-full blur-3xl animate-float-medium"></div>
+          <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-blue-400 opacity-8 rounded-full blur-3xl animate-float-fast"></div>
+          <div className="absolute bottom-10 right-1/3 w-72 h-72 bg-pink-400 opacity-10 rounded-full blur-3xl animate-float-slow delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
+          
+          {/* Rotating Gradient Circles */}
+          <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-gradient-to-br from-purple-500 to-pink-500 opacity-15 rounded-full blur-2xl animate-spin-slow"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-56 h-56 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-15 rounded-full blur-2xl animate-spin-reverse-slow"></div>
+          
+          {/* Floating Particles */}
+          <div className="absolute top-1/4 left-1/5 w-3 h-3 bg-white opacity-30 rounded-full animate-float-particle-1"></div>
+          <div className="absolute top-1/3 right-1/5 w-2 h-2 bg-purple-300 opacity-40 rounded-full animate-float-particle-2"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-4 h-4 bg-blue-300 opacity-25 rounded-full animate-float-particle-3"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-2.5 h-2.5 bg-pink-300 opacity-35 rounded-full animate-float-particle-4"></div>
+          <div className="absolute top-2/3 left-2/5 w-3.5 h-3.5 bg-white opacity-20 rounded-full animate-float-particle-5"></div>
+          
+          {/* Animated Grid Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+              backgroundSize: '50px 50px',
+              animation: 'grid-move 20s linear infinite'
+            }}></div>
+          </div>
+          
+          {/* Gradient Waves */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-purple-900/20 to-transparent animate-wave"></div>
+          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-blue-900/20 to-transparent animate-wave-reverse"></div>
         </div>
+        
+        {/* Custom Animations Style */}
+        <style jsx>{`
+          @keyframes float-slow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+          }
+          
+          @keyframes float-medium {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-40px, 40px) scale(1.15); }
+          }
+          
+          @keyframes float-fast {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.2); }
+            50% { transform: translate(-30px, 30px) scale(0.8); }
+            75% { transform: translate(20px, 20px) scale(1.1); }
+          }
+          
+          @keyframes pulse-slow {
+            0%, 100% { opacity: 0.05; transform: scale(1); }
+            50% { opacity: 0.1; transform: scale(1.1); }
+          }
+          
+          @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          
+          @keyframes spin-reverse-slow {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+          }
+          
+          @keyframes float-particle-1 {
+            0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+            50% { transform: translate(100px, -150px); opacity: 0.6; }
+          }
+          
+          @keyframes float-particle-2 {
+            0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+            50% { transform: translate(-120px, 100px); opacity: 0.7; }
+          }
+          
+          @keyframes float-particle-3 {
+            0%, 100% { transform: translate(0, 0); opacity: 0.25; }
+            50% { transform: translate(80px, 120px); opacity: 0.5; }
+          }
+          
+          @keyframes float-particle-4 {
+            0%, 100% { transform: translate(0, 0); opacity: 0.35; }
+            50% { transform: translate(-90px, -80px); opacity: 0.6; }
+          }
+          
+          @keyframes float-particle-5 {
+            0%, 100% { transform: translate(0, 0); opacity: 0.2; }
+            50% { transform: translate(150px, 90px); opacity: 0.45; }
+          }
+          
+          @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+          }
+          
+          @keyframes wave {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-25px) translateY(10px); }
+          }
+          
+          @keyframes wave-reverse {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(25px) translateY(-10px); }
+          }
+          
+          .animate-float-slow {
+            animation: float-slow 20s ease-in-out infinite;
+          }
+          
+          .animate-float-medium {
+            animation: float-medium 15s ease-in-out infinite;
+          }
+          
+          .animate-float-fast {
+            animation: float-fast 12s ease-in-out infinite;
+          }
+          
+          .animate-pulse-slow {
+            animation: pulse-slow 8s ease-in-out infinite;
+          }
+          
+          .animate-spin-slow {
+            animation: spin-slow 30s linear infinite;
+          }
+          
+          .animate-spin-reverse-slow {
+            animation: spin-reverse-slow 25s linear infinite;
+          }
+          
+          .animate-float-particle-1 {
+            animation: float-particle-1 18s ease-in-out infinite;
+          }
+          
+          .animate-float-particle-2 {
+            animation: float-particle-2 22s ease-in-out infinite;
+            animation-delay: -2s;
+          }
+          
+          .animate-float-particle-3 {
+            animation: float-particle-3 16s ease-in-out infinite;
+            animation-delay: -4s;
+          }
+          
+          .animate-float-particle-4 {
+            animation: float-particle-4 20s ease-in-out infinite;
+            animation-delay: -6s;
+          }
+          
+          .animate-float-particle-5 {
+            animation: float-particle-5 24s ease-in-out infinite;
+            animation-delay: -8s;
+          }
+          
+          .animate-wave {
+            animation: wave 10s ease-in-out infinite;
+          }
+          
+          .animate-wave-reverse {
+            animation: wave-reverse 12s ease-in-out infinite;
+          }
+        `}</style>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="text-center">
