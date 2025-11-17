@@ -180,7 +180,8 @@ export default function EditExamPage() {
     if (typeof window !== 'undefined' && (!user || user.role !== "admin")) {
       router.push("/login");
     }
-  }, [user, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // SSR 중에는 로딩 표시
   if (typeof window === 'undefined' || !user || user.role !== "admin") {
