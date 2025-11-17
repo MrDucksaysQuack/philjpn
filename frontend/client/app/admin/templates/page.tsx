@@ -199,7 +199,8 @@ export default function TemplatesPage() {
 }
 
 // 템플릿 생성 모달 (더 이상 사용하지 않음 - TemplateWizard로 대체됨)
-// function CreateTemplateModal({
+/*
+function CreateTemplateModal({
   onClose,
   onSuccess,
 }: {
@@ -454,6 +455,7 @@ export default function TemplatesPage() {
     </div>
   );
 }
+*/
 
 // 템플릿으로 시험 생성 모달
 function CreateExamFromTemplateModal({

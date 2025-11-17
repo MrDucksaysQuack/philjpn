@@ -10,10 +10,14 @@ import { UpdateWordBookDto } from '../dto/update-wordbook.dto';
 import { WordBookQueryDto } from '../dto/wordbook-query.dto';
 import { ReviewWordDto } from '../dto/review-word.dto';
 import { QuizRequestDto } from '../dto/quiz-request.dto';
+import { SRSEnhancedService } from './srs-enhanced.service';
 
 @Injectable()
 export class WordBookService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private srsService: SRSEnhancedService,
+  ) {}
 
   /**
    * 단어장 목록 조회
@@ -175,6 +179,7 @@ export class WordBookService {
 
   /**
    * 단어 복습 기록 (SRS 알고리즘)
+   * SRSEnhancedService를 사용하여 중복 코드 제거
    */
   async recordReview(id: string, userId: string, reviewDto: ReviewWordDto) {
     const word = await this.prisma.wordBook.findUnique({
@@ -193,43 +198,29 @@ export class WordBookService {
     const currentMasteryLevel = word.masteryLevel;
     const currentReviewCount = word.reviewCount;
 
-    // 향상된 SRS 알고리즘 (SM-2 기반)
-    // Easiness Factor 계산
+    // SRSEnhancedService를 사용하여 다음 복습 시간 계산
     const currentEF = currentMasteryLevel > 0 ? 2.5 - (100 - currentMasteryLevel) / 100 : 2.5;
     
-    // 현재 간격 계산
     const lastReview = word.lastReviewedAt || word.createdAt;
     const daysSinceLastReview = Math.floor(
       (new Date().getTime() - new Date(lastReview).getTime()) / (1000 * 60 * 60 * 24),
     );
     const currentInterval = Math.max(0, daysSinceLastReview);
 
-    let newEF = currentEF;
-    let newInterval = currentInterval;
-    let newMasteryLevel: number;
+    // SRSEnhancedService의 calculateNextReview 메서드 사용
+    const { nextInterval, nextEF, nextReviewAt } = this.srsService.calculateNextReview(
+      currentEF,
+      currentInterval,
+      isCorrect,
+    );
 
+    // 숙련도 업데이트
+    let newMasteryLevel: number;
     if (isCorrect) {
-      // 정답 시: EF 증가 (최소 1.3), 간격 증가, 숙련도 증가
-      newEF = Math.max(1.3, currentEF + 0.1);
-      
-      if (currentInterval === 0) {
-        newInterval = 1; // 첫 복습: 다음날
-      } else if (currentInterval === 1) {
-        newInterval = 6; // 두 번째: 6일 후
-      } else {
-        newInterval = Math.floor(currentInterval * newEF);
-      }
-      
       newMasteryLevel = Math.min(100, currentMasteryLevel + Math.max(1, Math.floor(10 / (currentInterval + 1))));
     } else {
-      // 오답 시: EF 감소, 간격 초기화, 숙련도 감소
-      newEF = Math.max(1.3, currentEF - 0.2);
-      newInterval = 0; // 즉시 재복습
       newMasteryLevel = Math.max(0, currentMasteryLevel - 10);
     }
-
-    const nextReviewAt = new Date();
-    nextReviewAt.setDate(nextReviewAt.getDate() + newInterval);
 
     const updatedWord = await this.prisma.wordBook.update({
       where: { id },
@@ -245,8 +236,8 @@ export class WordBookService {
       masteryLevel: updatedWord.masteryLevel,
       reviewCount: updatedWord.reviewCount,
       nextReviewAt: updatedWord.nextReviewAt,
-      interval: newInterval,
-      easinessFactor: newEF,
+      interval: nextInterval,
+      easinessFactor: nextEF,
     };
   }
 

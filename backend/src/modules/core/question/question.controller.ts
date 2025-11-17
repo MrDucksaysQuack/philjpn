@@ -22,11 +22,11 @@ import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '../../../common/types';
 
 @ApiTags('Questions')
-@Controller('api')
+@Controller('api/questions')
 export class QuestionController {
   constructor(private readonly questionService: QuestionService) {}
 
-  @Get('sections/:sectionId/questions')
+  @Get('sections/:sectionId')
   @ApiOperation({ summary: '섹션의 문제 목록 조회' })
   @ApiResponse({ status: 200, description: '문제 목록 조회 성공' })
   @ApiResponse({ status: 404, description: '섹션을 찾을 수 없음' })
@@ -34,7 +34,7 @@ export class QuestionController {
     return this.questionService.findAllBySectionId(sectionId);
   }
 
-  @Get('questions/:id')
+  @Get(':id')
   @ApiOperation({ summary: '문제 상세 조회 (응시 중에는 정답/해설 제외)' })
   @ApiResponse({ status: 200, description: '문제 상세 조회 성공' })
   @ApiResponse({ status: 404, description: '문제를 찾을 수 없음' })
@@ -42,7 +42,7 @@ export class QuestionController {
     return this.questionService.findOne(id, query);
   }
 
-  @Post('sections/:sectionId/questions')
+  @Post('sections/:sectionId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
@@ -57,7 +57,7 @@ export class QuestionController {
     return this.questionService.create(sectionId, createQuestionDto);
   }
 
-  @Patch('questions/:id')
+  @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
@@ -68,7 +68,7 @@ export class QuestionController {
     return this.questionService.update(id, updateQuestionDto);
   }
 
-  @Delete('questions/:id')
+  @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()

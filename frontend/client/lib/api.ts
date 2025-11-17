@@ -338,7 +338,7 @@ export const examAPI = {
     apiClient.get<PaginatedResponse<Exam>>("/exams", { params }),
   getExam: (id: string) => apiClient.get<Exam>(`/exams/${id}`),
   getExamSections: (examId: string) =>
-    apiClient.get(`/exams/${examId}/sections`),
+    apiClient.get(`/sections/exams/${examId}`),
 };
 
 // Session API
