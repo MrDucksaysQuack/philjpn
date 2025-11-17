@@ -380,7 +380,7 @@ function BadgeModal({
               </label>
               <select
                 value={formData.rarity}
-                onChange={(e) => setFormData({ ...formData, rarity: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, rarity: e.target.value as typeof formData.rarity })}
                 className="w-full px-3 py-2 border rounded-md"
                 required
               >
