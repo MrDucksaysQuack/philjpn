@@ -469,8 +469,8 @@ function QuestionManagementModal({
     }
   };
 
-  const bankQuestionIds = new Set(bankQuestions.map((q: Question) => q.id));
-  const availableQuestions = allQuestions.filter((q: Question) => !bankQuestionIds.has(q.id));
+  const bankQuestionIds = new Set(bankQuestions.map((q: any) => q.id));
+  const availableQuestions = allQuestions.filter((q: any) => !bankQuestionIds.has(q.id));
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -512,7 +512,7 @@ function QuestionManagementModal({
                 <p className="text-sm text-gray-500 py-4">등록된 문제가 없습니다.</p>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {bankQuestions.map((question: Question) => (
+                  {bankQuestions.map((question: any) => (
                     <div
                       key={question.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded border"
@@ -562,7 +562,7 @@ function QuestionManagementModal({
               )}
               {search && availableQuestions.length > 0 && (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {availableQuestions.map((question: Question) => (
+                  {availableQuestions.map((question: any) => (
                     <div
                       key={question.id}
                       className="flex items-center justify-between p-3 bg-blue-50 rounded border border-blue-200"
