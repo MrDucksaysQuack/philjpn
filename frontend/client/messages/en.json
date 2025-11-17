@@ -56,5 +56,100 @@
     "review": "Review",
     "quiz": "Quiz",
     "mastery": "Mastery"
+  },
+  "home": {
+    "hero": {
+      "title": "Online Exam Platform",
+      "subtitle": "Take exams and learn conveniently anytime, anywhere",
+      "dashboardButton": "My Dashboard",
+      "startExamButton": "Start Exam",
+      "registerButton": "Register"
+    },
+    "features": {
+      "title": "Key Features",
+      "subtitle": "We provide a systematic and efficient learning environment",
+      "realtimeExam": {
+        "title": "Real-time Exams",
+        "description": "Practice in real exam conditions identical to actual test environments"
+      },
+      "detailedAnalysis": {
+        "title": "Detailed Analysis",
+        "description": "Analyze exam results to identify weaknesses and improve"
+      },
+      "learningTools": {
+        "title": "Learning Tools",
+        "description": "Efficient learning with wordbooks and review systems"
+      }
+    }
+  },
+  "about": {
+    "team": {
+      "hero": {
+        "title": "Meet Our Team",
+        "subtitle": "A passionate and professional team delivering the best service"
+      },
+      "members": {
+        "title": "Team Members",
+        "subtitle": "Team members with diverse expertise growing together"
+      },
+      "culture": {
+        "title": "Team Culture",
+        "subtitle": "Values and principles we create together"
+      },
+      "intro": {
+        "title": "Team Introduction"
+      }
+    },
+    "company": {
+      "hero": {
+        "subtitle": "Creating the future of learning with innovative education platform"
+      },
+      "values": {
+        "title": "Our Values",
+        "subtitle": "Providing the best learning experience with customer-centric service"
+      },
+      "intro": {
+        "title": "Company Introduction"
+      }
+    },
+    "service": {
+      "hero": {
+        "title": "Innovative Exam Platform",
+        "subtitle": "Achieve your goals with AI-based personalized learning",
+        "startButton": "Start Exam →"
+      },
+      "features": {
+        "title": "Key Features",
+        "subtitle": "Core features for the best learning experience"
+      },
+      "benefits": {
+        "title": "Service Benefits",
+        "subtitle": "What you can gain through our service"
+      },
+      "process": {
+        "title": "How to Use",
+        "subtitle": "Get started in 4 simple steps"
+      },
+      "intro": {
+        "title": "Service Introduction"
+      }
+    },
+    "contact": {
+      "hero": {
+        "title": "Contact Us Anytime",
+        "subtitle": "Feel free to contact us if you have any questions or inquiries"
+      },
+      "info": {
+        "title": "Contact Information"
+      },
+      "form": {
+        "title": "Inquiry"
+      },
+      "labels": {
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      }
+    }
   }
 }

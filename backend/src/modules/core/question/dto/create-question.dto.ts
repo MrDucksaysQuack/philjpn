@@ -76,5 +76,20 @@ export class CreateQuestionDto {
   @IsOptional()
   @IsString()
   questionBankId?: string;
+
+  @ApiPropertyOptional({ description: '문제 이미지 URL (Part 1: Vocabulary & Grammar용)' })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @ApiPropertyOptional({ description: '오디오 파일 URL (Part 4: Listening용)' })
+  @IsOptional()
+  @IsString()
+  audioUrl?: string;
+
+  @ApiPropertyOptional({ description: '오디오 재생 횟수 제한 (기본 2회)', default: 2 })
+  @IsOptional()
+  @IsNumber()
+  audioPlayLimit?: number;
 }
 

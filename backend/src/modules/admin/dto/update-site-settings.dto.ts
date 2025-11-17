@@ -184,5 +184,65 @@ export class UpdateSiteSettingsDto {
   @IsOptional()
   @IsObject()
   serviceProcess?: any;
+
+  @ApiPropertyOptional({ 
+    description: '메인 페이지 콘텐츠 (언어별 JSON) - { ko: { hero: { title, subtitle }, features: [...] }, en: {...}, ja: {...} }',
+    example: {
+      ko: {
+        hero: { title: '온라인 시험 플랫폼', subtitle: '언제 어디서나 편리하게 시험을 응시하고 학습하세요' },
+        features: [
+          { title: '실시간 시험', description: '...' },
+          { title: '상세 분석', description: '...' },
+          { title: '학습 도구', description: '...' }
+        ]
+      },
+      en: {
+        hero: { title: 'Online Exam Platform', subtitle: 'Take exams and learn anytime, anywhere' },
+        features: [
+          { title: 'Real-time Exams', description: '...' },
+          { title: 'Detailed Analysis', description: '...' },
+          { title: 'Learning Tools', description: '...' }
+        ]
+      },
+      ja: {
+        hero: { title: 'オンライン試験プラットフォーム', subtitle: 'いつでもどこでも試験を受けて学習できます' },
+        features: [
+          { title: 'リアルタイム試験', description: '...' },
+          { title: '詳細分析', description: '...' },
+          { title: '学習ツール', description: '...' }
+        ]
+      }
+    }
+  })
+  @IsOptional()
+  @IsObject()
+  homeContent?: any;
+
+  @ApiPropertyOptional({ 
+    description: 'About 페이지 콘텐츠 (언어별 JSON) - { ko: { team: { hero: {...} }, company: {...}, service: {...}, contact: {...} }, en: {...}, ja: {...} }',
+    example: {
+      ko: {
+        team: { hero: { title: '우리 팀을 소개합니다', subtitle: '...' } },
+        company: { hero: { subtitle: '...' } },
+        service: { hero: { title: '...', subtitle: '...' } },
+        contact: { hero: { title: '...', subtitle: '...' } }
+      },
+      en: {
+        team: { hero: { title: 'Meet Our Team', subtitle: '...' } },
+        company: { hero: { subtitle: '...' } },
+        service: { hero: { title: '...', subtitle: '...' } },
+        contact: { hero: { title: '...', subtitle: '...' } }
+      },
+      ja: {
+        team: { hero: { title: 'チーム紹介', subtitle: '...' } },
+        company: { hero: { subtitle: '...' } },
+        service: { hero: { title: '...', subtitle: '...' } },
+        contact: { hero: { title: '...', subtitle: '...' } }
+      }
+    }
+  })
+  @IsOptional()
+  @IsObject()
+  aboutContent?: any;
 }
 

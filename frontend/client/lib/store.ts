@@ -33,3 +33,32 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
+
+// 언어 선택 Store
+export type Locale = "ko" | "en" | "ja";
+
+interface LocaleState {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+}
+
+export const useLocaleStore = create<LocaleState>((set) => {
+  // localStorage에서 초기값 가져오기
+  let initialLocale: Locale = "ko";
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("locale");
+    if (saved === "ko" || saved === "en" || saved === "ja") {
+      initialLocale = saved;
+    }
+  }
+
+  return {
+    locale: initialLocale,
+    setLocale: (locale) => {
+      set({ locale });
+      if (typeof window !== "undefined") {
+        localStorage.setItem("locale", locale);
+      }
+    },
+  };
+});

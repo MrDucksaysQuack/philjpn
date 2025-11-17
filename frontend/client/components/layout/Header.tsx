@@ -3,16 +3,25 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/store";
+import { useAuthStore, useLocaleStore, type Locale } from "@/lib/store";
 import { useRouter } from "next/navigation";
-import { siteSettingsAPI } from "@/lib/api";
+import { siteSettingsAPI, categoryAPI, type Category } from "@/lib/api";
 import AboutUsDropdown from "./AboutUsDropdown";
+import { useOnboarding } from "@/lib/hooks/useOnboarding";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 export default function Header() {
   const { user, clearAuth } = useAuthStore();
+  const { locale, setLocale } = useLocaleStore();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLocaleMenuOpen, setIsLocaleMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { resetOnboarding } = useOnboarding();
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const localeMenuRef = useRef<HTMLDivElement>(null);
 
   // 사이트 설정 가져오기 (회사명, 로고)
   const { data: settingsResponse } = useQuery({
@@ -24,11 +33,22 @@ export default function Header() {
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
+  // 카테고리 목록 가져오기 (헤더용)
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ["categories-public"],
+    queryFn: async () => {
+      const response = await categoryAPI.getPublicCategories();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+  });
+
   const data = (settingsResponse as any)?.data || settingsResponse;
   const settings = data as any;
   const companyName = settings?.companyName || "Exam Platform";
   const logoUrl = settings?.logoUrl;
   const [logoError, setLogoError] = useState(false);
+  const categories = (categoriesResponse as any)?.data || categoriesResponse || [];
 
   // logoUrl이 변경되면 에러 상태 리셋
   useEffect(() => {
@@ -47,16 +67,45 @@ export default function Header() {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
+      if (localeMenuRef.current && !localeMenuRef.current.contains(event.target as Node)) {
+        setIsLocaleMenuOpen(false);
+      }
     };
 
-    if (isMenuOpen) {
+    if (isMenuOpen || isMobileMenuOpen || isLocaleMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, isMobileMenuOpen, isLocaleMenuOpen]);
+
+  const handleLocaleChange = (newLocale: Locale) => {
+    setLocale(newLocale);
+    setIsLocaleMenuOpen(false);
+  };
+
+  const localeLabels: Record<Locale, string> = {
+    ko: "한국어",
+    en: "English",
+    ja: "日本語",
+  };
+
+  // 모바일 메뉴 열릴 때 body 스크롤 방지
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   const menuItems = [
     { href: "/dashboard", label: "대시보드", icon: "📊", isPrimary: true },
@@ -94,14 +143,48 @@ export default function Header() {
             </Link>
             <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="주요 메뉴">
               <AboutUsDropdown />
-              <Link
-                href="/exams"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
-                aria-label="시험 목록 페이지로 이동"
-              >
-                시험 목록
-              </Link>
+              {/* 동적 카테고리 메뉴 */}
+              {Array.isArray(categories) && categories.length > 0 ? (
+                categories.map((category: Category) => (
+                  <Link
+                    key={category.id}
+                    href={`/exams?categoryId=${category.id}`}
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 flex items-center gap-2"
+                    aria-label={`${category.name} 카테고리로 이동`}
+                  >
+                    {category.icon && <span>{category.icon}</span>}
+                    <span>{category.name}</span>
+                  </Link>
+                ))
+              ) : (
+                <Link
+                  href="/exams"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
+                  aria-label="시험 목록 페이지로 이동"
+                >
+                  시험 목록
+                </Link>
+              )}
             </nav>
+            
+            {/* 모바일 햄버거 메뉴 버튼 */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-theme-primary"
+              aria-label="메뉴 열기"
+              aria-expanded={isMobileMenuOpen}
+              type="button"
+            >
+              {isMobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
           <div className="flex items-center gap-4" role="region" aria-label="사용자 메뉴">
             {user ? (
@@ -156,6 +239,17 @@ export default function Header() {
                             <span>{item.label}</span>
                           </Link>
                         ))}
+                        <button
+                          onClick={() => {
+                            resetOnboarding();
+                            setShowOnboarding(true);
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left"
+                        >
+                          <span className="text-base">📚</span>
+                          <span>가이드 다시 보기</span>
+                        </button>
                       </div>
 
                       <div className="border-t border-gray-100 pt-2">
@@ -209,9 +303,196 @@ export default function Header() {
                 </Link>
               </>
             )}
+            
+            {/* 언어 선택기 */}
+            <div className="relative" ref={localeMenuRef}>
+              <button
+                onClick={() => setIsLocaleMenuOpen(!isLocaleMenuOpen)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
+                aria-label="언어 선택"
+                aria-expanded={isLocaleMenuOpen}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                <span className="hidden sm:inline">{localeLabels[locale]}</span>
+                <svg className={`w-4 h-4 transition-transform ${isLocaleMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isLocaleMenuOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  {(["ko", "en", "ja"] as Locale[]).map((loc) => (
+                    <button
+                      key={loc}
+                      onClick={() => handleLocaleChange(loc)}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                        locale === loc
+                          ? "bg-theme-primary-light text-theme-primary font-semibold"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {localeLabels[loc]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* 모바일 메뉴 */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50" ref={mobileMenuRef}>
+          <div className="bg-white w-80 h-full shadow-xl overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">메뉴</h2>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100"
+                aria-label="메뉴 닫기"
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-4">
+              {/* 카테고리 메뉴 (모든 사용자에게 표시) */}
+              {Array.isArray(categories) && categories.length > 0 && (
+                <div className="mb-4 pb-4 border-b border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">시험 카테고리</h3>
+                  <div className="space-y-1">
+                    {categories.map((category: Category) => (
+                      <Link
+                        key={category.id}
+                        href={`/exams?categoryId=${category.id}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        {category.icon && <span className="text-lg">{category.icon}</span>}
+                        <span>{category.name}</span>
+                      </Link>
+                    ))}
+                    <Link
+                      href="/exams"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-lg">📋</span>
+                      <span>전체 시험 목록</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {user ? (
+                <>
+                  {/* 사용자 정보 */}
+                  <div className="mb-4 pb-4 border-b border-gray-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-theme-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        {user.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900">{user.name}님</div>
+                        <div className="text-xs text-gray-500">{user.email}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 메뉴 항목 */}
+                  <div className="space-y-1">
+                    {menuItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors ${
+                          item.isPrimary
+                            ? "text-blue-600 font-semibold bg-blue-50"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                    <button
+                      onClick={() => {
+                        resetOnboarding();
+                        setShowOnboarding(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <span className="text-lg">📚</span>
+                      <span>가이드 다시 보기</span>
+                    </button>
+                  </div>
+
+                  {/* 관리자 메뉴 */}
+                  {user.role === "admin" && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-purple-600 bg-purple-50 hover:bg-purple-100 transition-colors"
+                      >
+                        <span className="text-lg">⚙️</span>
+                        <span>관리자</span>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* 로그아웃 */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      type="button"
+                    >
+                      <span className="text-lg">🚪</span>
+                      <span>로그아웃</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block w-full text-center px-4 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    로그인
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    회원가입
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 온보딩 모달 */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={() => setShowOnboarding(false)}
+      />
     </header>
   );
 }

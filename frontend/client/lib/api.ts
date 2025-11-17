@@ -306,6 +306,93 @@ export interface UpdateLicenseKeyPayload {
   examIds?: string[];
 }
 
+// Batch License Key Types
+export interface BatchLicenseKey {
+  id: string;
+  name: string;
+  description?: string;
+  count: number;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface CreateBatchLicenseKeyPayload {
+  count: number;
+  name: string;
+  description?: string;
+  keyType: string;
+  examIds?: string[];
+  usageLimit?: number;
+  validDays?: number;
+  prefix?: string;
+}
+
+export interface BatchStats {
+  batchId: string;
+  totalKeys: number;
+  activeKeys: number;
+  usedKeys: number;
+  totalUsage: number;
+  averageUsagePerKey: number;
+  usageDistribution: Array<{
+    range: string;
+    count: number;
+  }>;
+  dailyUsage: Array<{
+    date: string;
+    count: number;
+  }>;
+}
+
+export interface LicenseKeyDashboard {
+  overview: {
+    totalKeys: number;
+    activeKeys: number;
+    inactiveKeys: number;
+    totalUsage: number;
+    expiringBatchesCount: number;
+    expiredBatchesCount: number;
+  };
+  recentBatches: Array<{
+    id: string;
+    batchId?: string;
+    name: string;
+    description?: string;
+    count: number;
+    keyCount?: number;
+    keyType: string;
+    createdAt: string;
+    stats?: {
+      totalKeys: number;
+      usedKeys: number;
+      activeKeys: number;
+      totalUsage: number;
+      usageRate: number;
+    };
+  }>;
+  expiringBatches: Array<{
+    id: string;
+    batchId?: string;
+    name: string;
+    validUntil: string;
+    daysUntilExpiry: number | null;
+    expiringCount?: number;
+  }>;
+  expiredBatches?: Array<{
+    id: string;
+    name: string;
+    validUntil: string;
+    daysSinceExpiry: number | null;
+  }>;
+}
+
+export interface UsagePrediction {
+  batchId: string;
+  predictedDays: number;
+  predictedUsage: number;
+  message: string;
+}
+
 // Auth API
 export const authAPI = {
   register: (data: {
@@ -334,14 +421,158 @@ export interface PaginatedResponse<T> {
 }
 
 export const examAPI = {
-  getExams: (params?: { page?: number; limit?: number; examType?: string }) =>
+  getExams: (params?: { 
+    page?: number; 
+    limit?: number; 
+    examType?: string;
+    categoryId?: string;
+    subcategoryId?: string;
+  }) =>
     apiClient.get<PaginatedResponse<Exam>>("/exams", { params }),
   getExam: (id: string) => apiClient.get<Exam>(`/exams/${id}`),
   getExamSections: (examId: string) =>
     apiClient.get(`/sections/exams/${examId}`),
 };
 
+// Category API
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  order: number;
+  isActive: boolean;
+  subcategories?: Subcategory[];
+  _count?: {
+    exams: number;
+  };
+}
+
+export interface Subcategory {
+  id: string;
+  categoryId: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  order: number;
+  isActive: boolean;
+  category?: Category;
+  _count?: {
+    exams: number;
+  };
+}
+
+export const categoryAPI = {
+  // Public API
+  getPublicCategories: () =>
+    apiClient.get<{ data: Category[] }>("/categories/public"),
+  getSubcategories: (categoryId?: string) =>
+    apiClient.get<{ data: Subcategory[] }>("/categories/subcategories/all", {
+      params: categoryId ? { categoryId } : undefined,
+    }),
+  getSubcategory: (id: string) =>
+    apiClient.get<{ data: Subcategory }>(`/categories/subcategories/${id}`),
+  // Admin API
+  createCategory: (data: {
+    name: string;
+    description?: string;
+    icon?: string;
+    order?: number;
+    isActive?: boolean;
+  }) => apiClient.post<{ data: Category }>("/categories", data),
+  getCategories: (includeInactive?: boolean) =>
+    apiClient.get<{ data: Category[] }>("/categories", {
+      params: includeInactive ? { includeInactive: "true" } : undefined,
+    }),
+  getCategory: (id: string) =>
+    apiClient.get<{ data: Category }>(`/categories/${id}`),
+  updateCategory: (id: string, data: Partial<Category>) =>
+    apiClient.patch<{ data: Category }>(`/categories/${id}`, data),
+  deleteCategory: (id: string) =>
+    apiClient.delete(`/categories/${id}`),
+  createSubcategory: (data: {
+    categoryId: string;
+    name: string;
+    description?: string;
+    icon?: string;
+    order?: number;
+    isActive?: boolean;
+  }) => apiClient.post<{ data: Subcategory }>("/categories/subcategories", data),
+  updateSubcategory: (id: string, data: Partial<Subcategory>) =>
+    apiClient.patch<{ data: Subcategory }>(`/categories/subcategories/${id}`, data),
+  deleteSubcategory: (id: string) =>
+    apiClient.delete(`/categories/subcategories/${id}`),
+};
+
+// Question API
+export interface Question {
+  id: string;
+  sectionId: string;
+  questionNumber: number;
+  questionType: 'multiple_choice' | 'fill_blank' | 'essay';
+  content: string;
+  options?: Record<string, string> | Array<{ id: string; text: string }>;
+  correctAnswer: string;
+  explanation?: string;
+  points: number;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  tags: string[];
+  imageUrl?: string;
+  audioUrl?: string;
+  audioPlayLimit?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateQuestionDto {
+  questionNumber: number;
+  questionType: 'multiple_choice' | 'fill_blank' | 'essay';
+  content: string;
+  options?: Array<{ id: string; text: string }>;
+  correctAnswer: string;
+  explanation?: string;
+  points?: number;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  tags?: string[];
+  questionBankId?: string;
+  imageUrl?: string;
+  audioUrl?: string;
+  audioPlayLimit?: number;
+}
+
+export interface UpdateQuestionDto extends Partial<CreateQuestionDto> {}
+
+export const questionAPI = {
+  getQuestionsBySection: (sectionId: string) =>
+    apiClient.get<{ data: Question[] }>(`/questions/sections/${sectionId}`),
+  getQuestion: (id: string, includeAnswer?: boolean) =>
+    apiClient.get<Question>(`/questions/${id}`, { params: { includeAnswer } }),
+  createQuestion: (sectionId: string, data: CreateQuestionDto) =>
+    apiClient.post<Question>(`/questions/sections/${sectionId}`, data),
+  updateQuestion: (id: string, data: UpdateQuestionDto) =>
+    apiClient.patch<Question>(`/questions/${id}`, data),
+  deleteQuestion: (id: string) =>
+    apiClient.delete(`/questions/${id}`),
+};
+
 // Session API
+export interface NextQuestionResponse {
+  question: {
+    id: string;
+    content: string;
+    options: any;
+    questionType: string;
+    points: number;
+    difficulty?: string;
+    imageUrl?: string;
+    audioUrl?: string;
+    audioPlayLimit?: number;
+  };
+  ability: number; // 능력 추정 값
+  targetDifficulty: string; // 목표 난이도
+  order: number; // 문제 순서
+}
+
 export const sessionAPI = {
   startExam: (examId: string, data: { licenseKey: string }) =>
     apiClient.post(`/exams/${examId}/start`, data),
@@ -357,6 +588,11 @@ export const sessionAPI = {
   ) => apiClient.put(`/sessions/${sessionId}/sections/${sectionId}`, data),
   submitExam: (sessionId: string) =>
     apiClient.post(`/sessions/${sessionId}/submit`),
+  // 적응형 시험: 다음 문제 가져오기
+  getNextQuestion: (sessionId: string, currentAnswer?: string) =>
+    apiClient.get<NextQuestionResponse>(`/sessions/${sessionId}/next-question`, {
+      params: currentAnswer ? { currentAnswer } : undefined,
+    }),
 };
 
 // Result API
@@ -708,6 +944,46 @@ export interface SiteSettings {
       description: string;
     }>;
   } | null;
+  homeContent?: {
+    ko?: {
+      hero?: { title?: string; subtitle?: string };
+      features?: Array<{ title?: string; description?: string }>;
+      featuresSectionTitle?: string;
+      featuresSectionSubtitle?: string;
+    };
+    en?: {
+      hero?: { title?: string; subtitle?: string };
+      features?: Array<{ title?: string; description?: string }>;
+      featuresSectionTitle?: string;
+      featuresSectionSubtitle?: string;
+    };
+    ja?: {
+      hero?: { title?: string; subtitle?: string };
+      features?: Array<{ title?: string; description?: string }>;
+      featuresSectionTitle?: string;
+      featuresSectionSubtitle?: string;
+    };
+  } | null;
+  aboutContent?: {
+    ko?: {
+      team?: { hero?: { title?: string; subtitle?: string } };
+      company?: { hero?: { subtitle?: string } };
+      service?: { hero?: { title?: string; subtitle?: string } };
+      contact?: { hero?: { title?: string; subtitle?: string } };
+    };
+    en?: {
+      team?: { hero?: { title?: string; subtitle?: string } };
+      company?: { hero?: { subtitle?: string } };
+      service?: { hero?: { title?: string; subtitle?: string } };
+      contact?: { hero?: { title?: string; subtitle?: string } };
+    };
+    ja?: {
+      team?: { hero?: { title?: string; subtitle?: string } };
+      company?: { hero?: { subtitle?: string } };
+      service?: { hero?: { title?: string; subtitle?: string } };
+      contact?: { hero?: { title?: string; subtitle?: string } };
+    };
+  } | null;
   isActive?: boolean;
   updatedBy?: string | null;
   updatedAt?: string;
@@ -783,6 +1059,46 @@ export interface UpdateSiteSettingsDto {
       title: string;
       description: string;
     }>;
+  };
+  homeContent?: {
+    ko?: {
+      hero?: { title?: string; subtitle?: string };
+      features?: Array<{ title?: string; description?: string }>;
+      featuresSectionTitle?: string;
+      featuresSectionSubtitle?: string;
+    };
+    en?: {
+      hero?: { title?: string; subtitle?: string };
+      features?: Array<{ title?: string; description?: string }>;
+      featuresSectionTitle?: string;
+      featuresSectionSubtitle?: string;
+    };
+    ja?: {
+      hero?: { title?: string; subtitle?: string };
+      features?: Array<{ title?: string; description?: string }>;
+      featuresSectionTitle?: string;
+      featuresSectionSubtitle?: string;
+    };
+  };
+  aboutContent?: {
+    ko?: {
+      team?: { hero?: { title?: string; subtitle?: string } };
+      company?: { hero?: { subtitle?: string } };
+      service?: { hero?: { title?: string; subtitle?: string } };
+      contact?: { hero?: { title?: string; subtitle?: string } };
+    };
+    en?: {
+      team?: { hero?: { title?: string; subtitle?: string } };
+      company?: { hero?: { subtitle?: string } };
+      service?: { hero?: { title?: string; subtitle?: string } };
+      contact?: { hero?: { title?: string; subtitle?: string } };
+    };
+    ja?: {
+      team?: { hero?: { title?: string; subtitle?: string } };
+      company?: { hero?: { subtitle?: string } };
+      service?: { hero?: { title?: string; subtitle?: string } };
+      contact?: { hero?: { title?: string; subtitle?: string } };
+    };
   };
 }
 
@@ -951,6 +1267,122 @@ export const adminAPI = {
       },
     });
   },
+  uploadAudio: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post<{ data: { url: string; filename: string; size: number } }>("/admin/upload/audio", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
+// License Key API
+export const licenseKeyAPI = {
+  // Single key operations
+  getLicenseKeys: (params?: {
+    page?: number;
+    limit?: number;
+    keyType?: string;
+    isActive?: boolean;
+  }) => apiClient.get<PaginatedResponse<LicenseKey>>("/license-keys", { params }),
+  getLicenseKey: (id: string) => apiClient.get<LicenseKey>(`/license-keys/${id}`),
+  createLicenseKey: (data: CreateLicenseKeyPayload) =>
+    apiClient.post<{ data: LicenseKey }>("/license-keys", data),
+  updateLicenseKey: (id: string, data: UpdateLicenseKeyPayload) =>
+    apiClient.patch<{ data: LicenseKey }>(`/license-keys/${id}`, data),
+  deleteLicenseKey: (id: string) =>
+    apiClient.delete(`/license-keys/${id}`),
+  // Batch operations
+  createBatch: (data: CreateBatchLicenseKeyPayload) =>
+    apiClient.post<{
+      batch: BatchLicenseKey;
+      keys: Array<{ id: string; key: string; keyType: string }>;
+      count: number;
+    }>("/license-keys/batch", data),
+  getBatchStats: (batchId: string) =>
+    apiClient.get<{ data: BatchStats }>(`/license-keys/batch/${batchId}/stats`),
+  exportBatchKeys: (batchId: string) =>
+    apiClient.get(`/license-keys/batch/${batchId}/export`, {
+      responseType: 'blob',
+    }),
+  getDashboard: () =>
+    apiClient.get<{ data: LicenseKeyDashboard }>("/license-keys/dashboard"),
+  getExpiringBatches: (days?: number) =>
+    apiClient.get<{ data: Array<{
+      batchId: string;
+      name: string;
+      expiringCount: number;
+      expiresAt: string;
+    }> }>("/license-keys/batches/expiring", { params: { days } }),
+  predictUsage: (batchId: string, days?: number) =>
+    apiClient.get<{ data: UsagePrediction }>(`/license-keys/batch/${batchId}/predict`, {
+      params: { days },
+    }),
+  notifyExpiration: (batchId: string) =>
+    apiClient.post(`/license-keys/batch/${batchId}/notify-expiration`),
+};
+
+// AI API
+export interface GenerateExplanationPayload {
+  questionId: string;
+  userAnswer: string;
+  isCorrect: boolean;
+  questionResultId?: string;
+}
+
+export interface AIJobStatus {
+  id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  result?: any;
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const aiAPI = {
+  // 동기 해설 생성
+  generateExplanation: (data: GenerateExplanationPayload) =>
+    apiClient.post<{
+      explanation: string;
+      questionId: string;
+      generatedAt: string;
+    }>("/ai/explanation", data),
+  // 비동기 해설 생성
+  generateExplanationAsync: (data: GenerateExplanationPayload) =>
+    apiClient.post<{
+      jobId: string;
+      status: string;
+      message: string;
+    }>("/ai/explanation-async", data),
+  // 약점 진단 (동기)
+  diagnoseWeakness: (examResultId: string) =>
+    apiClient.post(`/ai/diagnose-weakness/${examResultId}`),
+  // 약점 진단 (비동기)
+  diagnoseWeaknessAsync: (examResultId: string) =>
+    apiClient.post<{
+      jobId: string;
+      status: string;
+      message: string;
+    }>(`/ai/diagnose-weakness-async/${examResultId}`),
+  // 작업 상태 조회
+  getJobStatus: (jobId: string) =>
+    apiClient.get<AIJobStatus>(`/ai/job/${jobId}`),
+  // 큐 통계
+  getQueueStats: () =>
+    apiClient.get<{
+      queued: number;
+      processing: number;
+      completed: number;
+      failed: number;
+    }>("/ai/queue/stats"),
+  // AI 기능 활성화 확인
+  checkAvailability: () =>
+    apiClient.post<{
+      available: boolean;
+      message: string;
+    }>("/ai/check-availability"),
 };
 
 // Site Settings API (Public)

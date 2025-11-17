@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { siteSettingsAPI } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import ReactMarkdown from "react-markdown";
 import HeroSection from "@/components/about/HeroSection";
 import SectionTitle from "@/components/about/SectionTitle";
@@ -12,6 +14,9 @@ import StatCard from "@/components/about/StatCard";
 import { getIconComponent } from "@/components/about/iconMapper";
 
 export default function CompanyPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+  
   const { data: settingsResponse, isLoading } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
@@ -28,7 +33,7 @@ export default function CompanyPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="회사 정보를 불러오는 중..." />
+            <LoadingSpinner message={t("common.loading")} />
           </div>
         </div>
       </>
@@ -36,8 +41,25 @@ export default function CompanyPage() {
   }
 
   const settings = data as any;
+  const aboutContent = settings?.aboutContent as any;
+  const companyContent = aboutContent?.[locale]?.company;
+  
+  // 언어별 콘텐츠 가져오기 (없으면 i18n fallback)
+  const heroContent = companyContent?.hero || {
+    subtitle: t("about.company.hero.subtitle"),
+  };
+  
+  const valuesSection = companyContent?.values || {
+    title: t("about.company.values.title"),
+    subtitle: t("about.company.values.subtitle"),
+  };
+  
+  const introSection = companyContent?.intro || {
+    title: t("about.company.intro.title"),
+  };
+  
   const companyName = settings?.companyName || "Exam Platform";
-  const content = settings?.aboutCompany || "회사 소개 내용이 아직 등록되지 않았습니다.";
+  const content = settings?.aboutCompany || t("about.company.intro.title");
   const stats = settings?.companyStats?.stats || [];
   const companyValues = settings?.companyValues?.values || [];
 
@@ -48,7 +70,7 @@ export default function CompanyPage() {
       {/* Hero Section */}
       <HeroSection
         title={companyName}
-        subtitle="혁신적인 교육 플랫폼으로 학습의 미래를 만들어갑니다"
+        subtitle={heroContent.subtitle}
       />
 
       <div className="min-h-screen bg-white">
@@ -77,8 +99,8 @@ export default function CompanyPage() {
           <section className="py-16 md:py-24 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
-                title="우리의 가치"
-                subtitle="고객 중심의 서비스로 최고의 학습 경험을 제공합니다"
+                title={valuesSection.title}
+                subtitle={valuesSection.subtitle}
               />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 {companyValues.map((value: any, index: number) => (
@@ -97,7 +119,7 @@ export default function CompanyPage() {
         {/* 상세 소개 섹션 */}
         <section className="py-16 md:py-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionTitle title="회사 소개" />
+            <SectionTitle title={introSection.title} />
             <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
               <div className="prose prose-lg max-w-none">
                 {content.includes("#") || content.includes("*") || content.includes("`") ? (

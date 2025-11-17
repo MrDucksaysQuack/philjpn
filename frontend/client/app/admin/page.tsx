@@ -9,6 +9,7 @@ import Header from "@/components/layout/Header";
 import { adminAPI } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import TrendChartWidget from "./components/TrendChartWidget";
 
 export default function AdminDashboardPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
@@ -171,6 +172,9 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         )}
+
+        {/* 트렌드 차트 */}
+        <TrendChartWidget />
 
         {/* 빠른 링크 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

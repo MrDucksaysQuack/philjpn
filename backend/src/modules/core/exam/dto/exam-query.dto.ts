@@ -31,5 +31,15 @@ export class ExamQueryDto {
   @Type(() => Boolean)
   @IsBoolean()
   isPublic?: boolean;
+
+  @ApiPropertyOptional({ description: '카테고리 ID 필터 (대분류)' })
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
+
+  @ApiPropertyOptional({ description: '서브카테고리 ID 필터 (중분류)' })
+  @IsOptional()
+  @IsString()
+  subcategoryId?: string;
 }
 

@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { ExamType, Difficulty, QuestionType } from '../../../common/types';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { CreateTemplateDto } from '../dto/create-template.dto';
 import { QuestionPoolService } from './question-pool.service';
@@ -19,7 +21,7 @@ export class TemplateService {
       data: {
         name: createDto.name,
         description: createDto.description,
-        structure: createDto.structure as any,
+        structure: createDto.structure as unknown as Prisma.InputJsonValue,
         questionPoolIds: createDto.questionPoolIds || [],
         createdBy: userId,
       },
@@ -39,7 +41,7 @@ export class TemplateService {
    * 템플릿 목록 조회
    */
   async getTemplates(userId?: string) {
-    const where: any = {};
+    const where: Prisma.ExamTemplateWhereInput = {};
     
     // 관리자가 아니면 본인이 만든 템플릿만 조회
     if (userId) {
@@ -145,7 +147,7 @@ export class TemplateService {
       data: {
         ...(updateData.name && { name: updateData.name }),
         ...(updateData.description !== undefined && { description: updateData.description }),
-        ...(updateData.structure && { structure: updateData.structure as any }),
+        ...(updateData.structure && { structure: updateData.structure as unknown as Prisma.InputJsonValue }),
         ...(updateData.questionPoolIds && { questionPoolIds: updateData.questionPoolIds }),
       },
       include: {
@@ -216,7 +218,7 @@ export class TemplateService {
       subject?: string;
       overrides?: {
         questionCount?: number;
-        structure?: any;
+        structure?: Prisma.InputJsonValue;
         randomSeed?: number; // 랜덤 시드 (재현성 보장)
       };
     },
@@ -224,32 +226,57 @@ export class TemplateService {
     const template = await this.getTemplate(templateId, userId);
 
     // 템플릿 구조 가져오기
-    const structure = template.structure as any;
-    const sections = structure.sections || [];
+    interface SectionDef {
+      type?: string;
+      description?: string;
+      questionPoolId?: string;
+      tags?: string[];
+      difficulty?: string;
+      questionCount?: number;
+    }
+    
+    const structure = template.structure as Prisma.JsonValue;
+    const sections: SectionDef[] = (structure && typeof structure === 'object' && 'sections' in structure) 
+      ? ((structure as { sections?: SectionDef[] }).sections || [])
+      : [];
 
     // 랜덤 시드 생성 (제공되지 않으면 타임스탬프 사용)
     const randomSeed = examData.overrides?.randomSeed || Date.now();
 
     // 새 시험 생성
+    const examDataInput: Prisma.ExamCreateInput & {
+      randomSeed?: number;
+    } = {
+      title: examData.title,
+      description: examData.description,
+      examType: examData.examType as ExamType,
+      subject: examData.subject,
+      ...(userId ? { createdBy: { connect: { id: userId } } } : {}),
+      template: { connect: { id: templateId } },
+      randomSeed: randomSeed,
+      totalQuestions: 0,
+      totalSections: sections.length,
+    };
+
     const exam = await this.prisma.exam.create({
-      data: {
-        title: examData.title,
-        description: examData.description,
-        examType: examData.examType as any,
-        subject: examData.subject,
-        createdBy: userId,
-        templateId: templateId,
-        randomSeed: randomSeed,
-        totalQuestions: 0,
-        totalSections: sections.length,
-      },
+      data: examDataInput,
     });
 
     // 섹션 및 문제 생성
     let sectionOrder = 1;
 
     for (const sectionDef of sections) {
-      let filteredQuestions: any[] = [];
+      let filteredQuestions: Array<{
+        id: string;
+        content: string;
+        options: Prisma.JsonValue;
+        correctAnswer: string;
+        explanation?: string | null;
+        points: number;
+        difficulty?: string | null;
+        tags: string[];
+        questionType: string;
+      }> = [];
 
       // 우선순위 1: questionPoolId가 있으면 Pool에서 문제 선택
       if (sectionDef.questionPoolId) {
@@ -282,7 +309,7 @@ export class TemplateService {
 
       // 우선순위 2: questionPoolId가 없거나 Pool에 문제가 없으면 태그/난이도 기반 필터링
       if (filteredQuestions.length === 0) {
-        const whereClause: any = {};
+        const whereClause: Prisma.QuestionWhereInput = {};
         
         // 태그 필터
         if (sectionDef.tags && sectionDef.tags.length > 0) {
@@ -291,7 +318,10 @@ export class TemplateService {
         
         // 난이도 필터
         if (sectionDef.difficulty) {
-          whereClause.difficulty = sectionDef.difficulty;
+          const difficulty = sectionDef.difficulty as Difficulty;
+          if (difficulty === 'easy' || difficulty === 'medium' || difficulty === 'hard') {
+            whereClause.difficulty = difficulty;
+          }
         }
 
         filteredQuestions = await this.prisma.question.findMany({
@@ -342,13 +372,13 @@ export class TemplateService {
             sectionId: section.id,
             questionNumber: questionNumber++,
             content: question.content,
-            options: question.options as any,
+            options: question.options as Prisma.InputJsonValue,
             correctAnswer: question.correctAnswer,
             explanation: question.explanation,
             points: question.points,
-            difficulty: question.difficulty,
+            difficulty: question.difficulty as Difficulty | null | undefined,
             tags: question.tags,
-            questionType: question.questionType,
+            questionType: question.questionType as QuestionType,
           },
         });
       }

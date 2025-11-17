@@ -4,6 +4,12 @@ import { PrismaClient } from '@prisma/client';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
+  
+  // Prisma Client의 모든 모델에 대한 타입 안전성 보장
+  // TypeScript가 인식하지 못하는 경우를 대비한 타입 확장
+  get licenseKeyBatch() {
+    return (this as unknown as PrismaClient).licenseKeyBatch;
+  }
   private readonly MAX_RETRIES = 5;
   private readonly RETRY_DELAY_MS = 5000; // 5초
 

@@ -21,11 +21,22 @@ async function bootstrap() {
   const metricsService = app.get(MetricsService);
   app.useGlobalInterceptors(new MetricsInterceptor(metricsService));
   
-  // 정적 파일 서빙 설정 (업로드된 이미지 접근)
+  // 정적 파일 서빙 설정 (업로드된 파일 접근)
   // public/uploads 폴더를 /uploads 경로로 서빙
   const uploadsPath = join(process.cwd(), 'public', 'uploads');
   app.useStaticAssets(uploadsPath, {
     prefix: '/uploads',
+  });
+  
+  // 이미지와 오디오 서브폴더도 서빙
+  const imagesPath = join(process.cwd(), 'public', 'uploads', 'images');
+  app.useStaticAssets(imagesPath, {
+    prefix: '/uploads/images',
+  });
+  
+  const audioPath = join(process.cwd(), 'public', 'uploads', 'audio');
+  app.useStaticAssets(audioPath, {
+    prefix: '/uploads/audio',
   });
 
   const config = appConfig();

@@ -3,12 +3,14 @@
 import { useMemo } from "react";
 import koMessages from "../messages/ko.json";
 import enMessages from "../messages/en.json";
+import jaMessages from "../messages/ja.json";
 
-type Locale = "ko" | "en";
+type Locale = "ko" | "en" | "ja";
 
 const messages: Record<Locale, Record<string, any>> = {
   ko: koMessages,
   en: enMessages,
+  ja: jaMessages,
 };
 
 export const useTranslation = (locale: Locale = "ko") => {

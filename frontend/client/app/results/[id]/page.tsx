@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
-import { resultAPI, wordExtractionAPI, DetailedFeedback } from "@/lib/api";
-import { emotionalToast } from "@/components/common/Toast";
+import { resultAPI, wordExtractionAPI, aiAPI, DetailedFeedback, GenerateExplanationPayload } from "@/lib/api";
+import { emotionalToast, toast } from "@/components/common/Toast";
 import CelebrationModal from "@/components/common/CelebrationModal";
 
 export default function ResultDetailPage() {
@@ -15,6 +15,10 @@ export default function ResultDetailPage() {
   const resultId = params.id as string;
   const queryClient = useQueryClient();
   const [showWordExtraction, setShowWordExtraction] = useState(false);
+  const [generatingExplanations, setGeneratingExplanations] = useState<Record<string, boolean>>({});
+  const [aiJobIds, setAiJobIds] = useState<Record<string, string>>({});
+  const [diagnosingWeakness, setDiagnosingWeakness] = useState(false);
+  const [weaknessDiagnosisResult, setWeaknessDiagnosisResult] = useState<any>(null);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["result", resultId],
@@ -63,6 +67,127 @@ export default function ResultDetailPage() {
       setShowWordExtraction(false);
     },
   });
+
+  // AI 해설 생성 (비동기)
+  const generateExplanationMutation = useMutation({
+    mutationFn: async (data: GenerateExplanationPayload & { questionId: string }) => {
+      const response = await aiAPI.generateExplanationAsync({
+        questionId: data.questionId,
+        userAnswer: data.userAnswer,
+        isCorrect: data.isCorrect,
+        questionResultId: data.questionResultId,
+      });
+      return { ...response.data, questionId: data.questionId };
+    },
+    onSuccess: (data) => {
+      setAiJobIds((prev) => ({ ...prev, [data.questionId]: data.jobId }));
+      toast.success("AI 해설 생성이 시작되었습니다. 잠시만 기다려주세요.");
+      // 작업 상태 폴링 시작
+      pollJobStatus(data.jobId, data.questionId);
+    },
+    onError: (error) => {
+      emotionalToast.error(error);
+    },
+  });
+
+  // 작업 상태 폴링
+  const pollJobStatus = async (jobId: string, questionId: string) => {
+    const maxAttempts = 30; // 최대 30번 시도 (약 1분)
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const response = await aiAPI.getJobStatus(jobId);
+        const status = response.data.status;
+
+        if (status === "completed") {
+          setGeneratingExplanations((prev) => ({ ...prev, [questionId]: false }));
+          queryClient.invalidateQueries({ queryKey: ["result-detailed-feedback", resultId] });
+          toast.success("AI 해설이 생성되었습니다!");
+        } else if (status === "failed") {
+          setGeneratingExplanations((prev) => ({ ...prev, [questionId]: false }));
+          toast.error("AI 해설 생성에 실패했습니다.");
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(poll, 2000); // 2초마다 폴링
+        } else {
+          setGeneratingExplanations((prev) => ({ ...prev, [questionId]: false }));
+          toast.error("AI 해설 생성 시간이 초과되었습니다.");
+        }
+      } catch (error) {
+        setGeneratingExplanations((prev) => ({ ...prev, [questionId]: false }));
+        emotionalToast.error(error);
+      }
+    };
+
+    poll();
+  };
+
+  const handleGenerateExplanation = (question: any) => {
+    setGeneratingExplanations((prev) => ({ ...prev, [question.questionId]: true }));
+    generateExplanationMutation.mutate({
+      questionId: question.questionId,
+      userAnswer: question.userAnswer,
+      isCorrect: question.isCorrect,
+    });
+  };
+
+  // AI 약점 진단 (비동기)
+  const diagnoseWeaknessMutation = useMutation({
+    mutationFn: async () => {
+      const response = await aiAPI.diagnoseWeaknessAsync(resultId);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setDiagnosingWeakness(true);
+      toast.success("AI 약점 진단이 시작되었습니다. 잠시만 기다려주세요.");
+      // 작업 상태 폴링 시작
+      pollWeaknessDiagnosisStatus(data.jobId);
+    },
+    onError: (error) => {
+      emotionalToast.error(error);
+    },
+  });
+
+  // 약점 진단 작업 상태 폴링
+  const pollWeaknessDiagnosisStatus = async (jobId: string) => {
+    const maxAttempts = 60; // 최대 60번 시도 (약 2분)
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const response = await aiAPI.getJobStatus(jobId);
+        const status = response.data.status;
+
+        if (status === "completed") {
+          setDiagnosingWeakness(false);
+          setWeaknessDiagnosisResult(response.data.result);
+          queryClient.invalidateQueries({ queryKey: ["result-detailed-feedback", resultId] });
+          toast.success("AI 약점 진단이 완료되었습니다!");
+        } else if (status === "failed") {
+          setDiagnosingWeakness(false);
+          toast.error("AI 약점 진단에 실패했습니다.");
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(poll, 2000); // 2초마다 폴링
+        } else {
+          setDiagnosingWeakness(false);
+          toast.error("AI 약점 진단 시간이 초과되었습니다.");
+        }
+      } catch (error) {
+        setDiagnosingWeakness(false);
+        emotionalToast.error(error);
+      }
+    };
+
+    poll();
+  };
+
+  const handleDiagnoseWeakness = () => {
+    if (confirm("AI 약점 진단을 시작하시겠습니까? 진단에는 시간이 걸릴 수 있습니다.")) {
+      diagnoseWeaknessMutation.mutate();
+    }
+  };
 
   // 목표 달성 체크 (점수 개선 확인)
   const [showCelebration, setShowCelebration] = useState(false);
@@ -150,6 +275,74 @@ export default function ResultDetailPage() {
                     </button>
                   ))}
                 </nav>
+              </div>
+            )}
+
+            {/* AI 약점 진단 버튼 */}
+            {result && result.status === "completed" && (
+              <div className="mb-6 flex justify-end">
+                <button
+                  onClick={handleDiagnoseWeakness}
+                  disabled={diagnosingWeakness || diagnoseWeaknessMutation.isPending}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {diagnosingWeakness || diagnoseWeaknessMutation.isPending ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      AI 약점 진단 중...
+                    </>
+                  ) : (
+                    <>
+                      <span>🔍</span>
+                      AI 약점 진단 시작
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* 약점 진단 결과 표시 */}
+            {weaknessDiagnosisResult && (
+              <div className="mb-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 shadow-md">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <span>🤖</span>
+                  AI 약점 진단 결과
+                </h3>
+                <div className="space-y-4">
+                  {weaknessDiagnosisResult.weaknessAreas && weaknessDiagnosisResult.weaknessAreas.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-2">주요 약점 영역</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {weaknessDiagnosisResult.weaknessAreas.map((area: any, index: number) => (
+                          <div key={index} className="bg-white rounded-lg p-4 border border-red-200">
+                            <div className="font-semibold text-red-700 mb-1">{area.tag}</div>
+                            <div className="text-sm text-gray-600 mb-2">
+                              정답률: {area.correctRate.toFixed(1)}%
+                            </div>
+                            {area.rootCause && (
+                              <div className="text-xs text-gray-500 mb-2">
+                                원인: {area.rootCause}
+                              </div>
+                            )}
+                            {area.improvementSuggestions && area.improvementSuggestions.length > 0 && (
+                              <div className="text-xs">
+                                <div className="font-semibold text-gray-700 mb-1">개선 제안:</div>
+                                <ul className="list-disc list-inside space-y-1">
+                                  {area.improvementSuggestions.map((suggestion: string, i: number) => (
+                                    <li key={i} className="text-gray-600">{suggestion}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -491,10 +684,45 @@ export default function ResultDetailPage() {
                       <div className="text-sm text-gray-600 mb-2">
                         <span className="font-semibold">정답:</span> {question.correctAnswer}
                       </div>
-                      {question.explanation && (
+                      {question.explanation ? (
                         <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-sm font-semibold text-blue-700 mb-2">설명</div>
+                          <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
+                            <span>🤖 AI 해설</span>
+                          </div>
                           <div className="text-sm text-gray-700">{question.explanation}</div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-semibold text-gray-700 mb-1">
+                                해설이 없습니다
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                AI가 이 문제에 대한 해설을 생성해드립니다
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleGenerateExplanation(question)}
+                              disabled={generatingExplanations[question.questionId]}
+                              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                              {generatingExplanations[question.questionId] ? (
+                                <>
+                                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  생성 중...
+                                </>
+                              ) : (
+                                <>
+                                  <span>✨</span>
+                                  AI 해설 생성
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

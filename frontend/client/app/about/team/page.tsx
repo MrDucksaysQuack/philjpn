@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { siteSettingsAPI } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import ReactMarkdown from "react-markdown";
 import HeroSection from "@/components/about/HeroSection";
 import SectionTitle from "@/components/about/SectionTitle";
@@ -12,6 +14,9 @@ import FeatureCard from "@/components/about/FeatureCard";
 import { getIconComponent } from "@/components/about/iconMapper";
 
 export default function TeamPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+  
   const { data: settingsResponse, isLoading } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
@@ -28,7 +33,7 @@ export default function TeamPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="팀 정보를 불러오는 중..." />
+            <LoadingSpinner message={t("common.loading")} />
           </div>
         </div>
       </>
@@ -36,7 +41,30 @@ export default function TeamPage() {
   }
 
   const settings = data as any;
-  const content = settings?.aboutTeam || "팀 소개 내용이 아직 등록되지 않았습니다.";
+  const aboutContent = settings?.aboutContent as any;
+  const teamContent = aboutContent?.[locale]?.team;
+  
+  // 언어별 콘텐츠 가져오기 (없으면 i18n fallback)
+  const heroContent = teamContent?.hero || {
+    title: t("about.team.hero.title"),
+    subtitle: t("about.team.hero.subtitle"),
+  };
+  
+  const membersSection = teamContent?.members || {
+    title: t("about.team.members.title"),
+    subtitle: t("about.team.members.subtitle"),
+  };
+  
+  const cultureSection = teamContent?.culture || {
+    title: t("about.team.culture.title"),
+    subtitle: t("about.team.culture.subtitle"),
+  };
+  
+  const introSection = teamContent?.intro || {
+    title: t("about.team.intro.title"),
+  };
+  
+  const content = settings?.aboutTeam || t("about.team.intro.title");
   const teamMembers = settings?.teamMembers?.members || [];
   const teamCulture = settings?.teamCulture?.culture || [];
 
@@ -46,8 +74,8 @@ export default function TeamPage() {
       
       {/* Hero Section */}
       <HeroSection
-        title="우리 팀을 소개합니다"
-        subtitle="열정과 전문성을 갖춘 팀으로 최고의 서비스를 제공합니다"
+        title={heroContent.title}
+        subtitle={heroContent.subtitle}
       />
 
       <div className="min-h-screen bg-white">
@@ -56,8 +84,8 @@ export default function TeamPage() {
           <section className="py-16 md:py-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
-                title="팀 멤버"
-                subtitle="다양한 전문성을 가진 팀원들이 함께 성장하고 있습니다"
+                title={membersSection.title}
+                subtitle={membersSection.subtitle}
               />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {teamMembers.map((member: any, index: number) => (
@@ -80,8 +108,8 @@ export default function TeamPage() {
           <section className="py-16 md:py-24 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
-                title="팀 문화"
-                subtitle="우리가 함께 만드는 가치와 원칙"
+                title={cultureSection.title}
+                subtitle={cultureSection.subtitle}
               />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 {teamCulture.map((culture: any, index: number) => (
@@ -100,7 +128,7 @@ export default function TeamPage() {
         {/* 상세 팀 소개 섹션 */}
         <section className="py-16 md:py-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionTitle title="팀 소개" />
+            <SectionTitle title={introSection.title} />
             <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
               <div className="prose prose-lg max-w-none">
                 {content.includes("#") || content.includes("*") || content.includes("`") ? (

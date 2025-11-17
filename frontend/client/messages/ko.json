@@ -56,5 +56,100 @@
     "review": "복습",
     "quiz": "퀴즈",
     "mastery": "숙련도"
+  },
+  "home": {
+    "hero": {
+      "title": "온라인 시험 플랫폼",
+      "subtitle": "언제 어디서나 편리하게 시험을 응시하고 학습하세요",
+      "dashboardButton": "나의 대시보드",
+      "startExamButton": "시험 시작하기",
+      "registerButton": "회원가입"
+    },
+    "features": {
+      "title": "주요 기능",
+      "subtitle": "체계적이고 효율적인 학습 환경을 제공합니다",
+      "realtimeExam": {
+        "title": "실시간 시험",
+        "description": "실제 시험 환경과 동일한 조건에서 실전 연습이 가능합니다"
+      },
+      "detailedAnalysis": {
+        "title": "상세 분석",
+        "description": "시험 결과를 분석하여 약점을 파악하고 개선할 수 있습니다"
+      },
+      "learningTools": {
+        "title": "학습 도구",
+        "description": "단어장과 복습 시스템으로 효율적인 학습이 가능합니다"
+      }
+    }
+  },
+  "about": {
+    "team": {
+      "hero": {
+        "title": "우리 팀을 소개합니다",
+        "subtitle": "열정과 전문성을 갖춘 팀으로 최고의 서비스를 제공합니다"
+      },
+      "members": {
+        "title": "팀 멤버",
+        "subtitle": "다양한 전문성을 가진 팀원들이 함께 성장하고 있습니다"
+      },
+      "culture": {
+        "title": "팀 문화",
+        "subtitle": "우리가 함께 만드는 가치와 원칙"
+      },
+      "intro": {
+        "title": "팀 소개"
+      }
+    },
+    "company": {
+      "hero": {
+        "subtitle": "혁신적인 교육 플랫폼으로 학습의 미래를 만들어갑니다"
+      },
+      "values": {
+        "title": "우리의 가치",
+        "subtitle": "고객 중심의 서비스로 최고의 학습 경험을 제공합니다"
+      },
+      "intro": {
+        "title": "회사 소개"
+      }
+    },
+    "service": {
+      "hero": {
+        "title": "혁신적인 시험 플랫폼",
+        "subtitle": "AI 기반 개인 맞춤형 학습으로 목표를 달성하세요",
+        "startButton": "시험 시작하기 →"
+      },
+      "features": {
+        "title": "주요 기능",
+        "subtitle": "최고의 학습 경험을 위한 핵심 기능들"
+      },
+      "benefits": {
+        "title": "서비스 혜택",
+        "subtitle": "우리 서비스를 통해 얻을 수 있는 것들"
+      },
+      "process": {
+        "title": "사용 방법",
+        "subtitle": "간단한 4단계로 시작하세요"
+      },
+      "intro": {
+        "title": "서비스 소개"
+      }
+    },
+    "contact": {
+      "hero": {
+        "title": "언제든지 연락주세요",
+        "subtitle": "궁금한 점이나 문의사항이 있으시면 언제든지 연락해주세요"
+      },
+      "info": {
+        "title": "연락처 정보"
+      },
+      "form": {
+        "title": "문의하기"
+      },
+      "labels": {
+        "email": "이메일",
+        "phone": "전화번호",
+        "address": "주소"
+      }
+    }
   }
 }

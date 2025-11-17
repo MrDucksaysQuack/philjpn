@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { siteSettingsAPI } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import ReactMarkdown from "react-markdown";
 import HeroSection from "@/components/about/HeroSection";
 import SectionTitle from "@/components/about/SectionTitle";
@@ -14,6 +16,9 @@ import { getIconComponent } from "@/components/about/iconMapper";
 import Link from "next/link";
 
 export default function ServicePage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+  
   const { data: settingsResponse, isLoading } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
@@ -30,7 +35,7 @@ export default function ServicePage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="서비스 정보를 불러오는 중..." />
+            <LoadingSpinner message={t("common.loading")} />
           </div>
         </div>
       </>
@@ -38,7 +43,36 @@ export default function ServicePage() {
   }
 
   const settings = data as any;
-  const content = settings?.serviceInfo || "서비스 소개 내용이 아직 등록되지 않았습니다.";
+  const aboutContent = settings?.aboutContent as any;
+  const serviceContent = aboutContent?.[locale]?.service;
+  
+  // 언어별 콘텐츠 가져오기 (없으면 i18n fallback)
+  const heroContent = serviceContent?.hero || {
+    title: t("about.service.hero.title"),
+    subtitle: t("about.service.hero.subtitle"),
+    startButton: t("about.service.hero.startButton"),
+  };
+  
+  const featuresSection = serviceContent?.features || {
+    title: t("about.service.features.title"),
+    subtitle: t("about.service.features.subtitle"),
+  };
+  
+  const benefitsSection = serviceContent?.benefits || {
+    title: t("about.service.benefits.title"),
+    subtitle: t("about.service.benefits.subtitle"),
+  };
+  
+  const processSection = serviceContent?.process || {
+    title: t("about.service.process.title"),
+    subtitle: t("about.service.process.subtitle"),
+  };
+  
+  const introSection = serviceContent?.intro || {
+    title: t("about.service.intro.title"),
+  };
+  
+  const content = settings?.serviceInfo || t("about.service.intro.title");
   const features = settings?.serviceFeatures?.features || [];
   const benefits = settings?.serviceBenefits?.benefits || [];
   const processSteps = settings?.serviceProcess?.steps || [];
@@ -49,14 +83,14 @@ export default function ServicePage() {
       
       {/* Hero Section */}
       <HeroSection
-        title="혁신적인 시험 플랫폼"
-        subtitle="AI 기반 개인 맞춤형 학습으로 목표를 달성하세요"
+        title={heroContent.title}
+        subtitle={heroContent.subtitle}
       >
         <Link
           href="/exams"
           className="inline-block mt-8 px-8 py-4 bg-white text-theme-primary rounded-xl font-bold text-lg hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl"
         >
-          시험 시작하기 →
+          {heroContent.startButton}
         </Link>
       </HeroSection>
 
@@ -65,8 +99,8 @@ export default function ServicePage() {
         <section className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionTitle
-              title="주요 기능"
-              subtitle="최고의 학습 경험을 위한 핵심 기능들"
+              title={featuresSection.title}
+              subtitle={featuresSection.subtitle}
             />
             {features.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -88,8 +122,8 @@ export default function ServicePage() {
           <section className="py-16 md:py-24 bg-gray-50">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
-                title="서비스 혜택"
-                subtitle="우리 서비스를 통해 얻을 수 있는 것들"
+                title={benefitsSection.title}
+                subtitle={benefitsSection.subtitle}
               />
               <BenefitList benefits={benefits} />
             </div>
@@ -101,8 +135,8 @@ export default function ServicePage() {
           <section className="py-16 md:py-24">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
-                title="사용 방법"
-                subtitle="간단한 4단계로 시작하세요"
+                title={processSection.title}
+                subtitle={processSection.subtitle}
               />
               <div className="space-y-8 md:space-y-12">
                 {processSteps.map((step: any, index: number) => (
@@ -122,7 +156,7 @@ export default function ServicePage() {
         {/* 상세 서비스 소개 섹션 */}
         <section className="py-16 md:py-24 bg-gray-50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionTitle title="서비스 소개" />
+            <SectionTitle title={introSection.title} />
             <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
               <div className="prose prose-lg max-w-none">
                 {content.includes("#") || content.includes("*") || content.includes("`") ? (

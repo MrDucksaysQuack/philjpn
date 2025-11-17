@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, Inject, Optional } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { CacheService } from '../../../common/services/cache.service';
 import { MetricsService } from '../../../common/services/metrics.service';
@@ -15,14 +16,38 @@ export class ExamService {
   ) {}
 
   async findAll(query: ExamQueryDto) {
-    const { page = 1, limit = 10, examType, subject, isPublic } = query;
+    const { page = 1, limit = 10, examType, subject, isPublic, categoryId, subcategoryId } = query;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.ExamWhereInput & { categoryId?: string; subcategoryId?: string } = {
+      deletedAt: null, // Soft delete 필터
+    };
     if (examType) where.examType = examType;
     if (subject) where.subject = subject;
     if (isPublic !== undefined) where.isPublic = isPublic;
-    where.deletedAt = null; // Soft delete 필터
+    if (categoryId) where.categoryId = categoryId;
+    if (subcategoryId) where.subcategoryId = subcategoryId;
+
+    const include: Prisma.ExamInclude & {
+      category?: { select: { id: true; name: true; icon: true } };
+      subcategory?: { select: { id: true; name: true; icon: true } };
+    } = {
+      config: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+        },
+      },
+      subcategory: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+        },
+      },
+    };
 
     const [data, total] = await Promise.all([
       this.prisma.exam.findMany({
@@ -30,9 +55,7 @@ export class ExamService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          config: true,
-        },
+        include,
       }),
       this.prisma.exam.count({ where }),
     ]);
@@ -49,21 +72,40 @@ export class ExamService {
   }
 
   async findOne(id: string) {
-    const exam = await this.prisma.exam.findFirst({
-      where: { id, deletedAt: null },
-      include: {
-        config: true,
-        sections: {
-          orderBy: { order: 'asc' },
-        },
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+    const include: Prisma.ExamInclude & {
+      category?: { select: { id: true; name: true; icon: true } };
+      subcategory?: { select: { id: true; name: true; icon: true } };
+    } = {
+      config: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
         },
       },
+      subcategory: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+        },
+      },
+      sections: {
+        orderBy: { order: 'asc' },
+      },
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    };
+
+    const exam = await this.prisma.exam.findFirst({
+      where: { id, deletedAt: null },
+      include,
     });
 
     if (!exam) {
@@ -76,28 +118,43 @@ export class ExamService {
   async create(createExamDto: CreateExamDto, userId?: string) {
     const { config, isAdaptive, adaptiveConfig, ...examData } = createExamDto;
 
+    const data: Prisma.ExamCreateInput & {
+      isAdaptive?: boolean;
+      adaptiveConfig?: Prisma.InputJsonValue | null;
+      category?: { connect: { id: string } };
+      subcategory?: { connect: { id: string } };
+    } = {
+      ...examData,
+      isAdaptive: isAdaptive || false,
+      adaptiveConfig: adaptiveConfig ? (adaptiveConfig as Prisma.InputJsonValue) : undefined,
+      ...(userId ? { createdBy: { connect: { id: userId } } } : {}),
+      config: config
+        ? {
+            create: {
+              allowSectionNavigation: config.allowSectionNavigation ?? true,
+              allowQuestionReview: config.allowQuestionReview ?? true,
+              showAnswerAfterSubmit: config.showAnswerAfterSubmit ?? true,
+              showScoreImmediately: config.showScoreImmediately ?? true,
+              timeLimitPerSection: config.timeLimitPerSection ?? false,
+              shuffleQuestions: config.shuffleQuestions ?? false,
+              shuffleOptions: config.shuffleOptions ?? false,
+              preventTabSwitch: config.preventTabSwitch ?? false,
+            },
+          }
+        : undefined,
+    };
+
+    // categoryId와 subcategoryId가 있으면 연결
+    if (examData.categoryId) {
+      data.category = { connect: { id: examData.categoryId } };
+    }
+    if (examData.subcategoryId) {
+      data.subcategory = { connect: { id: examData.subcategoryId } };
+    }
+
     // 시험 생성
     const exam = await this.prisma.exam.create({
-      data: {
-        ...examData,
-        isAdaptive: isAdaptive || false,
-        adaptiveConfig: adaptiveConfig ? (adaptiveConfig as any) : null,
-        createdBy: userId,
-        config: config
-          ? {
-              create: {
-                allowSectionNavigation: config.allowSectionNavigation ?? true,
-                allowQuestionReview: config.allowQuestionReview ?? true,
-                showAnswerAfterSubmit: config.showAnswerAfterSubmit ?? true,
-                showScoreImmediately: config.showScoreImmediately ?? true,
-                timeLimitPerSection: config.timeLimitPerSection ?? false,
-                shuffleQuestions: config.shuffleQuestions ?? false,
-                shuffleOptions: config.shuffleOptions ?? false,
-                preventTabSwitch: config.preventTabSwitch ?? false,
-              },
-            }
-          : undefined,
-      },
+      data,
       include: {
         config: true,
       },
@@ -119,7 +176,12 @@ export class ExamService {
     const { config, isAdaptive, adaptiveConfig, ...examData } = updateExamDto;
 
     // 시험 업데이트
-    const updateData: any = {
+    const updateData: Prisma.ExamUpdateInput & {
+      isAdaptive?: boolean;
+      adaptiveConfig?: Prisma.InputJsonValue | null;
+      category?: { connect: { id: string } } | { disconnect: true };
+      subcategory?: { connect: { id: string } } | { disconnect: true };
+    } = {
       ...examData,
     };
 
@@ -128,7 +190,19 @@ export class ExamService {
     }
 
     if (adaptiveConfig !== undefined) {
-      updateData.adaptiveConfig = adaptiveConfig ? (adaptiveConfig as any) : null;
+      updateData.adaptiveConfig = adaptiveConfig ? (adaptiveConfig as Prisma.InputJsonValue) : undefined;
+    }
+
+    // categoryId와 subcategoryId 업데이트
+    if (examData.categoryId !== undefined) {
+      updateData.category = examData.categoryId 
+        ? { connect: { id: examData.categoryId } }
+        : { disconnect: true };
+    }
+    if (examData.subcategoryId !== undefined) {
+      updateData.subcategory = examData.subcategoryId
+        ? { connect: { id: examData.subcategoryId } }
+        : { disconnect: true };
     }
 
     const exam = await this.prisma.exam.update({

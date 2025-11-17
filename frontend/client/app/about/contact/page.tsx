@@ -5,12 +5,17 @@ import Header from "@/components/layout/Header";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { siteSettingsAPI } from "@/lib/api";
 import { ContactInfo } from "@/lib/api";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import HeroSection from "@/components/about/HeroSection";
 import SectionTitle from "@/components/about/SectionTitle";
 import ContactForm from "@/components/about/ContactForm";
 import { MailIcon, PhoneIcon, MapPinIcon } from "@/components/about/icons";
 
 export default function ContactPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+  
   const { data: settingsResponse, isLoading } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
@@ -27,7 +32,7 @@ export default function ContactPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="연락처 정보를 불러오는 중..." />
+            <LoadingSpinner message={t("common.loading")} />
           </div>
         </div>
       </>
@@ -35,6 +40,29 @@ export default function ContactPage() {
   }
 
   const settings = data as any;
+  const aboutContent = settings?.aboutContent as any;
+  const contactContent = aboutContent?.[locale]?.contact;
+  
+  // 언어별 콘텐츠 가져오기 (없으면 i18n fallback)
+  const heroContent = contactContent?.hero || {
+    title: t("about.contact.hero.title"),
+    subtitle: t("about.contact.hero.subtitle"),
+  };
+  
+  const infoSection = contactContent?.info || {
+    title: t("about.contact.info.title"),
+  };
+  
+  const formSection = contactContent?.form || {
+    title: t("about.contact.form.title"),
+  };
+  
+  const labels = contactContent?.labels || {
+    email: t("about.contact.labels.email"),
+    phone: t("about.contact.labels.phone"),
+    address: t("about.contact.labels.address"),
+  };
+  
   const contactInfo: ContactInfo | null = settings?.contactInfo || null;
 
   return (
@@ -43,8 +71,8 @@ export default function ContactPage() {
       
       {/* Hero Section */}
       <HeroSection
-        title="언제든지 연락주세요"
-        subtitle="궁금한 점이나 문의사항이 있으시면 언제든지 연락해주세요"
+        title={heroContent.title}
+        subtitle={heroContent.subtitle}
       />
 
       <div className="min-h-screen bg-white">
@@ -54,7 +82,7 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
               {/* 왼쪽: 연락처 정보 */}
               <div className="space-y-6">
-                <SectionTitle title="연락처 정보" className="text-left mb-8" />
+                <SectionTitle title={infoSection.title} className="text-left mb-8" />
                 
                 {contactInfo ? (
                   <div className="space-y-6">
@@ -64,7 +92,7 @@ export default function ContactPage() {
                           <MailIcon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">이메일</div>
+                          <div className="text-sm font-semibold text-gray-700 mb-1">{labels.email}</div>
                           <a
                             href={`mailto:${contactInfo.email}`}
                             className="text-theme-primary hover:opacity-80 font-medium"
@@ -81,7 +109,7 @@ export default function ContactPage() {
                           <PhoneIcon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">전화번호</div>
+                          <div className="text-sm font-semibold text-gray-700 mb-1">{labels.phone}</div>
                           <a
                             href={`tel:${contactInfo.phone}`}
                             className="text-theme-secondary hover:opacity-80 font-medium"
@@ -98,7 +126,7 @@ export default function ContactPage() {
                           <MapPinIcon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">주소</div>
+                          <div className="text-sm font-semibold text-gray-700 mb-1">{labels.address}</div>
                           <div className="text-gray-700">{contactInfo.address}</div>
                         </div>
                       </div>
@@ -188,7 +216,7 @@ export default function ContactPage() {
               {/* 오른쪽: 문의 폼 */}
               <div>
                 <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
-                  <SectionTitle title="문의하기" className="text-left mb-8" />
+                  <SectionTitle title={formSection.title} className="text-left mb-8" />
                   <ContactForm />
                 </div>
               </div>

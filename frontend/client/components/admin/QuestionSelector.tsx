@@ -116,7 +116,7 @@ export default function QuestionSelector({
         </label>
         {selectedQuestions.length > 0 ? (
           <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
-            {selectedQuestions.map((question) => (
+            {selectedQuestions.filter((q): q is NonNullable<typeof q> => q !== null && q !== undefined).map((question) => (
               <div
                 key={question.id}
                 className="flex items-start justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100"

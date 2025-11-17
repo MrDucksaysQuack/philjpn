@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { resultAPI, ExamResult } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
@@ -9,6 +10,15 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function ResultsPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
+  const [filters, setFilters] = useState({
+    status: "" as "" | "completed" | "in_progress" | "pending",
+    dateFrom: "",
+    dateTo: "",
+    minScore: "",
+    maxScore: "",
+    search: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["results"],
@@ -93,8 +103,151 @@ export default function ResultsPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* 필터 섹션 */}
+          <div className="mb-6 bg-white rounded-lg shadow p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">필터</h2>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                {showFilters ? "필터 숨기기" : "필터 보기"}
+              </button>
+            </div>
+            
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">검색</label>
+                  <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    placeholder="시험 ID 검색..."
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  >
+                    <option value="">전체</option>
+                    <option value="completed">완료</option>
+                    <option value="in_progress">진행중</option>
+                    <option value="pending">대기중</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">시작일 (부터)</label>
+                  <input
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">종료일 (까지)</label>
+                  <input
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">최소 점수</label>
+                  <input
+                    type="number"
+                    value={filters.minScore}
+                    onChange={(e) => setFilters({ ...filters, minScore: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">최대 점수</label>
+                  <input
+                    type="number"
+                    value={filters.maxScore}
+                    onChange={(e) => setFilters({ ...filters, maxScore: e.target.value })}
+                    placeholder="100"
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setFilters({
+                  status: "",
+                  dateFrom: "",
+                  dateTo: "",
+                  minScore: "",
+                  maxScore: "",
+                  search: "",
+                })}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                필터 초기화
+              </button>
+            </div>
+          </div>
+
+          {/* 필터링된 결과 */}
+          {(() => {
+            const filteredData = useMemo(() => {
+              if (!data) return [];
+              
+              return data.filter((result: ExamResult) => {
+                // 검색 필터
+                if (filters.search && !result.id.toLowerCase().includes(filters.search.toLowerCase())) {
+                  return false;
+                }
+                
+                // 상태 필터
+                if (filters.status && result.status !== filters.status) {
+                  return false;
+                }
+                
+                // 날짜 필터
+                const startedDate = new Date(result.startedAt);
+                if (filters.dateFrom && startedDate < new Date(filters.dateFrom)) {
+                  return false;
+                }
+                if (filters.dateTo) {
+                  const toDate = new Date(filters.dateTo);
+                  toDate.setHours(23, 59, 59, 999);
+                  if (startedDate > toDate) {
+                    return false;
+                  }
+                }
+                
+                // 점수 필터
+                if (result.totalScore !== null && result.totalScore !== undefined) {
+                  if (filters.minScore && result.totalScore < parseFloat(filters.minScore)) {
+                    return false;
+                  }
+                  if (filters.maxScore && result.totalScore > parseFloat(filters.maxScore)) {
+                    return false;
+                  }
+                }
+                
+                return true;
+              });
+            }, [data, filters]);
+            
+            return (
+              <>
+                <div className="mb-4 text-sm text-gray-600">
+                  총 {filteredData.length}개의 결과가 표시됩니다
+                </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {data?.map((result: ExamResult) => (
+                  {filteredData.map((result: ExamResult) => (
               <Link
                 key={result.id}
                 href={`/results/${result.id}`}
@@ -176,6 +329,15 @@ export default function ResultsPage() {
               </Link>
             ))}
           </div>
+                
+                {filteredData.length === 0 && data && data.length > 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">필터 조건에 맞는 결과가 없습니다.</p>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {data?.length === 0 && (
             <div className="text-center py-20">

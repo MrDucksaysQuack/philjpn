@@ -4,11 +4,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Header from "@/components/layout/Header";
-import { sessionAPI } from "@/lib/api";
+import { sessionAPI, NextQuestionResponse, questionAPI, Question } from "@/lib/api";
 import { socketClient } from "@/lib/socket";
 import { useAuthStore } from "@/lib/store";
 import { emotionalToast } from "@/components/common/Toast";
 import ProgressBar from "@/components/common/ProgressBar";
+import AudioPlayer from "@/components/common/AudioPlayer";
 
 export default function TakeExamPage() {
   const params = useParams();
@@ -19,6 +20,14 @@ export default function TakeExamPage() {
   const user = useAuthStore((state) => state.user);
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [currentQuestion, setCurrentQuestion] = useState<NextQuestionResponse | null>(null);
+  const [currentRegularQuestion, setCurrentRegularQuestion] = useState<Question | null>(null);
+  const [sectionQuestions, setSectionQuestions] = useState<Question[]>([]);
+  const [isAdaptive, setIsAdaptive] = useState(false);
+  const [ability, setAbility] = useState<number | null>(null);
+  const [targetDifficulty, setTargetDifficulty] = useState<string | null>(null);
+  const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Set<string>>(new Set());
+  const [showQuestionList, setShowQuestionList] = useState(false);
   const socketConnectedRef = useRef(false);
 
   const { data: session, isLoading } = useQuery({
@@ -30,6 +39,68 @@ export default function TakeExamPage() {
     enabled: !!sessionId,
     refetchInterval: 30000, // 30초마다 세션 상태 갱신
   });
+
+  // 적응형 시험 여부 확인 및 일반 시험 문제 로드
+  useEffect(() => {
+    if (session?.exam?.isAdaptive) {
+      setIsAdaptive(true);
+    } else if (session && !session.exam?.isAdaptive) {
+      setIsAdaptive(false);
+      // 일반 시험: 현재 섹션의 문제 로드
+      if (session.currentSectionId) {
+        loadSectionQuestions(session.currentSectionId);
+      }
+    }
+  }, [session]);
+
+  // 일반 시험: 섹션의 문제 목록 로드
+  const loadSectionQuestions = async (sectionId: string) => {
+    try {
+      const response = await questionAPI.getQuestionsBySection(sectionId);
+      const questions = response.data.data || [];
+      setSectionQuestions(questions);
+      
+      // 현재 문제 번호에 해당하는 문제 설정
+      if (session?.currentQuestionNumber && questions.length > 0) {
+        const question = questions.find(
+          (q) => q.questionNumber === session.currentQuestionNumber
+        ) || questions[0];
+        setCurrentRegularQuestion(question);
+        setCurrentQuestionNumber(question.questionNumber);
+      } else if (questions.length > 0) {
+        setCurrentRegularQuestion(questions[0]);
+        setCurrentQuestionNumber(questions[0].questionNumber);
+      }
+    } catch (error) {
+      console.error("섹션 문제 로드 실패:", error);
+    }
+  };
+
+  // 적응형 시험: 다음 문제 가져오기
+  const loadNextQuestion = useRef(async (currentAnswer?: string) => {
+    if (!sessionId) return;
+    
+    try {
+      const response = await sessionAPI.getNextQuestion(sessionId, currentAnswer);
+      setCurrentQuestion(response.data);
+      setAbility(response.data.ability);
+      setTargetDifficulty(response.data.targetDifficulty);
+      setCurrentQuestionNumber(response.data.order);
+    } catch (error: any) {
+      console.error("다음 문제 가져오기 실패:", error);
+      if (error.response?.status === 400) {
+        // 적응형 시험이 아니거나 오류
+        setIsAdaptive(false);
+      }
+    }
+  });
+
+  // 컴포넌트 마운트 시 적응형 시험 확인
+  useEffect(() => {
+    if (session?.exam?.isAdaptive && !currentQuestion && isAdaptive) {
+      loadNextQuestion.current();
+    }
+  }, [session, isAdaptive, currentQuestion]);
 
   // WebSocket 연결 및 모니터링 설정
   useEffect(() => {
@@ -106,8 +177,72 @@ export default function TakeExamPage() {
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers({ ...answers, [questionId]: answer });
+    // 적응형 시험이 아닌 경우에만 자동 저장
+    if (!isAdaptive && sessionId) {
     saveAnswerMutation.mutate({ questionId, answer });
+    }
   };
+
+  // 다음 문제로 이동 (적응형/일반 시험 모두 처리)
+  const handleNextQuestion = () => {
+    if (isAdaptive) {
+      // 적응형 시험: 다음 문제 가져오기
+      if (currentQuestion) {
+        const currentAnswer = answers[currentQuestion.question.id] || "";
+        loadNextQuestion.current(currentAnswer);
+      }
+      return;
+    }
+    
+    // 일반 시험: 다음 문제로 이동
+    if (!currentRegularQuestion) return;
+    
+    const currentIndex = sectionQuestions.findIndex(
+      (q) => q.questionNumber === currentQuestionNumber
+    );
+    if (currentIndex < sectionQuestions.length - 1) {
+      const nextQuestion = sectionQuestions[currentIndex + 1];
+      goToQuestion(nextQuestion.questionNumber);
+    }
+  };
+
+  // 일반 시험: 이전 문제로 이동
+  const handlePrevQuestion = () => {
+    if (isAdaptive || !currentRegularQuestion) return;
+    
+    const currentIndex = sectionQuestions.findIndex(
+      (q) => q.questionNumber === currentQuestionNumber
+    );
+    if (currentIndex > 0) {
+      const prevQuestion = sectionQuestions[currentIndex - 1];
+      goToQuestion(prevQuestion.questionNumber);
+    }
+  };
+
+  const toggleBookmark = (questionId: string) => {
+    setBookmarkedQuestions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+  };
+
+  const goToQuestion = (questionNumber: number) => {
+    if (isAdaptive) return; // 적응형 시험에서는 이동 불가
+    
+    setCurrentQuestionNumber(questionNumber);
+    setShowQuestionList(false);
+    // 해당 문제 데이터 찾기
+    const question = sectionQuestions.find((q) => q.questionNumber === questionNumber);
+    if (question) {
+      setCurrentRegularQuestion(question);
+    }
+  };
+
 
   const handleSubmit = () => {
     if (confirm("시험을 제출하시겠습니까?")) {
@@ -142,22 +277,60 @@ export default function TakeExamPage() {
   // 진행률 계산 (세션이 로드된 후)
   const answeredCount = Object.keys(answers).length;
   const estimatedTotal = session?.totalQuestions || session?.exam?.totalQuestions || 50;
-  const currentTotal = session?.totalQuestions || estimatedTotal;
+  const currentTotal = isAdaptive 
+    ? estimatedTotal 
+    : sectionQuestions.length || estimatedTotal;
   
-  // TODO: 실제 문제 데이터를 가져와서 표시
-  // 현재는 구조만 구현
+  // 문제 목록 생성 (일반 시험용)
+  const questionList = isAdaptive
+    ? Array.from({ length: currentTotal }, (_, i) => i + 1)
+    : sectionQuestions.map((q) => q.questionNumber).sort((a, b) => a - b);
 
   return (
     <>
       <Header />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex gap-6">
+          {/* 메인 콘텐츠 */}
+          <div className="flex-1 bg-white rounded-lg shadow-lg p-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">{session.exam?.title}</h1>
+            <div className="flex items-center gap-4">
+              {!isAdaptive && (
+                <button
+                  onClick={() => setShowQuestionList(!showQuestionList)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm font-medium"
+                  aria-label="문제 목록 토글"
+                >
+                  {showQuestionList ? "목록 숨기기" : "문제 목록"}
+                </button>
+              )}
             <div className="text-sm text-gray-600">
               남은 시간: {session.expiresAt ? "계산 필요" : "-"}
+              </div>
             </div>
           </div>
+
+          {/* 적응형 시험 정보 */}
+          {isAdaptive && (
+            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold text-purple-700">🎯 적응형 시험</span>
+                  {ability !== null && (
+                    <span className="text-sm text-gray-600">
+                      능력 추정: <span className="font-semibold">{ability.toFixed(2)}</span>
+                    </span>
+                  )}
+                  {targetDifficulty && (
+                    <span className="text-sm text-gray-600">
+                      현재 난이도: <span className="font-semibold">{targetDifficulty}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 진행률 바 */}
           <div className="mb-8">
@@ -177,33 +350,193 @@ export default function TakeExamPage() {
             )}
           </div>
 
+          {/* 문제 표시 */}
           <div className="mb-8">
+            {isAdaptive && currentQuestion ? (
+              <div className="bg-white border-2 border-purple-200 rounded-lg p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm text-gray-500">문제 {currentQuestion.order}</div>
+                    {currentQuestion.question.difficulty && (
+                      <span className={`px-2 py-1 text-xs rounded ${
+                        currentQuestion.question.difficulty === 'hard' ? 'bg-red-100 text-red-700' :
+                        currentQuestion.question.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {currentQuestion.question.difficulty === 'hard' ? '어려움' :
+                         currentQuestion.question.difficulty === 'medium' ? '중급' : '쉬움'}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => toggleBookmark(currentQuestion.question.id)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      bookmarkedQuestions.has(currentQuestion.question.id)
+                        ? "bg-yellow-100 text-yellow-600"
+                        : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                    }`}
+                    aria-label="북마크 토글"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* 오디오 재생 (Part 4: Listening) */}
+                {currentQuestion.question.audioUrl && (
+                  <div className="mb-4">
+                    <AudioPlayer
+                      src={currentQuestion.question.audioUrl}
+                      playLimit={currentQuestion.question.audioPlayLimit || 2}
+                    />
+                  </div>
+                )}
+                
+                {/* 이미지 표시 (Part 1: Vocabulary & Grammar) */}
+                {currentQuestion.question.imageUrl && (
+                  <div className="mb-4 flex justify-center">
+                    <img
+                      src={currentQuestion.question.imageUrl}
+                      alt="문제 이미지"
+                      className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
+                      style={{ maxHeight: "400px" }}
+                    />
+                  </div>
+                )}
+                
+                <div className="text-lg font-semibold mb-4">{currentQuestion.question.content}</div>
+                
+                {currentQuestion.question.questionType === 'multiple_choice' && currentQuestion.question.options && (
+                  <div className="space-y-2">
+                    {Object.entries(currentQuestion.question.options).map(([key, value]: [string, any]) => (
+                      <label key={key} className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`question-${currentQuestion.question.id}`}
+                          value={key}
+                          checked={answers[currentQuestion.question.id] === key}
+                          onChange={(e) => handleAnswerChange(currentQuestion.question.id, e.target.value)}
+                          className="mr-3"
+                        />
+                        <span>{value}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              currentRegularQuestion ? (
+                <div className="bg-white border-2 border-blue-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-500">문제 {currentRegularQuestion.questionNumber}</div>
+                      {currentRegularQuestion.difficulty && (
+                        <span className={`px-2 py-1 text-xs rounded ${
+                          currentRegularQuestion.difficulty === 'hard' ? 'bg-red-100 text-red-700' :
+                          currentRegularQuestion.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {currentRegularQuestion.difficulty === 'hard' ? '어려움' :
+                           currentRegularQuestion.difficulty === 'medium' ? '중급' : '쉬움'}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => toggleBookmark(currentRegularQuestion.id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        bookmarkedQuestions.has(currentRegularQuestion.id)
+                          ? "bg-yellow-100 text-yellow-600"
+                          : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                      }`}
+                      aria-label="북마크 토글"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* 오디오 재생 (Part 4: Listening) */}
+                  {currentRegularQuestion.audioUrl && (
+                    <div className="mb-4">
+                      <AudioPlayer
+                        src={currentRegularQuestion.audioUrl}
+                        playLimit={currentRegularQuestion.audioPlayLimit || 2}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* 이미지 표시 (Part 1: Vocabulary & Grammar) */}
+                  {currentRegularQuestion.imageUrl && (
+                    <div className="mb-4 flex justify-center">
+                      <img
+                        src={currentRegularQuestion.imageUrl}
+                        alt="문제 이미지"
+                        className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
+                        style={{ maxHeight: "400px" }}
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="text-lg font-semibold mb-4">{currentRegularQuestion.content}</div>
+                  
+                  {currentRegularQuestion.questionType === 'multiple_choice' && currentRegularQuestion.options && (
+                    <div className="space-y-2">
+                      {(() => {
+                        const options = Array.isArray(currentRegularQuestion.options)
+                          ? currentRegularQuestion.options
+                          : Object.entries(currentRegularQuestion.options).map(([id, text]) => ({ id, text }));
+                        return options.map((option: any) => (
+                          <label key={option.id} className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`question-${currentRegularQuestion.id}`}
+                              value={option.id}
+                              checked={answers[currentRegularQuestion.id] === option.id}
+                              onChange={(e) => handleAnswerChange(currentRegularQuestion.id, e.target.value)}
+                              className="mr-3"
+                            />
+                            <span>{option.text || option}</span>
+                          </label>
+                        ));
+                      })()}
+                    </div>
+                  )}
+                </div>
+              ) : (
             <div className="bg-gray-50 p-6 rounded-lg">
-              <p className="text-lg mb-4">문제가 여기에 표시됩니다.</p>
-              <p className="text-sm text-gray-500">
-                실제 문제 데이터는 백엔드 API에서 가져와야 합니다.
-              </p>
+                  <div className="text-center text-gray-500">
+                    문제를 불러오는 중...
+                  </div>
             </div>
+              )
+            )}
           </div>
 
           <div className="flex justify-between">
+            {!isAdaptive && (
             <button
-              onClick={() =>
-                setCurrentQuestionNumber(Math.max(1, currentQuestionNumber - 1))
-              }
-              disabled={currentQuestionNumber === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50"
+                onClick={handlePrevQuestion}
+                disabled={currentQuestionNumber === (sectionQuestions[0]?.questionNumber || 1)}
+                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               이전
             </button>
+            )}
+            {isAdaptive && <div />}
             <button
-              onClick={() =>
-                setCurrentQuestionNumber(currentQuestionNumber + 1)
+              onClick={handleNextQuestion}
+              disabled={
+                isAdaptive 
+                  ? !currentQuestion 
+                  : currentQuestionNumber === (sectionQuestions[sectionQuestions.length - 1]?.questionNumber || currentTotal)
               }
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              다음
+              {isAdaptive ? "다음 문제" : "다음"}
             </button>
+            {isAdaptive && <div />}
           </div>
 
           <div className="mt-8 pt-6 border-t">
@@ -215,6 +548,64 @@ export default function TakeExamPage() {
               {submitMutation.isPending ? "제출 중..." : "시험 제출"}
             </button>
           </div>
+          </div>
+
+        {/* 문제 목록 사이드바 (일반 시험만) */}
+        {!isAdaptive && showQuestionList && (
+          <div className="w-80 bg-white rounded-lg shadow-lg p-4 h-fit sticky top-24">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">문제 목록</h3>
+              <button
+                onClick={() => setShowQuestionList(false)}
+                className="p-1 rounded hover:bg-gray-100"
+                aria-label="목록 닫기"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="grid grid-cols-5 gap-2 max-h-96 overflow-y-auto">
+              {questionList.map((num) => {
+                const questionId = `question-${num}`;
+                const hasAnswer = answers[questionId] !== undefined;
+                const isBookmarked = bookmarkedQuestions.has(questionId);
+                const isCurrent = num === currentQuestionNumber;
+                
+                return (
+                  <button
+                    key={num}
+                    onClick={() => goToQuestion(num)}
+                    className={`p-2 rounded text-sm font-medium transition-all ${
+                      isCurrent
+                        ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                        : hasAnswer
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    } ${isBookmarked ? "ring-2 ring-yellow-400" : ""}`}
+                    title={`문제 ${num}${isBookmarked ? " (북마크됨)" : ""}${hasAnswer ? " (답변 완료)" : ""}`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span>{num}</span>
+                      {isBookmarked && (
+                        <svg className="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            {bookmarkedQuestions.size > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs text-gray-500 mb-2">
+                  북마크된 문제: {bookmarkedQuestions.size}개
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         </div>
       </div>
     </>

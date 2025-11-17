@@ -11,9 +11,13 @@ import RecentActivityWidget from "./components/RecentActivityWidget";
 import LearningInsightsWidget from "./components/LearningInsightsWidget";
 import WordBookSummaryWidget from "./components/WordBookSummaryWidget";
 import QuickActions from "./components/QuickActions";
+import ScoreTrendWidget from "./components/ScoreTrendWidget";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import { useOnboarding } from "@/lib/hooks/useOnboarding";
 
 export default function DashboardPage() {
   const { user, isLoading } = useRequireAuth();
+  const { showOnboarding, isChecking, completeOnboarding } = useOnboarding();
 
   if (isLoading) {
     return (
@@ -35,6 +39,14 @@ export default function DashboardPage() {
   return (
     <>
       <Header />
+      {/* 온보딩 모달 */}
+      {!isChecking && (
+        <OnboardingModal
+          isOpen={showOnboarding}
+          onClose={() => completeOnboarding()}
+          onComplete={completeOnboarding}
+        />
+      )}
       <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
         <div className="relative bg-theme-gradient-diagonal overflow-hidden">
@@ -72,6 +84,11 @@ export default function DashboardPage() {
             <div className="lg:col-span-1">
               <LearningInsightsWidget />
             </div>
+          </div>
+
+          {/* 성적 추이 차트 */}
+          <div className="mb-8">
+            <ScoreTrendWidget />
           </div>
 
           {/* 하단 그리드 */}

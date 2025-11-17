@@ -2,19 +2,91 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
-import { examAPI, Exam } from "@/lib/api";
+import { examAPI, Exam, categoryAPI, type Category, type Subcategory } from "@/lib/api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import LoadingSkeleton from "@/components/common/LoadingSkeleton";
 
-export default function ExamsPage() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["exams"],
+function ExamsPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const categoryId = searchParams.get("categoryId") || undefined;
+  const subcategoryId = searchParams.get("subcategoryId") || undefined;
+
+  const [filters, setFilters] = useState({
+    search: "",
+    examType: "",
+    minTime: "",
+    maxTime: "",
+    isAdaptive: "" as "" | "true" | "false",
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  // 카테고리 목록 가져오기
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ["categories-public"],
     queryFn: async () => {
-      const response = await examAPI.getExams();
+      const response = await categoryAPI.getPublicCategories();
+      return response.data;
+    },
+  });
+
+  const categoriesData = (categoriesResponse as any)?.data || categoriesResponse || [];
+
+  // 선택된 카테고리 정보
+  const selectedCategory = Array.isArray(categoriesData)
+    ? categoriesData.find((cat: Category) => cat.id === categoryId)
+    : undefined;
+
+  // 서브카테고리 목록 가져오기 (카테고리가 선택된 경우)
+  const { data: subcategoriesResponse } = useQuery({
+    queryKey: ["subcategories", categoryId],
+    queryFn: async () => {
+      const response = await categoryAPI.getSubcategories(categoryId);
+      return response.data;
+    },
+    enabled: !!categoryId,
+  });
+
+  const subcategoriesData = (subcategoriesResponse as any)?.data || subcategoriesResponse || [];
+
+  // 시험 목록 가져오기 (카테고리/서브카테고리 필터 적용)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["exams", categoryId, subcategoryId],
+    queryFn: async () => {
+      const response = await examAPI.getExams({
+        categoryId,
+        subcategoryId,
+      });
       return response.data.data;
     },
   });
+
+  // 카테고리 선택 핸들러
+  const handleCategorySelect = (catId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (catId) {
+      params.set("categoryId", catId);
+      params.delete("subcategoryId"); // 카테고리 변경 시 서브카테고리 초기화
+    } else {
+      params.delete("categoryId");
+      params.delete("subcategoryId");
+    }
+    router.push(`/exams?${params.toString()}`);
+  };
+
+  // 서브카테고리 선택 핸들러
+  const handleSubcategorySelect = (subId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (subId) {
+      params.set("subcategoryId", subId);
+    } else {
+      params.delete("subcategoryId");
+    }
+    router.push(`/exams?${params.toString()}`);
+  };
 
   if (isLoading) {
     return (
@@ -52,6 +124,199 @@ export default function ExamsPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* 카테고리/서브카테고리 선택 섹션 */}
+          {categoriesData && categoriesData.length > 0 && (
+            <div className="mb-6 bg-white rounded-lg shadow p-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">카테고리 선택</h2>
+              
+              {/* 대분류 (Category) 선택 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">대분류</label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleCategorySelect(null)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      !categoryId
+                        ? "bg-theme-primary text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    전체
+                  </button>
+                  {categoriesData.map((category: Category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => handleCategorySelect(category.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                        categoryId === category.id
+                          ? "bg-theme-primary text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {category.icon && <span>{category.icon}</span>}
+                      <span>{category.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 중분류 (Subcategory) 선택 - 카테고리가 선택된 경우 표시 */}
+              {categoryId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">중분류</label>
+                  {subcategoriesData && subcategoriesData.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => handleSubcategorySelect(null)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          !subcategoryId
+                            ? "bg-theme-secondary text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        전체
+                      </button>
+                      {subcategoriesData.map((subcategory: Subcategory) => (
+                        <button
+                          key={subcategory.id}
+                          onClick={() => handleSubcategorySelect(subcategory.id)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                            subcategoryId === subcategory.id
+                              ? "bg-theme-secondary text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {subcategory.icon && <span>{subcategory.icon}</span>}
+                          <span>{subcategory.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-sm text-gray-600">
+                        이 카테고리에는 중분류가 없습니다. 카테고리 내 모든 시험을 확인할 수 있습니다.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 선택된 카테고리 정보 표시 */}
+              {(categoryId || subcategoryId) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>현재 선택:</span>
+                    {selectedCategory && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-theme-primary-light text-theme-primary rounded">
+                        {selectedCategory.icon && <span>{selectedCategory.icon}</span>}
+                        <span>{selectedCategory.name}</span>
+                      </span>
+                    )}
+                    {subcategoryId && subcategoriesData && (
+                      <>
+                        <span>→</span>
+                        <span className="flex items-center gap-1 px-2 py-1 bg-theme-secondary-light text-theme-secondary rounded">
+                          {subcategoriesData.find((s: Subcategory) => s.id === subcategoryId)?.icon && (
+                            <span>{subcategoriesData.find((s: Subcategory) => s.id === subcategoryId)?.icon}</span>
+                          )}
+                          <span>{subcategoriesData.find((s: Subcategory) => s.id === subcategoryId)?.name}</span>
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 필터 섹션 */}
+          <div className="mb-6 bg-white rounded-lg shadow p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">필터</h2>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                {showFilters ? "필터 숨기기" : "필터 보기"}
+              </button>
+            </div>
+            
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">검색</label>
+                  <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    placeholder="시험 제목 검색..."
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">시험 유형</label>
+                  <select
+                    value={filters.examType}
+                    onChange={(e) => setFilters({ ...filters, examType: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  >
+                    <option value="">전체</option>
+                    <option value="MOCK">모의고사</option>
+                    <option value="PRACTICE">연습</option>
+                    <option value="FINAL">최종</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">최소 시간 (분)</label>
+                  <input
+                    type="number"
+                    value={filters.minTime}
+                    onChange={(e) => setFilters({ ...filters, minTime: e.target.value })}
+                    placeholder="0"
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">최대 시간 (분)</label>
+                  <input
+                    type="number"
+                    value={filters.maxTime}
+                    onChange={(e) => setFilters({ ...filters, maxTime: e.target.value })}
+                    placeholder="300"
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">적응형 시험</label>
+                  <select
+                    value={filters.isAdaptive}
+                    onChange={(e) => setFilters({ ...filters, isAdaptive: e.target.value as any })}
+                    className="w-full px-3 py-2 border rounded-md text-sm"
+                  >
+                    <option value="">전체</option>
+                    <option value="true">적응형만</option>
+                    <option value="false">일반만</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setFilters({
+                  search: "",
+                  examType: "",
+                  minTime: "",
+                  maxTime: "",
+                  isAdaptive: "",
+                })}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                필터 초기화
+              </button>
+            </div>
+          </div>
+
           {/* 추천 시험 링크 */}
           <div className="mb-8 text-center">
             <Link
@@ -65,8 +330,55 @@ export default function ExamsPage() {
             </Link>
           </div>
 
+          {/* 필터링된 시험 목록 */}
+          {(() => {
+            const filteredData = useMemo(() => {
+              if (!data) return [];
+              
+              return data.filter((exam: Exam) => {
+                // 검색 필터
+                if (filters.search && !exam.title.toLowerCase().includes(filters.search.toLowerCase()) &&
+                    !exam.description?.toLowerCase().includes(filters.search.toLowerCase())) {
+                  return false;
+                }
+                
+                // 시험 유형 필터
+                if (filters.examType && exam.examType !== filters.examType) {
+                  return false;
+                }
+                
+                // 시간 필터
+                if (exam.estimatedTime) {
+                  if (filters.minTime && exam.estimatedTime < parseFloat(filters.minTime)) {
+                    return false;
+                  }
+                  if (filters.maxTime && exam.estimatedTime > parseFloat(filters.maxTime)) {
+                    return false;
+                  }
+                }
+                
+                // 적응형 시험 필터
+                if (filters.isAdaptive !== "") {
+                  const isAdaptive = (exam as any).isAdaptive === true;
+                  if (filters.isAdaptive === "true" && !isAdaptive) {
+                    return false;
+                  }
+                  if (filters.isAdaptive === "false" && isAdaptive) {
+                    return false;
+                  }
+                }
+                
+                return true;
+              });
+            }, [data, filters]);
+            
+            return (
+              <>
+                <div className="mb-4 text-sm text-gray-600">
+                  총 {filteredData.length}개의 시험이 표시됩니다
+                </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.map((exam: Exam) => (
+                  {filteredData.map((exam: Exam) => (
               <Link
                 key={exam.id}
                 href={`/exams/${exam.id}`}
@@ -134,6 +446,15 @@ export default function ExamsPage() {
               </Link>
             ))}
           </div>
+                
+                {filteredData.length === 0 && data && data.length > 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">필터 조건에 맞는 시험이 없습니다.</p>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {data?.length === 0 && (
             <div className="text-center py-20">
@@ -161,5 +482,22 @@ export default function ExamsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ExamsPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="시험 목록을 불러오는 중..." />
+          </div>
+        </div>
+      </>
+    }>
+      <ExamsPageContent />
+    </Suspense>
   );
 }

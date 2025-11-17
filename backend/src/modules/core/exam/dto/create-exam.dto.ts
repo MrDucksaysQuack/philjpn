@@ -123,5 +123,15 @@ export class CreateExamDto {
     maxQuestions?: number;
     targetAccuracy?: number;
   };
+
+  @ApiPropertyOptional({ description: '카테고리 ID (대분류)' })
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
+
+  @ApiPropertyOptional({ description: '서브카테고리 ID (중분류)' })
+  @IsOptional()
+  @IsString()
+  subcategoryId?: string;
 }
 

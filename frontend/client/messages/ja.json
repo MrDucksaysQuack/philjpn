@@ -1,0 +1,156 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "success": "成功",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "create": "作成",
+    "search": "検索",
+    "filter": "フィルター",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "submit": "提出",
+    "close": "閉じる"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "register": "会員登録",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "name": "名前",
+    "phone": "電話番号",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "hasAccount": "すでにアカウントをお持ちですか？"
+  },
+  "exam": {
+    "title": "試験",
+    "list": "試験一覧",
+    "start": "試験開始",
+    "submit": "試験提出",
+    "result": "試験結果",
+    "timeRemaining": "残り時間",
+    "question": "問題",
+    "of": "/",
+    "answer": "解答",
+    "review": "復習",
+    "confirmSubmit": "試験を提出してもよろしいですか？"
+  },
+  "admin": {
+    "dashboard": "管理者ダッシュボード",
+    "users": "ユーザー管理",
+    "exams": "試験管理",
+    "licenseKeys": "ライセンスキー管理",
+    "results": "試験結果",
+    "statistics": "統計"
+  },
+  "wordbook": {
+    "title": "単語帳",
+    "addWord": "単語追加",
+    "review": "復習",
+    "quiz": "クイズ",
+    "mastery": "習熟度"
+  },
+  "home": {
+    "hero": {
+      "title": "オンライン試験プラットフォーム",
+      "subtitle": "いつでもどこでも便利に試験を受けて学習しましょう",
+      "dashboardButton": "マイダッシュボード",
+      "startExamButton": "試験を始める",
+      "registerButton": "会員登録"
+    },
+    "features": {
+      "title": "主な機能",
+      "subtitle": "体系的で効率的な学習環境を提供します",
+      "realtimeExam": {
+        "title": "リアルタイム試験",
+        "description": "実際の試験環境と同等の条件で実戦練習が可能です"
+      },
+      "detailedAnalysis": {
+        "title": "詳細分析",
+        "description": "試験結果を分析して弱点を把握し、改善できます"
+      },
+      "learningTools": {
+        "title": "学習ツール",
+        "description": "単語帳と復習システムで効率的な学習が可能です"
+      }
+    }
+  },
+  "about": {
+    "team": {
+      "hero": {
+        "title": "私たちのチームを紹介します",
+        "subtitle": "情熱と専門性を備えたチームで最高のサービスを提供します"
+      },
+      "members": {
+        "title": "チームメンバー",
+        "subtitle": "多様な専門性を持つチームメンバーが共に成長しています"
+      },
+      "culture": {
+        "title": "チーム文化",
+        "subtitle": "私たちが共に作る価値と原則"
+      },
+      "intro": {
+        "title": "チーム紹介"
+      }
+    },
+    "company": {
+      "hero": {
+        "subtitle": "革新的な教育プラットフォームで学習の未来を作り上げます"
+      },
+      "values": {
+        "title": "私たちの価値",
+        "subtitle": "顧客中心のサービスで最高の学習体験を提供します"
+      },
+      "intro": {
+        "title": "会社紹介"
+      }
+    },
+    "service": {
+      "hero": {
+        "title": "革新的な試験プラットフォーム",
+        "subtitle": "AIベースの個別カスタマイズ学習で目標を達成しましょう",
+        "startButton": "試験を始める →"
+      },
+      "features": {
+        "title": "主な機能",
+        "subtitle": "最高の学習体験のための核心機能"
+      },
+      "benefits": {
+        "title": "サービス特典",
+        "subtitle": "私たちのサービスを通じて得られるもの"
+      },
+      "process": {
+        "title": "使用方法",
+        "subtitle": "簡単な4ステップで始めましょう"
+      },
+      "intro": {
+        "title": "サービス紹介"
+      }
+    },
+    "contact": {
+      "hero": {
+        "title": "いつでもお気軽にお問い合わせください",
+        "subtitle": "ご不明な点やお問い合わせがございましたら、いつでもお気軽にご連絡ください"
+      },
+      "info": {
+        "title": "連絡先情報"
+      },
+      "form": {
+        "title": "お問い合わせ"
+      },
+      "labels": {
+        "email": "メールアドレス",
+        "phone": "電話番号",
+        "address": "住所"
+      }
+    }
+  }
+}
+

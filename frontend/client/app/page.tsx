@@ -1,11 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
-import { useAuthStore } from "@/lib/store";
+import { useAuthStore, useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
+import { siteSettingsAPI } from "@/lib/api";
 
 export default function HomePage() {
   const user = useAuthStore((state) => state.user);
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+
+  // SiteSettings에서 언어별 콘텐츠 가져오기
+  const { data: settingsResponse } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const response = await siteSettingsAPI.getPublicSettings();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = (settingsResponse as any)?.data || settingsResponse;
+  const settings = data as any;
+  const homeContent = settings?.homeContent as any;
+  
+  // 언어별 콘텐츠 가져오기 (없으면 i18n fallback)
+  const heroContent = homeContent?.[locale]?.hero || {
+    title: t("home.hero.title"),
+    subtitle: t("home.hero.subtitle"),
+  };
+  
+  const featuresContent = homeContent?.[locale]?.features || [
+    {
+      title: t("home.features.realtimeExam.title"),
+      description: t("home.features.realtimeExam.description"),
+    },
+    {
+      title: t("home.features.detailedAnalysis.title"),
+      description: t("home.features.detailedAnalysis.description"),
+    },
+    {
+      title: t("home.features.learningTools.title"),
+      description: t("home.features.learningTools.description"),
+    },
+  ];
+  
+  const featuresSectionTitle = homeContent?.[locale]?.featuresSectionTitle || t("home.features.title");
+  const featuresSectionSubtitle = homeContent?.[locale]?.featuresSectionSubtitle || t("home.features.subtitle");
+
   return (
     <>
       <Header />
@@ -25,10 +69,10 @@ export default function HomePage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 animate-fade-in">
-              온라인 시험 플랫폼
+              {heroContent.title}
             </h1>
             <p className="text-xl sm:text-2xl text-theme-primary-light mb-8 sm:mb-12 px-4 max-w-3xl mx-auto">
-              언제 어디서나 편리하게 시험을 응시하고 학습하세요
+              {heroContent.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 px-4">
               {user ? (
@@ -39,7 +83,7 @@ export default function HomePage() {
                   >
                     <span className="flex items-center justify-center gap-2">
                       <span className="text-xl">📊</span>
-                      나의 대시보드
+                      {t("home.hero.dashboardButton")}
                       <svg
                         className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
                         fill="none"
@@ -59,7 +103,7 @@ export default function HomePage() {
                     href="/exams"
                     className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
                   >
-                    시험 시작하기
+                    {t("home.hero.startExamButton")}
                   </Link>
                 </>
               ) : (
@@ -69,7 +113,7 @@ export default function HomePage() {
                     className="group w-full sm:w-auto bg-white text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
                     <span className="flex items-center justify-center gap-2">
-                      시험 시작하기
+                      {t("home.hero.startExamButton")}
                       <svg
                         className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
                         fill="none"
@@ -89,7 +133,7 @@ export default function HomePage() {
                     href="/register"
                     className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
                   >
-                    회원가입
+                    {t("home.hero.registerButton")}
                   </Link>
                 </>
               )}
@@ -102,84 +146,46 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            주요 기능
+            {featuresSectionTitle}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            체계적이고 효율적인 학습 환경을 제공합니다
+            {featuresSectionSubtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Feature Card 1 */}
-          <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-            <div className="w-16 h-16 bg-theme-gradient-icon-primary rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              실시간 시험
-            </h3>
-            <p className="text-gray-600 leading-relaxed">
-              실제 시험 환경과 동일한 조건에서 실전 연습이 가능합니다
-            </p>
-          </div>
-
-          {/* Feature Card 2 */}
-          <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-            <div className="w-16 h-16 bg-theme-gradient-icon-secondary rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">상세 분석</h3>
-            <p className="text-gray-600 leading-relaxed">
-              시험 결과를 분석하여 약점을 파악하고 개선할 수 있습니다
-            </p>
-          </div>
-
-          {/* Feature Card 3 */}
-          <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-            <div className="w-16 h-16 bg-theme-gradient-icon-accent rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">학습 도구</h3>
-            <p className="text-gray-600 leading-relaxed">
-              단어장과 복습 시스템으로 효율적인 학습이 가능합니다
-            </p>
-          </div>
+          {featuresContent.map((feature: any, index: number) => {
+            const icons = [
+              <svg key="icon1" className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>,
+              <svg key="icon2" className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>,
+              <svg key="icon3" className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>,
+            ];
+            const gradientClasses = [
+              "bg-theme-gradient-icon-primary",
+              "bg-theme-gradient-icon-secondary",
+              "bg-theme-gradient-icon-accent",
+            ];
+            
+            return (
+              <div key={index} className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                <div className={`w-16 h-16 ${gradientClasses[index]} rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform`}>
+                  {icons[index]}
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </>

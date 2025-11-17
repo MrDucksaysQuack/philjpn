@@ -24,9 +24,9 @@ export class SiteSettingsService {
         contactInfo: true,
         serviceInfo: true,
         companyStats: true,
-        company_values: true, // Prisma 스키마에서 snake_case로 정의됨
+        companyValues: true,
         teamMembers: true,
-        team_culture: true, // Prisma 스키마에서 snake_case로 정의됨
+        teamCulture: true,
         serviceFeatures: true,
         serviceBenefits: true,
         serviceProcess: true,
@@ -140,6 +140,12 @@ export class SiteSettingsService {
     }
     if (data.serviceProcess !== undefined) {
       updateData.serviceProcess = data.serviceProcess as any;
+    }
+    if (data.homeContent !== undefined) {
+      updateData.homeContent = data.homeContent as any;
+    }
+    if (data.aboutContent !== undefined) {
+      updateData.aboutContent = data.aboutContent as any;
     }
 
     if (existing) {

@@ -374,7 +374,6 @@ function CreateTemplateModal({
                       </div>
                     </div>
                     
-                    {/* Question Pool 선택 (우선순위 1) */}
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
                         문제 풀 선택 (우선순위 1) <span className="text-gray-400 text-xs">(선택사항)</span>
@@ -402,7 +401,6 @@ function CreateTemplateModal({
                       )}
                     </div>
 
-                    {/* 태그/난이도 필터 (questionPoolId가 없을 때만 사용) */}
                     {!section.questionPoolId && (
                       <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <div>

@@ -14,7 +14,8 @@ import MarkdownEditor from "@/components/admin/MarkdownEditor";
 export default function SiteSettingsPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "preview">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "content" | "preview">("basic");
+  const [contentLocale, setContentLocale] = useState<"ko" | "en" | "ja">("ko");
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -54,6 +55,16 @@ export default function SiteSettingsPage() {
     serviceFeatures: { features: [] },
     serviceBenefits: { benefits: [] },
     serviceProcess: { steps: [] },
+    homeContent: {
+      ko: { hero: { title: "", subtitle: "" }, features: [] },
+      en: { hero: { title: "", subtitle: "" }, features: [] },
+      ja: { hero: { title: "", subtitle: "" }, features: [] },
+    },
+    aboutContent: {
+      ko: { team: {}, company: {}, service: {}, contact: {} },
+      en: { team: {}, company: {}, service: {}, contact: {} },
+      ja: { team: {}, company: {}, service: {}, contact: {} },
+    },
   });
 
   // 설정 데이터 로드 시 폼 데이터 설정
@@ -82,6 +93,16 @@ export default function SiteSettingsPage() {
         serviceFeatures: settings.serviceFeatures || { features: [] },
         serviceBenefits: settings.serviceBenefits || { benefits: [] },
         serviceProcess: settings.serviceProcess || { steps: [] },
+        homeContent: settings.homeContent || {
+          ko: { hero: { title: "", subtitle: "" }, features: [] },
+          en: { hero: { title: "", subtitle: "" }, features: [] },
+          ja: { hero: { title: "", subtitle: "" }, features: [] },
+        },
+        aboutContent: settings.aboutContent || {
+          ko: { team: {}, company: {}, service: {}, contact: {} },
+          en: { team: {}, company: {}, service: {}, contact: {} },
+          ja: { team: {}, company: {}, service: {}, contact: {} },
+        },
       });
     }
   }, [settings]);
@@ -347,6 +368,16 @@ export default function SiteSettingsPage() {
                   }`}
                 >
                   연락처
+                </button>
+                <button
+                  onClick={() => setActiveTab("content")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    activeTab === "content"
+                      ? "border-theme-primary text-theme-primary"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  언어별 콘텐츠
                 </button>
                 <button
                   onClick={() => setActiveTab("preview")}
@@ -1559,6 +1590,352 @@ export default function SiteSettingsPage() {
                         }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="https://linkedin.com/..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 언어별 콘텐츠 탭 */}
+            {activeTab === "content" && (
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">언어별 콘텐츠 편집</h2>
+                  <p className="text-gray-600">
+                    메인 페이지와 About 페이지의 언어별 콘텐츠를 편집할 수 있습니다.
+                  </p>
+                </div>
+
+                {/* 언어 선택 */}
+                <div className="border-b border-gray-200 pb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">편집할 언어 선택</label>
+                  <div className="flex gap-2">
+                    {(["ko", "en", "ja"] as const).map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => setContentLocale(loc)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          contentLocale === loc
+                            ? "bg-theme-primary text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {loc === "ko" ? "한국어" : loc === "en" ? "English" : "日本語"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 메인 페이지 콘텐츠 */}
+                <div className="space-y-6 border-b border-gray-200 pb-6">
+                  <h3 className="text-xl font-bold text-gray-900">메인 페이지 (Home)</h3>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                    <input
+                      type="text"
+                      value={formData.homeContent?.[contentLocale]?.hero?.title || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          homeContent: {
+                            ...formData.homeContent,
+                            [contentLocale]: {
+                              ...formData.homeContent?.[contentLocale],
+                              hero: {
+                                ...formData.homeContent?.[contentLocale]?.hero,
+                                title: e.target.value,
+                              },
+                            },
+                          },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      placeholder="온라인 시험 플랫폼"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                    <input
+                      type="text"
+                      value={formData.homeContent?.[contentLocale]?.hero?.subtitle || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          homeContent: {
+                            ...formData.homeContent,
+                            [contentLocale]: {
+                              ...formData.homeContent?.[contentLocale],
+                              hero: {
+                                ...formData.homeContent?.[contentLocale]?.hero,
+                                subtitle: e.target.value,
+                              },
+                            },
+                          },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      placeholder="언제 어디서나 편리하게 시험을 응시하고 학습하세요"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">기능 섹션 제목</label>
+                    <input
+                      type="text"
+                      value={formData.homeContent?.[contentLocale]?.featuresSectionTitle || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          homeContent: {
+                            ...formData.homeContent,
+                            [contentLocale]: {
+                              ...formData.homeContent?.[contentLocale],
+                              featuresSectionTitle: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      placeholder="주요 기능"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">기능 섹션 부제목</label>
+                    <input
+                      type="text"
+                      value={formData.homeContent?.[contentLocale]?.featuresSectionSubtitle || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          homeContent: {
+                            ...formData.homeContent,
+                            [contentLocale]: {
+                              ...formData.homeContent?.[contentLocale],
+                              featuresSectionSubtitle: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      placeholder="체계적이고 효율적인 학습 환경을 제공합니다"
+                    />
+                  </div>
+                </div>
+
+                {/* About 페이지 콘텐츠 */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-900">About 페이지</h3>
+                  
+                  {/* Team */}
+                  <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-semibold text-gray-800">팀 소개 (Team)</h4>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.team?.hero?.title || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                team: {
+                                  ...formData.aboutContent?.[contentLocale]?.team,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.team?.hero,
+                                    title: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="우리 팀을 소개합니다"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.team?.hero?.subtitle || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                team: {
+                                  ...formData.aboutContent?.[contentLocale]?.team,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.team?.hero,
+                                    subtitle: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="열정과 전문성을 갖춘 팀으로 최고의 서비스를 제공합니다"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Company */}
+                  <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-semibold text-gray-800">회사 소개 (Company)</h4>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.company?.hero?.subtitle || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                company: {
+                                  ...formData.aboutContent?.[contentLocale]?.company,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.company?.hero,
+                                    subtitle: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="혁신적인 교육 플랫폼으로 학습의 미래를 만들어갑니다"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Service */}
+                  <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-semibold text-gray-800">서비스 소개 (Service)</h4>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.service?.hero?.title || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                service: {
+                                  ...formData.aboutContent?.[contentLocale]?.service,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.service?.hero,
+                                    title: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="혁신적인 시험 플랫폼"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.service?.hero?.subtitle || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                service: {
+                                  ...formData.aboutContent?.[contentLocale]?.service,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.service?.hero,
+                                    subtitle: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="AI 기반 개인 맞춤형 학습으로 목표를 달성하세요"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact */}
+                  <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-semibold text-gray-800">연락처 (Contact)</h4>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.contact?.hero?.title || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                contact: {
+                                  ...formData.aboutContent?.[contentLocale]?.contact,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.contact?.hero,
+                                    title: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="언제든지 연락주세요"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <input
+                        type="text"
+                        value={formData.aboutContent?.[contentLocale]?.contact?.hero?.subtitle || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            aboutContent: {
+                              ...formData.aboutContent,
+                              [contentLocale]: {
+                                ...formData.aboutContent?.[contentLocale],
+                                contact: {
+                                  ...formData.aboutContent?.[contentLocale]?.contact,
+                                  hero: {
+                                    ...formData.aboutContent?.[contentLocale]?.contact?.hero,
+                                    subtitle: e.target.value,
+                                  },
+                                },
+                              },
+                            },
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        placeholder="궁금한 점이나 문의사항이 있으시면 언제든지 연락해주세요"
                       />
                     </div>
                   </div>

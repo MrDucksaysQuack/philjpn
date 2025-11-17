@@ -18,6 +18,16 @@ export default function ExamDetailPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 라이선스 키 자동 포맷팅 (XXXX-XXXX-XXXX-XXXX)
+  const formatLicenseKey = (value: string) => {
+    // 하이픈 제거
+    const cleaned = value.replace(/-/g, '');
+    // 4자리씩 그룹화하여 하이픈 추가
+    const formatted = cleaned.match(/.{1,4}/g)?.join('-') || cleaned;
+    // 최대 19자 (XXXX-XXXX-XXXX-XXXX)
+    return formatted.slice(0, 19);
+  };
+
   const { data: exam, isLoading } = useQuery({
     queryKey: ["exam", examId],
     queryFn: async () => {
@@ -161,16 +171,30 @@ export default function ExamDetailPage() {
                     htmlFor="licenseKey"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    라이선스 키
+                    라이선스 키 <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="licenseKey"
                     type="text"
                     value={licenseKey}
-                    onChange={(e) => setLicenseKey(e.target.value)}
+                    onChange={(e) => {
+                      const formatted = formatLicenseKey(e.target.value);
+                      setLicenseKey(formatted);
+                      // 입력 중이면 에러 메시지 제거
+                      if (error) setError("");
+                    }}
                     placeholder="XXXX-XXXX-XXXX-XXXX"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    maxLength={19}
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                      error
+                        ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                    }`}
                   />
+                  <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+                    <span>💡</span>
+                    <span>라이선스 키는 관리자에게 문의하거나 이메일로 발급받을 수 있습니다.</span>
+                  </p>
                 </div>
                 {error && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">

@@ -361,7 +361,7 @@ function QuestionPoolModal({
               onChange={(ids) => setFormData({ ...formData, questionIds: ids })}
               filters={{
                 tags: formData.tags.length > 0 ? formData.tags : undefined,
-                difficulty: formData.difficulty || undefined,
+                difficulty: (formData.difficulty === "easy" || formData.difficulty === "medium" || formData.difficulty === "hard") ? formData.difficulty : undefined,
               }}
             />
             <p className="text-xs text-gray-500 mt-2">

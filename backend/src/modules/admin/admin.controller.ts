@@ -18,14 +18,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { Prisma } from '@prisma/client';
 import { AdminService } from './services/admin.service';
 import { TemplateService } from './services/template.service';
 import { QuestionPoolService } from './services/question-pool.service';
 import { SiteSettingsService } from './services/site-settings.service';
 import { ColorAnalysisService } from './services/color-analysis.service';
+import { FileUploadService } from '../../common/services/file-upload.service';
 import { AdminUserQueryDto } from './dto/user-query.dto';
 import { AdminUpdateUserDto } from './dto/update-user.dto';
 import { AdminExamResultQueryDto } from './dto/exam-result-query.dto';
@@ -52,6 +51,7 @@ export class AdminController {
     private readonly questionPoolService: QuestionPoolService,
     private readonly siteSettingsService: SiteSettingsService,
     private readonly colorAnalysisService: ColorAnalysisService,
+    private readonly fileUploadService: FileUploadService,
   ) {}
 
   // ==================== 사용자 관리 ====================
@@ -112,11 +112,14 @@ export class AdminController {
   async getExamStatistics() {
     try {
       return await this.adminService.getExamStatistics();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('❌ getExamStatistics 에러:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack,
+        message: errorMessage,
+        code: errorCode,
+        stack: errorStack,
       });
       throw error;
     }
@@ -148,11 +151,14 @@ export class AdminController {
   async getLicenseKeyStatistics() {
     try {
       return await this.adminService.getLicenseKeyStatistics();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('❌ getLicenseKeyStatistics 에러:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack,
+        message: errorMessage,
+        code: errorCode,
+        stack: errorStack,
       });
       throw error;
     }
@@ -167,11 +173,14 @@ export class AdminController {
   async getDashboard() {
     try {
       return await this.adminService.getDashboardData();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('❌ getDashboardData 에러:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack,
+        message: errorMessage,
+        code: errorCode,
+        stack: errorStack,
       });
       throw error;
     }
@@ -183,14 +192,14 @@ export class AdminController {
   @ApiOperation({ summary: '시험 템플릿 생성 (Admin Only)' })
   @ApiResponse({ status: 201, description: '템플릿 생성 성공' })
   @HttpCode(HttpStatus.CREATED)
-  createTemplate(@Body() dto: CreateTemplateDto, @CurrentUser() user: any) {
+  createTemplate(@Body() dto: CreateTemplateDto, @CurrentUser() user: { id: string }) {
     return this.templateService.createTemplate(user.id, dto);
   }
 
   @Get('templates')
   @ApiOperation({ summary: '시험 템플릿 목록 조회 (Admin Only)' })
   @ApiResponse({ status: 200, description: '템플릿 목록 조회 성공' })
-  getTemplates(@CurrentUser() user: any) {
+  getTemplates(@CurrentUser() user: { id: string }) {
     return this.templateService.getTemplates(user.id);
   }
 
@@ -198,7 +207,7 @@ export class AdminController {
   @ApiOperation({ summary: '시험 템플릿 상세 조회 (Admin Only)' })
   @ApiResponse({ status: 200, description: '템플릿 조회 성공' })
   @ApiResponse({ status: 404, description: '템플릿을 찾을 수 없음' })
-  getTemplate(@Param('id') id: string, @CurrentUser() user: any) {
+  getTemplate(@Param('id') id: string, @CurrentUser() user: { id: string }) {
     return this.templateService.getTemplate(id, user.id);
   }
 
@@ -209,7 +218,7 @@ export class AdminController {
   updateTemplate(
     @Param('id') id: string,
     @Body() dto: Partial<CreateTemplateDto>,
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: string },
   ) {
     return this.templateService.updateTemplate(id, user.id, dto);
   }
@@ -219,7 +228,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: '템플릿 삭제 성공' })
   @ApiResponse({ status: 404, description: '템플릿을 찾을 수 없음' })
   @HttpCode(HttpStatus.OK)
-  deleteTemplate(@Param('id') id: string, @CurrentUser() user: any) {
+  deleteTemplate(@Param('id') id: string, @CurrentUser() user: { id: string }) {
     return this.templateService.deleteTemplate(id, user.id);
   }
 
@@ -236,11 +245,11 @@ export class AdminController {
       subject?: string;
       overrides?: {
         questionCount?: number;
-        structure?: any;
+        structure?: Prisma.InputJsonValue;
         randomSeed?: number; // 랜덤 시드 (재현성 보장)
       };
     },
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: string },
   ) {
     return this.templateService.createExamFromTemplate(
       body.templateId,
@@ -276,14 +285,14 @@ export class AdminController {
   @ApiOperation({ summary: '문제 풀 생성 (Admin Only)' })
   @ApiResponse({ status: 201, description: '문제 풀 생성 성공' })
   @HttpCode(HttpStatus.CREATED)
-  createQuestionPool(@Body() dto: any, @CurrentUser() user: any) {
+  createQuestionPool(@Body() dto: { name: string; description?: string; tags?: string[]; difficulty?: 'easy' | 'medium' | 'hard'; questionIds?: string[] }, @CurrentUser() user: { id: string }) {
     return this.questionPoolService.createQuestionPool(user.id, dto);
   }
 
   @Get('question-pools')
   @ApiOperation({ summary: '문제 풀 목록 조회 (Admin Only)' })
   @ApiResponse({ status: 200, description: '문제 풀 목록 조회 성공' })
-  getQuestionPools(@CurrentUser() user: any) {
+  getQuestionPools(@CurrentUser() user: { id: string }) {
     return this.questionPoolService.getQuestionPools(user.id);
   }
 
@@ -291,7 +300,7 @@ export class AdminController {
   @ApiOperation({ summary: '문제 풀 상세 조회 (Admin Only)' })
   @ApiResponse({ status: 200, description: '문제 풀 조회 성공' })
   @ApiResponse({ status: 404, description: '문제 풀을 찾을 수 없음' })
-  getQuestionPool(@Param('id') id: string, @CurrentUser() user: any) {
+  getQuestionPool(@Param('id') id: string, @CurrentUser() user: { id: string }) {
     return this.questionPoolService.getQuestionPool(id, user.id);
   }
 
@@ -301,8 +310,8 @@ export class AdminController {
   @ApiResponse({ status: 404, description: '문제 풀을 찾을 수 없음' })
   updateQuestionPool(
     @Param('id') id: string,
-    @Body() dto: any,
-    @CurrentUser() user: any,
+    @Body() dto: { name?: string; description?: string; tags?: string[]; difficulty?: 'easy' | 'medium' | 'hard'; questionIds?: string[] },
+    @CurrentUser() user: { id: string },
   ) {
     return this.questionPoolService.updateQuestionPool(id, user.id, dto);
   }
@@ -312,7 +321,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: '문제 풀 삭제 성공' })
   @ApiResponse({ status: 404, description: '문제 풀을 찾을 수 없음' })
   @HttpCode(HttpStatus.OK)
-  deleteQuestionPool(@Param('id') id: string, @CurrentUser() user: any) {
+  deleteQuestionPool(@Param('id') id: string, @CurrentUser() user: { id: string }) {
     return this.questionPoolService.deleteQuestionPool(id, user.id);
   }
 
@@ -325,11 +334,14 @@ export class AdminController {
   async getSiteSettings() {
     try {
       return { data: await this.siteSettingsService.getAdminSettings() };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('❌ getSiteSettings 에러:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack,
+        message: errorMessage,
+        code: errorCode,
+        stack: errorStack,
       });
       throw error;
     }
@@ -343,17 +355,20 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async updateSiteSettings(
     @Body() dto: UpdateSiteSettingsDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: string },
   ) {
     try {
       return {
         data: await this.siteSettingsService.updateSettings(user.id, dto),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('❌ updateSiteSettings 에러:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack,
+        message: errorMessage,
+        code: errorCode,
+        stack: errorStack,
       });
       throw error;
     }
@@ -370,11 +385,14 @@ export class AdminController {
       const result =
         await this.colorAnalysisService.analyzeImageColors(body.logoUrl);
       return { data: result };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error('❌ analyzeColors 에러:', {
-        message: error?.message,
-        code: error?.code,
-        stack: error?.stack,
+        message: errorMessage,
+        code: errorCode,
+        stack: errorStack,
       });
       throw error;
     }
@@ -382,37 +400,52 @@ export class AdminController {
 
   // ==================== 파일 업로드 ====================
 
-  @Post('upload/image')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          // 업로드 디렉토리 생성
-          const uploadPath = join(process.cwd(), 'public', 'uploads');
-          if (!existsSync(uploadPath)) {
-            mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          // 고유한 파일명 생성: timestamp-random.extension
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `${uniqueSuffix}${ext}`);
-        },
-      }),
+  private getImageUploadOptions() {
+    if (!this.fileUploadService) {
+      throw new Error('FileUploadService not initialized');
+    }
+    const imageConfig = this.fileUploadService.getImageUploadConfig();
+    return {
+      storage: this.fileUploadService.createStorageConfig(imageConfig),
       limits: {
         fileSize: 5 * 1024 * 1024, // 5MB 제한
       },
-      fileFilter: (req, file, cb) => {
-        // 이미지 파일만 허용
-        const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
-        if (allowedMimes.includes(file.mimetype)) {
-          cb(null, true);
-        } else {
-          cb(new BadRequestException('이미지 파일만 업로드 가능합니다.'), false);
-        }
+      fileFilter: this.fileUploadService.createFileFilter(imageConfig),
+    };
+  }
+
+  private getAudioUploadOptions() {
+    if (!this.fileUploadService) {
+      throw new Error('FileUploadService not initialized');
+    }
+    const audioConfig = this.fileUploadService.getAudioUploadConfig();
+    return {
+      storage: this.fileUploadService.createStorageConfig(audioConfig),
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB 제한
       },
+      fileFilter: this.fileUploadService.createFileFilter(audioConfig),
+    };
+  }
+
+  @Post('upload/image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: (() => {
+        const service = (this as any).fileUploadService as FileUploadService;
+        if (!service) throw new Error('FileUploadService not initialized');
+        const imageConfig = service.getImageUploadConfig();
+        return service.createStorageConfig(imageConfig);
+      })(),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB 제한
+      },
+      fileFilter: (() => {
+        const service = (this as any).fileUploadService as FileUploadService;
+        if (!service) throw new Error('FileUploadService not initialized');
+        const imageConfig = service.getImageUploadConfig();
+        return service.createFileFilter(imageConfig);
+      })(),
     }),
   )
   @ApiOperation({ summary: '이미지 파일 업로드 (Admin Only)' })
@@ -432,26 +465,67 @@ export class AdminController {
   @ApiResponse({ status: 400, description: '잘못된 파일 형식' })
   @ApiResponse({ status: 413, description: '파일 크기 초과' })
   @HttpCode(HttpStatus.CREATED)
-  async uploadImage(@UploadedFile() file: any) {
+  async uploadImage(@UploadedFile() file?: { fieldname: string; originalname: string; encoding: string; mimetype: string; size: number; destination: string; filename: string; path: string; buffer: Buffer } | undefined) {
     if (!file) {
-      throw new BadRequestException('파일이 업로드되지 않았습니다.');
+      throw new BadRequestException('파일이 제공되지 않았습니다.');
     }
-
-    // 파일 URL 생성
-    // 백엔드 서버의 /uploads 경로로 접근 가능한 URL
-    const fileUrl = `/uploads/${file.filename}`;
-    
-    // 프로덕션 환경에서는 실제 도메인 URL을 사용
-    const apiBaseUrl = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    // API_BASE_URL이 /api로 끝나면 제거 (파일 서빙은 /api가 아닌 루트 경로)
-    const cleanBaseUrl = apiBaseUrl.replace(/\/api$/, '');
-    const fullUrl = `${cleanBaseUrl}${fileUrl}`;
-
+    const fileInfo = this.fileUploadService.processUploadedFile(file, 'uploads/images');
     return {
       data: {
-        url: fullUrl,
-        filename: file.filename,
-        size: file.size,
+        url: fileInfo.url,
+        filename: fileInfo.filename,
+        size: fileInfo.size,
+      },
+    };
+  }
+
+  @Post('upload/audio')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: (() => {
+        const service = (this as any).fileUploadService as FileUploadService;
+        if (!service) throw new Error('FileUploadService not initialized');
+        const audioConfig = service.getAudioUploadConfig();
+        return service.createStorageConfig(audioConfig);
+      })(),
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB 제한
+      },
+      fileFilter: (() => {
+        const service = (this as any).fileUploadService as FileUploadService;
+        if (!service) throw new Error('FileUploadService not initialized');
+        const audioConfig = service.getAudioUploadConfig();
+        return service.createFileFilter(audioConfig);
+      })(),
+    }),
+  )
+  @ApiOperation({ summary: '오디오 파일 업로드 (Admin Only)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: '파일 업로드 성공', type: UploadFileResponseDto })
+  @ApiResponse({ status: 400, description: '잘못된 파일 형식' })
+  @ApiResponse({ status: 413, description: '파일 크기 초과' })
+  @HttpCode(HttpStatus.CREATED)
+  async uploadAudio(@UploadedFile() file?: { fieldname: string; originalname: string; encoding: string; mimetype: string; size: number; destination: string; filename: string; path: string; buffer: Buffer } | undefined) {
+    if (!file) {
+      throw new BadRequestException('파일이 제공되지 않았습니다.');
+    }
+    const fileInfo = this.fileUploadService.processUploadedFile(file, 'uploads/audio');
+    return {
+      data: {
+        url: fileInfo.url,
+        filename: fileInfo.filename,
+        size: fileInfo.size,
       },
     };
   }

@@ -66,6 +66,11 @@ model Exam {
   isAdaptive     Boolean           @default(false)
   adaptiveConfig Json?
   config         ExamConfig?
+  // Category/Subcategory 연결
+  categoryId     String?
+  subcategoryId  String?
+  category       Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategory    Subcategory?      @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
   examResults    ExamResult[]
   creator        User?             @relation(fields: [createdBy], references: [id])
   template       ExamTemplate?     @relation("TemplateBased", fields: [templateId], references: [id])
@@ -79,6 +84,8 @@ model Exam {
   @@index([createdAt])
   @@index([templateId])
   @@index([isAdaptive])
+  @@index([categoryId])
+  @@index([subcategoryId])
   @@map("exams")
 }
 
@@ -132,6 +139,9 @@ model Question {
   points          Int              @default(1)
   difficulty      Difficulty?
   tags            String[]
+  imageUrl        String?          // 문제 이미지 URL (Part 1: Vocabulary & Grammar용)
+  audioUrl        String?          // 오디오 파일 URL (Part 4: Listening용)
+  audioPlayLimit  Int?             @default(2) // 오디오 재생 횟수 제한 (기본 2회)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   questionResults QuestionResult[]
@@ -513,6 +523,11 @@ model SiteSettings {
   serviceProcess  Json?
   company_values  Json?
   team_culture    Json?
+  // 언어별 동적 콘텐츠 (JSON 형식)
+  // homeContent: { ko: { hero: { title, subtitle }, features: [...] }, en: {...}, ja: {...} }
+  homeContent     Json?    // 메인 페이지 콘텐츠 (언어별)
+  // aboutContent: { ko: { team: { hero: {...} }, company: {...}, service: {...}, contact: {...} }, en: {...}, ja: {...} }
+  aboutContent    Json?    // About 페이지 콘텐츠 (언어별)
   updater         User?    @relation("SiteSettingsUpdater", fields: [updatedBy], references: [id])
 
   @@index([isActive])
@@ -541,6 +556,44 @@ enum QuestionType {
   multiple_choice
   fill_blank
   essay
+}
+
+// 시험 카테고리 모델 (대분류)
+model Category {
+  id          String        @id @default(uuid())
+  name        String        @db.VarChar(100)
+  description String?
+  icon        String?       @db.VarChar(50) // 아이콘 이름 또는 이모지
+  order       Int           @default(0) // 정렬 순서
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  subcategories Subcategory[]
+  exams       Exam[]
+
+  @@index([isActive])
+  @@index([order])
+  @@map("categories")
+}
+
+// 시험 서브카테고리 모델 (중분류)
+model Subcategory {
+  id          String        @id @default(uuid())
+  categoryId  String
+  name        String        @db.VarChar(100)
+  description String?
+  icon        String?       @db.VarChar(50)
+  order       Int           @default(0)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  exams       Exam[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([order])
+  @@map("subcategories")
 }
 
 enum ResultStatus {
