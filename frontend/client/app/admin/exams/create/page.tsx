@@ -3,13 +3,14 @@
 // Force dynamic rendering to avoid SSR issues
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
-import { apiClient } from "@/lib/api";
+import { apiClient, examAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import AutocompleteSelect from "@/components/admin/AutocompleteSelect";
 
 interface CreateExamFormData {
   title: string;
@@ -38,6 +39,24 @@ export default function CreateExamPage() {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 기존 시험 목록 조회 (과목 자동완성용)
+  const { data: examsResponse } = useQuery({
+    queryKey: ["admin-exams"],
+    queryFn: async () => {
+      const response = await examAPI.getExams({ limit: 1000 });
+      return response.data;
+    },
+  });
+
+  // 과목 목록 추출 (중복 제거)
+  const subjectOptions = useMemo(() => {
+    if (!examsResponse?.data) return [];
+    const subjects = examsResponse.data
+      .map((exam) => exam.subject)
+      .filter((subject): subject is string => !!subject && subject.trim() !== "");
+    return Array.from(new Set(subjects)).sort();
+  }, [examsResponse]);
 
   const [formData, setFormData] = useState<CreateExamFormData>({
     title: "",
@@ -199,14 +218,14 @@ export default function CreateExamPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   과목
                 </label>
-                <input
-                  type="text"
+                <AutocompleteSelect
                   value={formData.subject}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subject: e.target.value })
+                  onChange={(value) =>
+                    setFormData({ ...formData, subject: value })
                   }
-                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="예: 토익, 토플"
+                  options={subjectOptions}
+                  allowCustom={true}
+                  placeholder="예: 토익, 토플 (입력하거나 선택하세요)"
                 />
               </div>
 

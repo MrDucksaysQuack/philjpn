@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Link from "next/link";
 import IconPicker from "@/components/admin/IconPicker";
 import { getIconComponent } from "@/components/about/iconMapper";
+import MarkdownEditor from "@/components/admin/MarkdownEditor";
 
 export default function SiteSettingsPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
@@ -613,14 +614,14 @@ export default function SiteSettingsPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     회사 소개 내용 (마크다운 지원)
                   </label>
-                  <textarea
-                    value={formData.aboutCompany}
-                    onChange={(e) =>
-                      setFormData({ ...formData, aboutCompany: e.target.value })
+                  <MarkdownEditor
+                    value={formData.aboutCompany || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, aboutCompany: value })
                     }
-                    rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary font-mono text-sm"
                     placeholder="회사 소개 내용을 마크다운 형식으로 입력하세요..."
+                    rows={10}
+                    showPreview={true}
                   />
                   <p className="mt-2 text-xs text-gray-500">이 내용은 /about/company 페이지의 "회사 소개" 섹션에 표시됩니다.</p>
                 </div>
@@ -849,14 +850,14 @@ export default function SiteSettingsPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     팀 소개 내용 (마크다운 지원)
                   </label>
-                  <textarea
-                    value={formData.aboutTeam}
-                    onChange={(e) =>
-                      setFormData({ ...formData, aboutTeam: e.target.value })
+                  <MarkdownEditor
+                    value={formData.aboutTeam || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, aboutTeam: value })
                     }
-                    rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary font-mono text-sm"
                     placeholder="팀 소개 내용을 마크다운 형식으로 입력하세요..."
+                    rows={10}
+                    showPreview={true}
                   />
                   <p className="mt-2 text-xs text-gray-500">이 내용은 /about/team 페이지의 "팀 소개" 섹션에 표시됩니다.</p>
                 </div>
@@ -1140,14 +1141,14 @@ export default function SiteSettingsPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     서비스 소개 내용 (마크다운 지원)
                   </label>
-                  <textarea
-                    value={formData.serviceInfo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, serviceInfo: e.target.value })
+                  <MarkdownEditor
+                    value={formData.serviceInfo || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, serviceInfo: value })
                     }
-                    rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary font-mono text-sm"
                     placeholder="서비스 소개 내용을 마크다운 형식으로 입력하세요..."
+                    rows={10}
+                    showPreview={true}
                   />
                   <p className="mt-2 text-xs text-gray-500">이 내용은 /about/service 페이지의 "서비스 소개" 섹션에 표시됩니다.</p>
                 </div>

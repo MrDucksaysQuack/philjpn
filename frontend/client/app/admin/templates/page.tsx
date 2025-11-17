@@ -8,6 +8,7 @@ import { adminAPI, ExamTemplate, CreateTemplateData, QuestionPool } from "@/lib/
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TagInput from "@/components/admin/TagInput";
+import TemplateWizard from "@/components/admin/TemplateWizard";
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -170,9 +171,9 @@ export default function TemplatesPage() {
           )}
         </div>
 
-        {/* 템플릿 생성 모달 */}
+        {/* 템플릿 생성 마법사 */}
         {showCreateModal && (
-          <CreateTemplateModal
+          <TemplateWizard
             onClose={() => setShowCreateModal(false)}
             onSuccess={() => {
               setShowCreateModal(false);
@@ -197,8 +198,8 @@ export default function TemplatesPage() {
   );
 }
 
-// 템플릿 생성 모달
-function CreateTemplateModal({
+// 템플릿 생성 모달 (더 이상 사용하지 않음 - TemplateWizard로 대체됨)
+// function CreateTemplateModal({
   onClose,
   onSuccess,
 }: {
