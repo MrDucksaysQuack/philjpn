@@ -65,13 +65,15 @@ export default function AnalysisPage() {
     enabled: !!user,
   });
 
-  // 목표 달성 체크
+  // 목표 달성 체크 (한 번만 실행되도록 ref 사용)
+  const hasCheckedGoals = useRef(false);
   useEffect(() => {
-    if (goalProgress?.activeGoals) {
+    if (goalProgress?.activeGoals && !hasCheckedGoals.current) {
       const justAchieved = goalProgress.activeGoals.find(
         (goal) => goal.progress >= 1 && goal.onTrack
       );
       if (justAchieved) {
+        hasCheckedGoals.current = true;
         const targetText = 
           justAchieved.type === "score_target" ? `${justAchieved.target}점` :
           justAchieved.type === "exam_count" ? `${justAchieved.target}회` :
@@ -81,6 +83,8 @@ export default function AnalysisPage() {
         emotionalToast.success.goalAchieved(targetText);
       }
     }
+    // goalProgress가 변경되어도 한 번만 체크하도록 ref 사용
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goalProgress]);
 
   if (authLoading) {

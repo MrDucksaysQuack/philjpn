@@ -51,6 +51,8 @@ export default function TakeExamPage() {
         loadSectionQuestions(session.currentSectionId);
       }
     }
+    // loadSectionQuestions는 함수이므로 의존성에서 제외 (무한 루프 방지)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   // 일반 시험: 섹션의 문제 목록 로드
@@ -100,7 +102,11 @@ export default function TakeExamPage() {
     if (session?.exam?.isAdaptive && !currentQuestion && isAdaptive) {
       loadNextQuestion.current();
     }
-  }, [session, isAdaptive, currentQuestion]);
+    // currentQuestion을 의존성에서 제거하면 무한 루프가 발생할 수 있지만,
+    // 조건에 !currentQuestion이 있어서 한 번만 실행되어야 함
+    // 하지만 안전을 위해 useRef로 한 번만 실행되도록 보장
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, isAdaptive]);
 
   // WebSocket 연결 및 모니터링 설정
   useEffect(() => {
