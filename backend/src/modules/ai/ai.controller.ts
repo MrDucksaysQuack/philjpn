@@ -1,13 +1,16 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { AIAnalysisService } from './services/ai-analysis.service';
+import { AIQueueService } from './services/ai-queue.service';
 import { GenerateExplanationDto } from './dto/generate-explanation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -17,15 +20,20 @@ import { UserRole } from '../../common/types';
 
 @ApiTags('AI Analysis')
 @Controller('api/ai')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN, UserRole.USER)
+@ApiBearerAuth()
 export class AIController {
-  constructor(private readonly aiAnalysisService: AIAnalysisService) {}
+  constructor(
+    private readonly aiAnalysisService: AIAnalysisService,
+    private readonly aiQueueService: AIQueueService,
+  ) {}
+
+  // ==================== 동기 처리 (즉시 응답) ====================
 
   @Post('explanation')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '문제별 맞춤형 해설 생성' })
+  @ApiOperation({ summary: 'AI 기반 문제 해설 생성 (동기)' })
   @ApiResponse({ status: 200, description: '해설 생성 성공' })
-  @ApiResponse({ status: 400, description: 'AI 기능 비활성화 또는 잘못된 요청' })
   @ApiResponse({ status: 404, description: '문제를 찾을 수 없음' })
   @HttpCode(HttpStatus.OK)
   async generateExplanation(@Body() dto: GenerateExplanationDto) {
@@ -34,7 +42,6 @@ export class AIController {
       dto.userAnswer,
       dto.isCorrect,
     );
-
     return {
       explanation,
       questionId: dto.questionId,
@@ -42,12 +49,85 @@ export class AIController {
     };
   }
 
+  // ==================== 비동기 처리 (큐 사용) ====================
+
+  @Post('explanation-async')
+  @ApiOperation({ summary: 'AI 기반 문제 해설 생성 (비동기)' })
+  @ApiResponse({ status: 202, description: '작업이 큐에 추가됨' })
+  @HttpCode(HttpStatus.ACCEPTED)
+  async generateExplanationAsync(
+    @Body() dto: GenerateExplanationDto & { questionResultId?: string },
+    @CurrentUser() user: any,
+  ) {
+    const job = await this.aiQueueService.enqueueExplanation(
+      dto.questionId,
+      dto.userAnswer,
+      dto.isCorrect,
+      dto.questionResultId,
+    );
+    return {
+      jobId: job.id,
+      status: 'queued',
+      message: '해설 생성 작업이 큐에 추가되었습니다.',
+    };
+  }
+
+  @Post('diagnose-weakness-async/:examResultId')
+  @ApiOperation({ summary: '약점 진단 (비동기)' })
+  @ApiParam({ name: 'examResultId', description: '시험 결과 ID' })
+  @ApiResponse({ status: 202, description: '작업이 큐에 추가됨' })
+  @HttpCode(HttpStatus.ACCEPTED)
+  async diagnoseWeaknessAsync(
+    @Param('examResultId') examResultId: string,
+    @CurrentUser() user: any,
+  ) {
+    const job = await this.aiQueueService.enqueueWeaknessDiagnosis(examResultId);
+    return {
+      jobId: job.id,
+      status: 'queued',
+      message: '약점 진단 작업이 큐에 추가되었습니다.',
+    };
+  }
+
+  @Get('job/:jobId')
+  @ApiOperation({ summary: '작업 상태 조회' })
+  @ApiParam({ name: 'jobId', description: '작업 ID' })
+  @ApiResponse({ status: 200, description: '작업 상태 조회 성공' })
+  async getJobStatus(@Param('jobId') jobId: string) {
+    const status = await this.aiQueueService.getJobStatus(jobId);
+    if (!status) {
+      return { error: '작업을 찾을 수 없습니다.' };
+    }
+    return status;
+  }
+
+  @Get('queue/stats')
+  @ApiOperation({ summary: '큐 통계 조회' })
+  @ApiResponse({ status: 200, description: '큐 통계 조회 성공' })
+  async getQueueStats() {
+    return await this.aiQueueService.getQueueStats();
+  }
+
+  // ==================== 약점 진단 (동기) ====================
+
+  @Post('diagnose-weakness/:examResultId')
+  @ApiOperation({ summary: '약점 진단 (동기)' })
+  @ApiParam({ name: 'examResultId', description: '시험 결과 ID' })
+  @ApiResponse({ status: 200, description: '약점 진단 성공' })
+  @ApiResponse({ status: 404, description: '시험 결과를 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async diagnoseWeakness(
+    @Param('examResultId') examResultId: string,
+    @CurrentUser() user: any,
+  ) {
+    const diagnosis = await this.aiAnalysisService.diagnoseWeakness(examResultId);
+    return diagnosis;
+  }
+
   @Post('check-availability')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'AI 기능 사용 가능 여부 확인 (Admin Only)' })
-  @ApiResponse({ status: 200, description: '확인 성공' })
+  @ApiOperation({ summary: 'AI 기능 활성화 확인' })
+  @ApiResponse({ status: 200, description: 'AI 기능 상태' })
+  @HttpCode(HttpStatus.OK)
   async checkAvailability() {
     const isAvailable = this.aiAnalysisService.isAvailable();
     return {
@@ -58,4 +138,3 @@ export class AIController {
     };
   }
 }
-

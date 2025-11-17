@@ -110,13 +110,25 @@ export class ExamService {
       throw new NotFoundException(`시험을 찾을 수 없습니다. ID: ${id}`);
     }
 
-    const { config, ...examData } = updateExamDto;
+    const { config, isAdaptive, adaptiveConfig, ...examData } = updateExamDto;
 
     // 시험 업데이트
+    const updateData: any = {
+      ...examData,
+    };
+
+    if (isAdaptive !== undefined) {
+      updateData.isAdaptive = isAdaptive;
+    }
+
+    if (adaptiveConfig !== undefined) {
+      updateData.adaptiveConfig = adaptiveConfig ? (adaptiveConfig as any) : null;
+    }
+
     const exam = await this.prisma.exam.update({
       where: { id },
       data: {
-        ...examData,
+        ...updateData,
         config: config
           ? {
               update: {

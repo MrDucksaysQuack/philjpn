@@ -15,6 +15,7 @@ import { GradingService } from '../grading/grading.service';
 import { ExamMonitoringGateway } from '../../monitoring/gateway/exam-monitoring.gateway';
 import { QuestionPoolService } from '../../admin/services/question-pool.service';
 import { Difficulty } from '../../../common/types';
+import { IRTService } from './services/irt.service';
 
 @Injectable()
 export class SessionService {
@@ -22,6 +23,7 @@ export class SessionService {
     private prisma: PrismaService,
     private gradingService: GradingService,
     private questionPoolService: QuestionPoolService,
+    private irtService: IRTService,
     @Inject(forwardRef(() => ExamMonitoringGateway))
     private monitoringGateway?: ExamMonitoringGateway,
   ) {}
@@ -529,7 +531,7 @@ export class SessionService {
   }
 
   /**
-   * 사용자 능력 추정 (간단한 가중 평균 기반)
+   * 사용자 능력 추정 (IRT 모델 기반)
    */
   private async estimateAbility(sessionId: string): Promise<number> {
     const adaptiveQuestions = await this.prisma.adaptiveQuestion.findMany({
@@ -547,29 +549,23 @@ export class SessionService {
       return 0.5; // 기본 능력 (중간)
     }
 
-    // 난이도별 가중치
-    const difficultyWeights: { [key: string]: number } = {
-      easy: 0.3,
-      medium: 0.5,
-      hard: 0.7,
-    };
+    // IRT 모델을 사용한 능력 추정
+    const responses = adaptiveQuestions.map((aq) => ({
+      isCorrect: aq.isCorrect || false,
+      difficulty: this.irtService.convertDifficultyToIRT(
+        aq.difficulty || Difficulty.MEDIUM,
+      ),
+      discrimination: 1.0, // 기본 변별도
+      guessing: 0.25, // 기본 추측 확률
+    }));
 
-    let totalWeight = 0;
-    let weightedScore = 0;
+    // IRT 능력 추정 (theta: -3 ~ +3)
+    const theta = this.irtService.estimateAbility(responses, 0);
 
-    for (const aq of adaptiveQuestions) {
-      const difficulty = aq.difficulty || 'medium';
-      const weight = difficultyWeights[difficulty] || 0.5;
-      const score = aq.isCorrect ? 1 : 0;
+    // 정규화된 능력으로 변환 (0 ~ 1)
+    const normalizedAbility = this.irtService.normalizeAbility(theta);
 
-      totalWeight += weight;
-      weightedScore += score * weight;
-    }
-
-    // 능력 점수 (0-1 범위)
-    const ability = totalWeight > 0 ? weightedScore / totalWeight : 0.5;
-
-    return Math.max(0, Math.min(1, ability)); // 0-1 범위로 제한
+    return Math.max(0, Math.min(1, normalizedAbility));
   }
 
   /**
