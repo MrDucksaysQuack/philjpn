@@ -548,6 +548,21 @@ export const categoryAPI = {
     apiClient.delete(`/categories/subcategories/${id}`),
 };
 
+// QuestionBank API
+export interface QuestionBank {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  questions?: Question[];
+  _count?: {
+    questions: number;
+  };
+}
+
 // Question API
 export interface Question {
   id: string;
@@ -1349,6 +1364,41 @@ export const adminAPI = {
     },
   ) => apiClient.patch<{ data: Badge }>(`/admin/badges/${id}`, data),
   deleteBadge: (id: string) => apiClient.delete(`/admin/badges/${id}`),
+  // QuestionBank APIs
+  getQuestionBanks: (params?: {
+    category?: string;
+    search?: string;
+    includeQuestions?: boolean;
+  }) =>
+    apiClient.get<{ data: QuestionBank[] }>("/admin/question-banks", {
+      params,
+    }),
+  getQuestionBankCategories: () =>
+    apiClient.get<{ data: string[] }>("/admin/question-banks/categories"),
+  getQuestionBank: (id: string, includeQuestions?: boolean) =>
+    apiClient.get<{ data: QuestionBank }>(`/admin/question-banks/${id}`, {
+      params: includeQuestions ? { includeQuestions: "true" } : undefined,
+    }),
+  createQuestionBank: (data: {
+    name: string;
+    description?: string;
+    category?: string;
+  }) => apiClient.post<{ data: QuestionBank }>("/admin/question-banks", data),
+  updateQuestionBank: (
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      category?: string;
+    },
+  ) => apiClient.patch<{ data: QuestionBank }>(`/admin/question-banks/${id}`, data),
+  deleteQuestionBank: (id: string) => apiClient.delete(`/admin/question-banks/${id}`),
+  addQuestionToBank: (questionBankId: string, questionId: string) =>
+    apiClient.post<{ data: Question }>(`/admin/question-banks/${questionBankId}/questions/${questionId}`),
+  removeQuestionFromBank: (questionBankId: string, questionId: string) =>
+    apiClient.delete(`/admin/question-banks/${questionBankId}/questions/${questionId}`),
+  removeAllQuestionsFromBank: (questionBankId: string) =>
+    apiClient.delete(`/admin/question-banks/${questionBankId}/questions`),
   // File Upload API
   uploadImage: (file: File) => {
     const formData = new FormData();

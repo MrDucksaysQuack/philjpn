@@ -248,6 +248,13 @@ export default function AdminDashboardPage() {
             <h3 className="text-lg font-semibold mb-2">배지 관리</h3>
             <p className="text-gray-600 text-sm">게이미피케이션 배지 생성 및 관리</p>
           </Link>
+          <Link
+            href="/admin/question-banks"
+            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+          >
+            <h3 className="text-lg font-semibold mb-2">문제 은행 관리</h3>
+            <p className="text-gray-600 text-sm">카테고리별 문제 은행 생성 및 관리</p>
+          </Link>
         </div>
 
         {/* 최근 활동 */}

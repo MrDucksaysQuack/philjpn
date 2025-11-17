@@ -22,6 +22,7 @@ import { Prisma } from '@prisma/client';
 import { AdminService } from './services/admin.service';
 import { TemplateService } from './services/template.service';
 import { QuestionPoolService } from './services/question-pool.service';
+import { QuestionBankService } from './services/question-bank.service';
 import { SiteSettingsService } from './services/site-settings.service';
 import { ColorAnalysisService } from './services/color-analysis.service';
 import { FileUploadService } from '../../common/services/file-upload.service';
@@ -50,6 +51,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly templateService: TemplateService,
     private readonly questionPoolService: QuestionPoolService,
+    private readonly questionBankService: QuestionBankService,
     private readonly siteSettingsService: SiteSettingsService,
     private readonly colorAnalysisService: ColorAnalysisService,
     private readonly fileUploadService: FileUploadService,
@@ -617,6 +619,174 @@ export class AdminController {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('❌ deleteBadge 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  // ==================== 문제 은행 관리 ====================
+
+  @Get('question-banks')
+  @ApiOperation({ summary: '문제 은행 목록 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 은행 목록 조회 성공' })
+  async getQuestionBanks(
+    @Query('category') category?: string,
+    @Query('search') search?: string,
+    @Query('includeQuestions') includeQuestions?: string,
+  ) {
+    try {
+      const questionBanks = await this.questionBankService.findAll({
+        category,
+        search,
+        includeQuestions: includeQuestions === 'true',
+      });
+      return { data: questionBanks };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getQuestionBanks 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('question-banks/categories')
+  @ApiOperation({ summary: '문제 은행 카테고리 목록 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '카테고리 목록 조회 성공' })
+  async getQuestionBankCategories() {
+    try {
+      const categories = await this.questionBankService.getCategories();
+      return { data: categories };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getQuestionBankCategories 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('question-banks/:id')
+  @ApiOperation({ summary: '문제 은행 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 은행 조회 성공' })
+  async getQuestionBank(
+    @Param('id') id: string,
+    @Query('includeQuestions') includeQuestions?: string,
+  ) {
+    try {
+      const questionBank = await this.questionBankService.findOne(
+        id,
+        includeQuestions === 'true',
+      );
+      return { data: questionBank };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getQuestionBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('question-banks')
+  @ApiOperation({ summary: '문제 은행 생성 (Admin Only)' })
+  @ApiResponse({ status: 201, description: '문제 은행 생성 성공' })
+  async createQuestionBank(
+    @Body() data: {
+      name: string;
+      description?: string;
+      category?: string;
+    },
+    @CurrentUser() user: any,
+  ) {
+    try {
+      const questionBank = await this.questionBankService.create({
+        ...data,
+        createdBy: user.id,
+      });
+      return { data: questionBank };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ createQuestionBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Patch('question-banks/:id')
+  @ApiOperation({ summary: '문제 은행 수정 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 은행 수정 성공' })
+  async updateQuestionBank(
+    @Param('id') id: string,
+    @Body() data: {
+      name?: string;
+      description?: string;
+      category?: string;
+    },
+  ) {
+    try {
+      const questionBank = await this.questionBankService.update(id, data);
+      return { data: questionBank };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ updateQuestionBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Delete('question-banks/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: '문제 은행 삭제 (Admin Only)' })
+  @ApiResponse({ status: 204, description: '문제 은행 삭제 성공' })
+  async deleteQuestionBank(@Param('id') id: string) {
+    try {
+      await this.questionBankService.delete(id);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ deleteQuestionBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('question-banks/:id/questions/:questionId')
+  @ApiOperation({ summary: '문제 은행에 문제 추가 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 추가 성공' })
+  async addQuestionToBank(
+    @Param('id') questionBankId: string,
+    @Param('questionId') questionId: string,
+  ) {
+    try {
+      const question = await this.questionBankService.addQuestion(
+        questionBankId,
+        questionId,
+      );
+      return { data: question };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ addQuestionToBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Delete('question-banks/:id/questions/:questionId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: '문제 은행에서 문제 제거 (Admin Only)' })
+  @ApiResponse({ status: 204, description: '문제 제거 성공' })
+  async removeQuestionFromBank(
+    @Param('id') questionBankId: string,
+    @Param('questionId') questionId: string,
+  ) {
+    try {
+      await this.questionBankService.removeQuestion(questionBankId, questionId);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ removeQuestionFromBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Delete('question-banks/:id/questions')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: '문제 은행의 모든 문제 제거 (Admin Only)' })
+  @ApiResponse({ status: 204, description: '모든 문제 제거 성공' })
+  async removeAllQuestionsFromBank(@Param('id') id: string) {
+    try {
+      await this.questionBankService.removeAllQuestions(id);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ removeAllQuestionsFromBank 에러:', errorMessage);
       throw error;
     }
   }
