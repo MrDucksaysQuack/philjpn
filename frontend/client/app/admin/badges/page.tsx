@@ -403,7 +403,7 @@ function BadgeModal({
                 placeholder='예: {"examCount": 10, "streakDays": 7}'
               />
               <p className="text-xs text-gray-500 mt-1">
-                JSON 형식으로 입력하세요. 예: {"examCount": 10}, {"streakDays": 7}, {"wordCount": 100}
+                JSON 형식으로 입력하세요. 예: &#123;"examCount": 10&#125;, &#123;"streakDays": 7&#125;, &#123;"wordCount": 100&#125;
               </p>
             </div>
             <div className="flex items-center">
