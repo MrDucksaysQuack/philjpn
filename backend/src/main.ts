@@ -1,11 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import appConfig from './config/app.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
+  // 정적 파일 서빙 설정 (업로드된 이미지 접근)
+  // public/uploads 폴더를 /uploads 경로로 서빙
+  const uploadsPath = join(process.cwd(), 'public', 'uploads');
+  app.useStaticAssets(uploadsPath, {
+    prefix: '/uploads',
+  });
 
   const config = appConfig();
   

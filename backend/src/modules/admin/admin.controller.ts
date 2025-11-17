@@ -12,8 +12,15 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { AdminService } from './services/admin.service';
 import { TemplateService } from './services/template.service';
 import { QuestionPoolService } from './services/question-pool.service';
@@ -24,6 +31,7 @@ import { AdminUpdateUserDto } from './dto/update-user.dto';
 import { AdminExamResultQueryDto } from './dto/exam-result-query.dto';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateSiteSettingsDto } from './dto/update-site-settings.dto';
+import { UploadFileResponseDto } from './dto/upload-file.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -348,6 +356,82 @@ export class AdminController {
       });
       throw error;
     }
+  }
+
+  // ==================== 파일 업로드 ====================
+
+  @Post('upload/image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          // 업로드 디렉토리 생성
+          const uploadPath = join(process.cwd(), 'public', 'uploads');
+          if (!existsSync(uploadPath)) {
+            mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+          // 고유한 파일명 생성: timestamp-random.extension
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          cb(null, `${uniqueSuffix}${ext}`);
+        },
+      }),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB 제한
+      },
+      fileFilter: (req, file, cb) => {
+        // 이미지 파일만 허용
+        const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new BadRequestException('이미지 파일만 업로드 가능합니다.'), false);
+        }
+      },
+    }),
+  )
+  @ApiOperation({ summary: '이미지 파일 업로드 (Admin Only)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: '파일 업로드 성공', type: UploadFileResponseDto })
+  @ApiResponse({ status: 400, description: '잘못된 파일 형식' })
+  @ApiResponse({ status: 413, description: '파일 크기 초과' })
+  @HttpCode(HttpStatus.CREATED)
+  async uploadImage(@UploadedFile() file: any) {
+    if (!file) {
+      throw new BadRequestException('파일이 업로드되지 않았습니다.');
+    }
+
+    // 파일 URL 생성
+    // 백엔드 서버의 /uploads 경로로 접근 가능한 URL
+    const fileUrl = `/uploads/${file.filename}`;
+    
+    // 프로덕션 환경에서는 실제 도메인 URL을 사용
+    const apiBaseUrl = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // API_BASE_URL이 /api로 끝나면 제거 (파일 서빙은 /api가 아닌 루트 경로)
+    const cleanBaseUrl = apiBaseUrl.replace(/\/api$/, '');
+    const fullUrl = `${cleanBaseUrl}${fileUrl}`;
+
+    return {
+      data: {
+        url: fullUrl,
+        filename: file.filename,
+        size: file.size,
+      },
+    };
   }
 }
 
