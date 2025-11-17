@@ -39,7 +39,7 @@ export function useRequireAuth(options?: {
           if (showMessage) {
             alert("접근 권한이 없습니다.");
           }
-          if (mounted) {
+          if (mounted && typeof window !== 'undefined') {
             router.push(redirectTo);
           }
           return;
@@ -58,6 +58,11 @@ export function useRequireAuth(options?: {
         return;
       }
 
+      // 이미 체크 중이면 대기
+      if (isCheckingRef.current) {
+        return;
+      }
+
       const accessToken = localStorage.getItem("accessToken");
       const refreshToken = localStorage.getItem("refreshToken");
 
@@ -71,10 +76,6 @@ export function useRequireAuth(options?: {
       }
 
       // 토큰이 있으면 사용자 정보 가져오기 (한 번만 실행)
-      if (isCheckingRef.current) {
-        return; // 이미 체크 중이면 대기
-      }
-
       isCheckingRef.current = true;
       try {
         const response = await authAPI.getCurrentUser();
@@ -90,7 +91,9 @@ export function useRequireAuth(options?: {
           if (showMessage) {
             alert("접근 권한이 없습니다.");
           }
-          router.push(redirectTo);
+          if (typeof window !== 'undefined') {
+            router.push(redirectTo);
+          }
           return;
         }
       } catch (error) {
@@ -98,7 +101,9 @@ export function useRequireAuth(options?: {
         if (mounted) {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          router.push(redirectTo);
+          if (typeof window !== 'undefined') {
+            router.push(redirectTo);
+          }
         }
       } finally {
         if (mounted) {
@@ -113,7 +118,8 @@ export function useRequireAuth(options?: {
     return () => {
       mounted = false;
     };
-  }, [user, router, redirectTo, requireRole, showMessage, setAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, redirectTo, requireRole, showMessage]);
 
   return {
     user: user || null,
