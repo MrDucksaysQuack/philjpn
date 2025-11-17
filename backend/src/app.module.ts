@@ -10,6 +10,7 @@ import { ReportModule } from './modules/report/report.module';
 import { WordBookModule } from './modules/wordbook/wordbook.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
+import { AIModule } from './modules/ai/ai.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 
@@ -26,6 +27,7 @@ import databaseConfig from './config/database.config';
     WordBookModule, // Phase 5: 단어장
     AdminModule, // Phase 7: Admin Panel
     MonitoringModule, // Phase 8: 실시간 모니터링
+    AIModule, // Phase 9: AI 분석 통합
     CoreModule, // Phase 1-2: Core Engine
   ],
   controllers: [AppController],

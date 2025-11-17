@@ -171,6 +171,8 @@ model ExamResult {
   updatedAt        DateTime        @updatedAt
   extractedWords   String[]        @default([])
   learningInsights Json?
+  aiAnalysis       Json?
+  aiAnalyzedAt     DateTime?
   exam             Exam            @relation(fields: [examId], references: [id])
   licenseKey       LicenseKey?     @relation(fields: [licenseKeyId], references: [id])
   user             User            @relation(fields: [userId], references: [id])
@@ -214,6 +216,8 @@ model QuestionResult {
   pointsPossible  Int?
   timeSpent       Int?
   answeredAt      DateTime?
+  aiExplanation   String?
+  aiGeneratedAt   DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   question        Question      @relation(fields: [questionId], references: [id])
