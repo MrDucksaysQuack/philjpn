@@ -82,35 +82,63 @@ export class SiteSettingsService {
       where: { isActive: true },
     });
 
-    // JSON 필드들을 처리
+    // Prisma 스키마에 맞는 필드만 포함
     const updateData: any = {
-      ...data,
       updatedBy: userId,
     };
 
+    // 기본 필드들
+    if (data.companyName !== undefined) {
+      updateData.companyName = data.companyName;
+    }
+    if (data.logoUrl !== undefined) {
+      updateData.logoUrl = data.logoUrl;
+    }
+    if (data.faviconUrl !== undefined) {
+      updateData.faviconUrl = data.faviconUrl;
+    }
+    if (data.primaryColor !== undefined) {
+      updateData.primaryColor = data.primaryColor;
+    }
+    if (data.secondaryColor !== undefined) {
+      updateData.secondaryColor = data.secondaryColor;
+    }
+    if (data.accentColor !== undefined) {
+      updateData.accentColor = data.accentColor;
+    }
+    if (data.aboutCompany !== undefined) {
+      updateData.aboutCompany = data.aboutCompany;
+    }
+    if (data.aboutTeam !== undefined) {
+      updateData.aboutTeam = data.aboutTeam;
+    }
+    if (data.serviceInfo !== undefined) {
+      updateData.serviceInfo = data.serviceInfo;
+    }
+
     // JSON 필드들을 명시적으로 변환
-    if (data.contactInfo) {
+    if (data.contactInfo !== undefined) {
       updateData.contactInfo = data.contactInfo as any;
     }
-    if (data.companyStats) {
+    if (data.companyStats !== undefined) {
       updateData.companyStats = data.companyStats as any;
     }
-    if (data.companyValues) {
+    if (data.companyValues !== undefined) {
       updateData.companyValues = data.companyValues as any;
     }
-    if (data.teamMembers) {
+    if (data.teamMembers !== undefined) {
       updateData.teamMembers = data.teamMembers as any;
     }
-    if (data.teamCulture) {
+    if (data.teamCulture !== undefined) {
       updateData.teamCulture = data.teamCulture as any;
     }
-    if (data.serviceFeatures) {
+    if (data.serviceFeatures !== undefined) {
       updateData.serviceFeatures = data.serviceFeatures as any;
     }
-    if (data.serviceBenefits) {
+    if (data.serviceBenefits !== undefined) {
       updateData.serviceBenefits = data.serviceBenefits as any;
     }
-    if (data.serviceProcess) {
+    if (data.serviceProcess !== undefined) {
       updateData.serviceProcess = data.serviceProcess as any;
     }
 
@@ -129,8 +157,13 @@ export class SiteSettingsService {
         },
       });
     } else {
+      // 새로 생성할 때는 기본값 설정
       return await this.prisma.siteSettings.create({
-        data: updateData,
+        data: {
+          ...updateData,
+          companyName: updateData.companyName || 'Exam Platform',
+          isActive: true,
+        },
         include: {
           updater: {
             select: {
