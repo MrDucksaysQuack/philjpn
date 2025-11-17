@@ -19,6 +19,7 @@ import { ReportService } from './analysis/report.service';
 import { GoalService } from './services/goal.service';
 import { RecommendationService } from './services/recommendation.service';
 import { LearningCycleService } from './services/learning-cycle.service';
+import { BadgeService } from './services/badge.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateGoalDto } from './dto/goal.dto';
@@ -31,6 +32,7 @@ export class ReportController {
     private readonly goalService: GoalService,
     private readonly recommendationService: RecommendationService,
     private readonly learningCycleService: LearningCycleService,
+    private readonly badgeService: BadgeService,
   ) {}
 
   @Get('results/:id/report')
@@ -200,6 +202,25 @@ export class ReportController {
   @ApiResponse({ status: 200, description: '사이클 완료 성공' })
   completeCycle(@CurrentUser() user: any) {
     return this.learningCycleService.completeCycle(user.id);
+  }
+
+  // 배지 API
+  @Get('users/me/badges')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '사용자 배지 목록 조회' })
+  @ApiResponse({ status: 200, description: '배지 목록 조회 성공' })
+  getUserBadges(@CurrentUser() user: any) {
+    return this.badgeService.getUserBadges(user.id);
+  }
+
+  @Get('badges')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '전체 배지 목록 조회 (활성 배지만)' })
+  @ApiResponse({ status: 200, description: '배지 목록 조회 성공' })
+  getAllBadges() {
+    return this.badgeService.getAllBadges(false);
   }
 }
 

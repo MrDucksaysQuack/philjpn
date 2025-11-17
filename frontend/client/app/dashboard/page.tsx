@@ -12,6 +12,7 @@ import LearningInsightsWidget from "./components/LearningInsightsWidget";
 import WordBookSummaryWidget from "./components/WordBookSummaryWidget";
 import QuickActions from "./components/QuickActions";
 import ScoreTrendWidget from "./components/ScoreTrendWidget";
+import BadgesWidget from "./components/BadgesWidget";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
 
@@ -102,6 +103,11 @@ export default function DashboardPage() {
             <div>
               <WordBookSummaryWidget />
             </div>
+          </div>
+
+          {/* 배지 위젯 */}
+          <div className="mb-8">
+            <BadgesWidget />
           </div>
 
           {/* 빠른 액션 섹션 */}

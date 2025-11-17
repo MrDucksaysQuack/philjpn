@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
-import { resultAPI, wordExtractionAPI, aiAPI, DetailedFeedback, GenerateExplanationPayload } from "@/lib/api";
+import { resultAPI, wordExtractionAPI, aiAPI, DetailedFeedback, GenerateExplanationPayload, badgeAPI, UserBadge } from "@/lib/api";
 import { emotionalToast, toast } from "@/components/common/Toast";
 import CelebrationModal from "@/components/common/CelebrationModal";
 
@@ -19,6 +19,9 @@ export default function ResultDetailPage() {
   const [aiJobIds, setAiJobIds] = useState<Record<string, string>>({});
   const [diagnosingWeakness, setDiagnosingWeakness] = useState(false);
   const [weaknessDiagnosisResult, setWeaknessDiagnosisResult] = useState<any>(null);
+  const [newBadges, setNewBadges] = useState<UserBadge[]>([]);
+  const [showBadgeCelebration, setShowBadgeCelebration] = useState(false);
+  const [checkedBadges, setCheckedBadges] = useState(false);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["result", resultId],
@@ -27,6 +30,37 @@ export default function ResultDetailPage() {
       return response.data;
     },
   });
+
+  // 배지 확인 (시험 완료 후 한 번만)
+  const { data: badgesResponse } = useQuery({
+    queryKey: ["user-badges"],
+    queryFn: async () => {
+      const response = await badgeAPI.getUserBadges();
+      return response.data;
+    },
+    enabled: !!result && result.status === "completed" && !checkedBadges,
+  });
+
+  // 새로 획득한 배지 확인
+  useEffect(() => {
+    if (result && result.status === "completed" && badgesResponse?.data && !checkedBadges) {
+      const badges = badgesResponse.data;
+      // 최근 1분 이내에 획득한 배지 찾기
+      const recentBadges = badges.filter((badge: UserBadge) => {
+        const earnedAt = new Date(badge.earnedAt);
+        const now = new Date();
+        const diffMinutes = (now.getTime() - earnedAt.getTime()) / (1000 * 60);
+        return diffMinutes < 1; // 1분 이내
+      });
+
+      if (recentBadges.length > 0) {
+        setNewBadges(recentBadges);
+        setShowBadgeCelebration(true);
+        emotionalToast.success.badgeEarned?.(recentBadges[0].name) || toast.success(`배지를 획득했습니다: ${recentBadges[0].name}`);
+      }
+      setCheckedBadges(true);
+    }
+  }, [result, badgesResponse, checkedBadges]);
 
   const { data: report } = useQuery({
     queryKey: ["result-report", resultId],
@@ -902,6 +936,34 @@ export default function ResultDetailPage() {
           onClick: () => router.push("/analysis?tab=goals"),
         }}
       />
+
+      {/* 배지 획득 축하 모달 */}
+      {newBadges.length > 0 && (
+        <CelebrationModal
+          isOpen={showBadgeCelebration}
+          onClose={() => {
+            setShowBadgeCelebration(false);
+            setNewBadges([]);
+          }}
+          title="🏆 배지 획득!"
+          message={newBadges.length === 1 
+            ? `${newBadges[0].name} 배지를 획득했습니다!`
+            : `${newBadges.length}개의 배지를 획득했습니다!`}
+          emoji={newBadges[0]?.icon || "🏆"}
+          achievement={{
+            type: "배지 획득",
+            value: newBadges.map(b => b.name).join(", "),
+          }}
+          nextAction={{
+            label: "배지 갤러리 보기",
+            onClick: () => {
+              setShowBadgeCelebration(false);
+              setNewBadges([]);
+              router.push("/badges");
+            },
+          }}
+        />
+      )}
     </>
   );
 }

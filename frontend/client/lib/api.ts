@@ -704,6 +704,25 @@ export const learningCycleAPI = {
     apiClient.post("/users/me/learning-cycle/complete"),
 };
 
+// Badge API (User)
+export interface UserBadge {
+  id: string;
+  badgeId: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  earnedAt: string;
+  progress: number;
+}
+
+export const badgeAPI = {
+  getUserBadges: () =>
+    apiClient.get<{ data: UserBadge[] }>("/users/me/badges"),
+  getAllBadges: () =>
+    apiClient.get<{ data: Badge[] }>("/badges"),
+};
+
 // Word Extraction API
 export const wordExtractionAPI = {
   extractFromResult: (examResultId: string) =>

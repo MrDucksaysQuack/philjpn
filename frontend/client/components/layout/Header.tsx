@@ -109,6 +109,8 @@ export default function Header() {
 
   const menuItems = [
     { href: "/dashboard", label: "대시보드", icon: "📊", isPrimary: true },
+    { href: "/profile", label: "프로필", icon: "👤", isPrimary: false },
+    { href: "/badges", label: "배지 갤러리", icon: "🏆", isPrimary: false },
     { href: "/results", label: "내 결과", icon: "📝" },
     { href: "/wordbook", label: "단어장", icon: "📖" },
     { href: "/statistics", label: "통계", icon: "📈" },
