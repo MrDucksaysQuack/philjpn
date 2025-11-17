@@ -15,6 +15,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { LicenseKeyService } from './services/license-key.service';
+import { ExpirationNotificationService } from './services/expiration-notification.service';
 import { CreateLicenseKeyDto } from './dto/create-license-key.dto';
 import { CreateBatchLicenseKeysDto } from './dto/create-batch-license-keys.dto';
 import { UpdateLicenseKeyDto } from './dto/update-license-key.dto';
@@ -33,6 +34,7 @@ import { PrismaService } from '../../common/utils/prisma.service';
 export class LicenseKeyController {
   constructor(
     private readonly licenseKeyService: LicenseKeyService,
+    private readonly expirationNotificationService: ExpirationNotificationService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -223,6 +225,16 @@ export class LicenseKeyController {
       predictedUsage,
       message: `향후 ${daysNum}일간 예상 사용량: ${predictedUsage}회`,
     };
+  }
+
+  @Post('batch/:id/notify-expiration')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '만료 알림 수동 전송 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '알림 전송 성공' })
+  async sendExpirationNotification(@Param('id') batchId: string) {
+    return this.expirationNotificationService.sendExpirationNotification(batchId);
   }
 }
 
