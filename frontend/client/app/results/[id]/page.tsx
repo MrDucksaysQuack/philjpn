@@ -56,7 +56,7 @@ export default function ResultDetailPage() {
       if (recentBadges.length > 0) {
         setNewBadges(recentBadges);
         setShowBadgeCelebration(true);
-        emotionalToast.success.badgeEarned?.(recentBadges[0].name) || toast.success(`배지를 획득했습니다: ${recentBadges[0].name}`);
+        toast.success(`배지를 획득했습니다: ${recentBadges[0].name}`);
       }
       setCheckedBadges(true);
     }
