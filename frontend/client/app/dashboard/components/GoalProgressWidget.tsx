@@ -30,21 +30,23 @@ export default function GoalProgressWidget() {
     enabled: !!user,
   });
 
-  // 목표 달성 체크
-  if (goalProgress?.activeGoals) {
-    const justAchieved = goalProgress.activeGoals.find(
-      (goal: any) => goal.progress >= 1 && goal.onTrack && !achievedGoal
-    );
-    if (justAchieved) {
-      const targetText = 
-        justAchieved.type === "score_target" ? `${justAchieved.target}점` :
-        justAchieved.type === "exam_count" ? `${justAchieved.target}회` :
-        `${justAchieved.target}개`;
-      setAchievedGoal({ type: justAchieved.type, target: targetText });
-      setShowCelebration(true);
-      emotionalToast.success.goalAchieved(targetText);
+  // 목표 달성 체크 (렌더링 중 상태 변경 방지를 위해 useEffect 사용)
+  useEffect(() => {
+    if (goalProgress?.activeGoals) {
+      const justAchieved = goalProgress.activeGoals.find(
+        (goal: any) => goal.progress >= 1 && goal.onTrack && !achievedGoal
+      );
+      if (justAchieved) {
+        const targetText = 
+          justAchieved.type === "score_target" ? `${justAchieved.target}점` :
+          justAchieved.type === "exam_count" ? `${justAchieved.target}회` :
+          `${justAchieved.target}개`;
+        setAchievedGoal({ type: justAchieved.type, target: targetText });
+        setShowCelebration(true);
+        emotionalToast.success.goalAchieved(targetText);
+      }
     }
-  }
+  }, [goalProgress, achievedGoal]);
 
   if (isLoading) {
     return <LoadingSkeleton type="card" />;

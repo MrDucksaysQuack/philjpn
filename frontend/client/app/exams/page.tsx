@@ -88,6 +88,47 @@ function ExamsPageContent() {
     router.push(`/exams?${params.toString()}`);
   };
 
+  // 필터링된 시험 목록 (컴포넌트 최상위에서 useMemo 호출)
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    
+    return data.filter((exam: Exam) => {
+      // 검색 필터
+      if (filters.search && !exam.title.toLowerCase().includes(filters.search.toLowerCase()) &&
+          !exam.description?.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+      
+      // 시험 유형 필터
+      if (filters.examType && exam.examType !== filters.examType) {
+        return false;
+      }
+      
+      // 시간 필터
+      if (exam.estimatedTime) {
+        if (filters.minTime && exam.estimatedTime < parseFloat(filters.minTime)) {
+          return false;
+        }
+        if (filters.maxTime && exam.estimatedTime > parseFloat(filters.maxTime)) {
+          return false;
+        }
+      }
+      
+      // 적응형 시험 필터
+      if (filters.isAdaptive !== "") {
+        const isAdaptive = (exam as any).isAdaptive === true;
+        if (filters.isAdaptive === "true" && !isAdaptive) {
+          return false;
+        }
+        if (filters.isAdaptive === "false" && isAdaptive) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [data, filters]);
+
   if (isLoading) {
     return (
       <>
@@ -331,52 +372,10 @@ function ExamsPageContent() {
           </div>
 
           {/* 필터링된 시험 목록 */}
-          {(() => {
-            const filteredData = useMemo(() => {
-              if (!data) return [];
-              
-              return data.filter((exam: Exam) => {
-                // 검색 필터
-                if (filters.search && !exam.title.toLowerCase().includes(filters.search.toLowerCase()) &&
-                    !exam.description?.toLowerCase().includes(filters.search.toLowerCase())) {
-                  return false;
-                }
-                
-                // 시험 유형 필터
-                if (filters.examType && exam.examType !== filters.examType) {
-                  return false;
-                }
-                
-                // 시간 필터
-                if (exam.estimatedTime) {
-                  if (filters.minTime && exam.estimatedTime < parseFloat(filters.minTime)) {
-                    return false;
-                  }
-                  if (filters.maxTime && exam.estimatedTime > parseFloat(filters.maxTime)) {
-                    return false;
-                  }
-                }
-                
-                // 적응형 시험 필터
-                if (filters.isAdaptive !== "") {
-                  const isAdaptive = (exam as any).isAdaptive === true;
-                  if (filters.isAdaptive === "true" && !isAdaptive) {
-                    return false;
-                  }
-                  if (filters.isAdaptive === "false" && isAdaptive) {
-                    return false;
-                  }
-                }
-                
-                return true;
-              });
-            }, [data, filters]);
-            
-            return (
-              <>
-                <div className="mb-4 text-sm text-gray-600">
-                  총 {filteredData.length}개의 시험이 표시됩니다
-                </div>
+          <>
+            <div className="mb-4 text-sm text-gray-600">
+              총 {filteredData.length}개의 시험이 표시됩니다
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredData.map((exam: Exam) => (
               <Link
@@ -452,9 +451,7 @@ function ExamsPageContent() {
                     <p className="text-gray-500">필터 조건에 맞는 시험이 없습니다.</p>
                   </div>
                 )}
-              </>
-            );
-          })()}
+          </>
 
           {data?.length === 0 && (
             <div className="text-center py-20">

@@ -163,6 +163,62 @@ export default function AdminLicenseKeysPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // 필터링된 데이터 계산 (early return 전에 모든 Hooks 호출)
+  const filteredData = useMemo(() => {
+    if (!data?.data) return [];
+    
+    return data.data.filter((key: LicenseKey) => {
+      // 검색 필터
+      if (filters.search && !key.key.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+      
+      // 키 유형 필터
+      if (filters.keyType && key.keyType !== filters.keyType) {
+        return false;
+      }
+      
+      // 상태 필터
+      if (filters.isActive !== "") {
+        const isActive = key.isActive === true;
+        if (filters.isActive === "true" && !isActive) {
+          return false;
+        }
+        if (filters.isActive === "false" && isActive) {
+          return false;
+        }
+      }
+      
+      // 사용 횟수 필터
+      if (filters.minUsage && key.usageCount < parseFloat(filters.minUsage)) {
+        return false;
+      }
+      if (filters.maxUsage && key.usageCount > parseFloat(filters.maxUsage)) {
+        return false;
+      }
+      
+      // 날짜 필터
+      if (key.validFrom) {
+        const validFrom = new Date(key.validFrom);
+        if (filters.dateFrom && validFrom < new Date(filters.dateFrom)) {
+          return false;
+        }
+      }
+      if (key.validUntil) {
+        const validUntil = new Date(key.validUntil);
+        if (filters.dateTo) {
+          const toDate = new Date(filters.dateTo);
+          toDate.setHours(23, 59, 59, 999);
+          if (validUntil > toDate) {
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    });
+  }, [data, filters]);
+
   // SSR 중에는 로딩 표시
   if (typeof window === 'undefined' || !user || user.role !== "admin") {
     return null;
@@ -234,62 +290,6 @@ export default function AdminLicenseKeysPage() {
       return newSet;
     });
   };
-
-  // 필터링된 데이터 계산
-  const filteredData = useMemo(() => {
-    if (!data?.data) return [];
-    
-    return data.data.filter((key: LicenseKey) => {
-      // 검색 필터
-      if (filters.search && !key.key.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
-      }
-      
-      // 키 유형 필터
-      if (filters.keyType && key.keyType !== filters.keyType) {
-        return false;
-      }
-      
-      // 상태 필터
-      if (filters.isActive !== "") {
-        const isActive = key.isActive === true;
-        if (filters.isActive === "true" && !isActive) {
-          return false;
-        }
-        if (filters.isActive === "false" && isActive) {
-          return false;
-        }
-      }
-      
-      // 사용 횟수 필터
-      if (filters.minUsage && key.usageCount < parseFloat(filters.minUsage)) {
-        return false;
-      }
-      if (filters.maxUsage && key.usageCount > parseFloat(filters.maxUsage)) {
-        return false;
-      }
-      
-      // 날짜 필터
-      if (key.validFrom) {
-        const validFrom = new Date(key.validFrom);
-        if (filters.dateFrom && validFrom < new Date(filters.dateFrom)) {
-          return false;
-        }
-      }
-      if (key.validUntil) {
-        const validUntil = new Date(key.validUntil);
-        if (filters.dateTo) {
-          const toDate = new Date(filters.dateTo);
-          toDate.setHours(23, 59, 59, 999);
-          if (validUntil > toDate) {
-            return false;
-          }
-        }
-      }
-      
-      return true;
-    });
-  }, [data, filters]);
 
   const selectAllKeys = () => {
     if (filteredData.length === 0) return;

@@ -83,6 +83,48 @@ export default function ResultsPage() {
     );
   }
 
+  // 필터링된 결과 (컴포넌트 최상위에서 useMemo 호출)
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    
+    return data.filter((result: ExamResult) => {
+      // 검색 필터
+      if (filters.search && !result.id.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+      
+      // 상태 필터
+      if (filters.status && result.status !== filters.status) {
+        return false;
+      }
+      
+      // 날짜 필터
+      const startedDate = new Date(result.startedAt);
+      if (filters.dateFrom && startedDate < new Date(filters.dateFrom)) {
+        return false;
+      }
+      if (filters.dateTo) {
+        const toDate = new Date(filters.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (startedDate > toDate) {
+          return false;
+        }
+      }
+      
+      // 점수 필터
+      if (result.totalScore !== null && result.totalScore !== undefined) {
+        if (filters.minScore && result.totalScore < parseFloat(filters.minScore)) {
+          return false;
+        }
+        if (filters.maxScore && result.totalScore > parseFloat(filters.maxScore)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [data, filters]);
+
   return (
     <>
       <Header />
@@ -199,53 +241,10 @@ export default function ResultsPage() {
           </div>
 
           {/* 필터링된 결과 */}
-          {(() => {
-            const filteredData = useMemo(() => {
-              if (!data) return [];
-              
-              return data.filter((result: ExamResult) => {
-                // 검색 필터
-                if (filters.search && !result.id.toLowerCase().includes(filters.search.toLowerCase())) {
-                  return false;
-                }
-                
-                // 상태 필터
-                if (filters.status && result.status !== filters.status) {
-                  return false;
-                }
-                
-                // 날짜 필터
-                const startedDate = new Date(result.startedAt);
-                if (filters.dateFrom && startedDate < new Date(filters.dateFrom)) {
-                  return false;
-                }
-                if (filters.dateTo) {
-                  const toDate = new Date(filters.dateTo);
-                  toDate.setHours(23, 59, 59, 999);
-                  if (startedDate > toDate) {
-                    return false;
-                  }
-                }
-                
-                // 점수 필터
-                if (result.totalScore !== null && result.totalScore !== undefined) {
-                  if (filters.minScore && result.totalScore < parseFloat(filters.minScore)) {
-                    return false;
-                  }
-                  if (filters.maxScore && result.totalScore > parseFloat(filters.maxScore)) {
-                    return false;
-                  }
-                }
-                
-                return true;
-              });
-            }, [data, filters]);
-            
-            return (
-              <>
-                <div className="mb-4 text-sm text-gray-600">
-                  총 {filteredData.length}개의 결과가 표시됩니다
-                </div>
+          <>
+            <div className="mb-4 text-sm text-gray-600">
+              총 {filteredData.length}개의 결과가 표시됩니다
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredData.map((result: ExamResult) => (
               <Link
@@ -335,9 +334,7 @@ export default function ResultsPage() {
                     <p className="text-gray-500">필터 조건에 맞는 결과가 없습니다.</p>
                   </div>
                 )}
-              </>
-            );
-          })()}
+          </>
 
           {data?.length === 0 && (
             <div className="text-center py-20">
