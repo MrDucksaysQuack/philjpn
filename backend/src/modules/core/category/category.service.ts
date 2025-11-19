@@ -255,6 +255,7 @@ export class CategoryService {
   // Public API (활성화된 카테고리만)
   async getPublicCategories() {
     try {
+      // 단계별로 쿼리 실행하여 에러 위치 파악
       const categories = await this.prisma.category.findMany({
         where: { 
           isActive: true,
@@ -264,21 +265,50 @@ export class CategoryService {
             where: { isActive: true },
             orderBy: { order: 'asc' },
           },
-          _count: {
-            select: {
-              exams: {
-                where: { isActive: true, isPublic: true },
-              },
-            },
-          },
         },
         orderBy: { order: 'asc' },
       });
       
+      // _count는 별도로 계산 (에러 발생 가능성 있음)
+      const categoriesWithCount = await Promise.all(
+        categories.map(async (category) => {
+          try {
+            const examCount = await this.prisma.exam.count({
+              where: {
+                categoryId: category.id,
+                isActive: true,
+                isPublic: true,
+              },
+            });
+            return {
+              ...category,
+              _count: {
+                exams: examCount,
+              },
+            };
+          } catch (error) {
+            console.error(`Error counting exams for category ${category.id}:`, error);
+            return {
+              ...category,
+              _count: {
+                exams: 0,
+              },
+            };
+          }
+        })
+      );
+      
       // slug가 null이 아닌 카테고리만 필터링 (데이터베이스에 null이 있을 수 있음)
-      return categories.filter(category => category.slug !== null && category.slug !== '');
-    } catch (error) {
+      const filteredCategories = categoriesWithCount.filter(category => category.slug !== null && category.slug !== '');
+      
+      console.log(`[CategoryService] Found ${categories.length} categories, ${filteredCategories.length} after filtering`);
+      
+      return filteredCategories;
+    } catch (error: any) {
       console.error('Error fetching public categories:', error);
+      console.error('Error stack:', error?.stack);
+      console.error('Error message:', error?.message);
+      console.error('Error name:', error?.name);
       // 에러 발생 시 빈 배열 반환 (애플리케이션이 크래시되지 않도록)
       return [];
     }

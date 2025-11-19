@@ -37,9 +37,11 @@ export class CategoryController {
       return {
         data: categories,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in getPublicCategories controller:', error);
-      // 에러 발생 시 빈 배열 반환
+      console.error('Error stack:', error?.stack);
+      console.error('Error message:', error?.message);
+      // 에러 발생 시 빈 배열 반환 (500 에러 방지)
       return {
         data: [],
       };
