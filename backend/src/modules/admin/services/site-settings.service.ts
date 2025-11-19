@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { UpdateSiteSettingsDto } from '../dto/update-site-settings.dto';
 import { SettingsGateway } from '../gateway/settings.gateway';
@@ -9,8 +9,7 @@ export class SiteSettingsService {
 
   constructor(
     private prisma: PrismaService,
-    @Inject(forwardRef(() => SettingsGateway))
-    private readonly settingsGateway?: SettingsGateway,
+    private readonly settingsGateway: SettingsGateway,
   ) {}
 
   /**
@@ -208,12 +207,10 @@ export class SiteSettingsService {
     }
 
     // 실시간 설정 업데이트 브로드캐스트
-    if (this.settingsGateway) {
-      try {
-        this.settingsGateway.broadcastSettingsUpdate(updatedSettings);
-      } catch (error) {
-        this.logger.warn('Failed to broadcast settings update:', error);
-      }
+    try {
+      this.settingsGateway.broadcastSettingsUpdate(updatedSettings);
+    } catch (error) {
+      this.logger.warn('Failed to broadcast settings update:', error);
     }
 
     return updatedSettings;
