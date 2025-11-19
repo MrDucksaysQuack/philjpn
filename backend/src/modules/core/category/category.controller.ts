@@ -32,9 +32,18 @@ export class CategoryController {
   @ApiOperation({ summary: '활성화된 카테고리 목록 조회 (공개)' })
   @ApiResponse({ status: 200, description: '카테고리 목록 조회 성공' })
   async getPublicCategories() {
-    return {
-      data: await this.categoryService.getPublicCategories(),
-    };
+    try {
+      const categories = await this.categoryService.getPublicCategories();
+      return {
+        data: categories,
+      };
+    } catch (error) {
+      console.error('Error in getPublicCategories controller:', error);
+      // 에러 발생 시 빈 배열 반환
+      return {
+        data: [],
+      };
+    }
   }
 
   // Public API - Slug로 카테고리 조회

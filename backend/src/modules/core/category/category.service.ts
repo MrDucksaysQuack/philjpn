@@ -254,23 +254,34 @@ export class CategoryService {
 
   // Public API (활성화된 카테고리만)
   async getPublicCategories() {
-    return this.prisma.category.findMany({
-      where: { isActive: true },
-      include: {
-        subcategories: {
-          where: { isActive: true },
-          orderBy: { order: 'asc' },
+    try {
+      const categories = await this.prisma.category.findMany({
+        where: { 
+          isActive: true,
+          slug: { not: null }, // slug가 null이 아닌 카테고리만 조회
         },
-        _count: {
-          select: {
-            exams: {
-              where: { isActive: true, isPublic: true },
+        include: {
+          subcategories: {
+            where: { isActive: true },
+            orderBy: { order: 'asc' },
+          },
+          _count: {
+            select: {
+              exams: {
+                where: { isActive: true, isPublic: true },
+              },
             },
           },
         },
-      },
-      orderBy: { order: 'asc' },
-    });
+        orderBy: { order: 'asc' },
+      });
+      
+      return categories;
+    } catch (error) {
+      console.error('Error fetching public categories:', error);
+      // 에러 발생 시 빈 배열 반환 (애플리케이션이 크래시되지 않도록)
+      return [];
+    }
   }
 
   /**
