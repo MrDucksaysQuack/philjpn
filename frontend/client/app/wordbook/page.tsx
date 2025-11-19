@@ -93,14 +93,14 @@ export default function WordBookPage() {
       <Header />
       <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-theme-primary via-theme-accent to-theme-secondary overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
                 {t("wordbook.title")}
               </h1>
-              <p className="text-xl text-teal-100 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 max-w-2xl mx-auto">
                 {t("wordbook.subtitle")}
               </p>
             </div>
@@ -115,7 +115,7 @@ export default function WordBookPage() {
               className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg ${
                 showAddForm
                   ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  : "bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:from-teal-700 hover:to-cyan-700"
+                  : "bg-gradient-to-r from-theme-primary to-theme-accent text-white hover:from-theme-primary hover:to-theme-accent"
               }`}
             >
               {showAddForm ? (
@@ -139,7 +139,7 @@ export default function WordBookPage() {
           {showAddForm && (
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100 animate-slide-up">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-theme-primary to-theme-accent rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
@@ -180,7 +180,7 @@ export default function WordBookPage() {
                 </div>
                 <button
                   type="submit"
-                  className="mt-6 px-8 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="mt-6 px-8 py-3 bg-gradient-to-r from-theme-primary to-theme-accent text-white rounded-xl font-semibold hover:from-theme-primary hover:to-theme-accent transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   {t("wordbook.addButton")}
                 </button>
@@ -189,9 +189,9 @@ export default function WordBookPage() {
           )}
 
           {reviewList && reviewList.data && reviewList.data.length > 0 && (
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-lg p-8 mb-8 border-2 border-amber-200">
+            <div className="bg-gradient-to-br from-warning/10 to-warning/20 rounded-2xl shadow-lg p-8 mb-8 border-2 border-warning/20">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-warning to-warning rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -200,20 +200,20 @@ export default function WordBookPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviewList.data.map((word: any) => (
-                  <div key={word.id} className="bg-white rounded-xl p-6 border border-amber-100 shadow-md hover:shadow-lg transition-all">
+                  <div key={word.id} className="bg-white rounded-xl p-6 border border-warning/20 shadow-md hover:shadow-lg transition-all">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="font-bold text-xl text-gray-900 mb-1">{word.word}</div>
                         <div className="text-gray-600">{word.meaning}</div>
                       </div>
-                      <div className="px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border border-amber-200">
-                        <div className="text-xs font-semibold text-amber-700 mb-0.5">{t("wordbook.mastery")}</div>
-                        <div className="text-sm font-bold text-amber-900">{word.masteryLevel}%</div>
+                      <div className="px-3 py-1 bg-gradient-to-r from-warning/20 to-warning/30 rounded-lg border border-warning/20">
+                        <div className="text-xs font-semibold text-warning mb-0.5">{t("wordbook.mastery")}</div>
+                        <div className="text-sm font-bold text-warning">{word.masteryLevel}%</div>
                       </div>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                       <div
-                        className="bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full transition-all"
+                        className="bg-gradient-to-r from-warning to-warning h-2 rounded-full transition-all"
                         style={{ width: `${word.masteryLevel}%` }}
                       />
                     </div>
@@ -222,7 +222,7 @@ export default function WordBookPage() {
                         onClick={() =>
                           reviewMutation.mutate({ id: word.id, isCorrect: true })
                         }
-                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg"
+                        className="flex-1 bg-gradient-to-r from-success to-success text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-success hover:to-success transition-all shadow-md hover:shadow-lg"
                       >
                         ✓ {t("wordbook.correct")}
                       </button>
@@ -230,7 +230,7 @@ export default function WordBookPage() {
                         onClick={() =>
                           reviewMutation.mutate({ id: word.id, isCorrect: false })
                         }
-                        className="flex-1 bg-gradient-to-r from-red-500 to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg"
+                        className="flex-1 bg-gradient-to-r from-error to-error text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-error hover:to-error transition-all shadow-md hover:shadow-lg"
                       >
                         ✗ {t("wordbook.incorrect")}
                       </button>
@@ -243,12 +243,12 @@ export default function WordBookPage() {
 
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div className="w-1 h-8 bg-gradient-to-b from-teal-600 to-cyan-600 rounded-full"></div>
+              <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-accent rounded-full"></div>
               {t("wordbook.allWords")}
             </h2>
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20">
-                <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <div className="w-16 h-16 border-4 border-theme-primary border-t-transparent rounded-full animate-spin mb-4"></div>
                 <p className="text-gray-600 font-medium">{t("wordbook.loadingWords")}</p>
               </div>
             ) : (
@@ -257,14 +257,14 @@ export default function WordBookPage() {
                   <div key={word.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all card-hover">
                     <div className="flex justify-between items-start mb-3">
                       <div className="font-bold text-xl text-gray-900">{word.word}</div>
-                      <div className="px-3 py-1.5 bg-gradient-to-r from-teal-100 to-cyan-100 rounded-lg border border-teal-200">
-                        <div className="text-xs font-semibold text-teal-700 mb-0.5">{t("wordbook.mastery")}</div>
-                        <div className="text-sm font-bold text-teal-900">{word.masteryLevel}%</div>
+                      <div className="px-3 py-1.5 bg-gradient-to-r from-theme-primary/20 to-theme-accent/20 rounded-lg border border-theme-primary/20">
+                        <div className="text-xs font-semibold text-theme-primary mb-0.5">{t("wordbook.mastery")}</div>
+                        <div className="text-sm font-bold text-theme-primary">{word.masteryLevel}%</div>
                       </div>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                       <div
-                        className="bg-gradient-to-r from-teal-400 to-cyan-500 h-2 rounded-full transition-all"
+                        className="bg-gradient-to-r from-theme-primary to-theme-accent h-2 rounded-full transition-all"
                         style={{ width: `${word.masteryLevel}%` }}
                       />
                     </div>
@@ -279,7 +279,7 @@ export default function WordBookPage() {
                         {word.tags.map((tag: string, index: number) => (
                           <span
                             key={index}
-                            className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-2.5 py-1 rounded-full font-medium border border-purple-200"
+                            className="text-xs bg-gradient-to-r from-theme-secondary/20 to-theme-accent/20 text-theme-secondary px-2.5 py-1 rounded-full font-medium border border-theme-secondary/20"
                           >
                             #{tag}
                           </span>
@@ -292,8 +292,8 @@ export default function WordBookPage() {
             )}
             {data?.data.length === 0 && (
               <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-2xl mb-6 shadow-lg">
-                  <svg className="w-12 h-12 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-theme-primary/20 to-theme-accent/20 rounded-2xl mb-6 shadow-lg">
+                  <svg className="w-12 h-12 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
@@ -303,7 +303,7 @@ export default function WordBookPage() {
                 <p className="text-gray-500 mb-6">{t("wordbook.noWordsSubtitle")}</p>
                 <button
                   onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-theme-primary to-theme-accent text-white rounded-lg font-semibold hover:from-theme-primary hover:to-theme-accent transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

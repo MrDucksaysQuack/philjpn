@@ -5,6 +5,7 @@ import { resultAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import LoadingSkeleton from "@/components/common/LoadingSkeleton";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { chartColors } from "@/lib/chart-colors";
 
 export default function ScoreTrendWidget() {
   const user = useAuthStore((state) => state.user);
@@ -46,16 +47,16 @@ export default function ScoreTrendWidget() {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+          <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+            <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-accent rounded-full"></div>
             성적 추이
           </h2>
         </div>
         <div className="text-center py-12">
-          <p className="text-gray-500">아직 완료된 시험이 없습니다.</p>
-          <p className="text-sm text-gray-400 mt-2">시험을 완료하면 성적 추이가 표시됩니다.</p>
+          <p className="text-text-muted">아직 완료된 시험이 없습니다.</p>
+          <p className="text-sm text-text-muted mt-2">시험을 완료하면 성적 추이가 표시됩니다.</p>
         </div>
       </div>
     );
@@ -65,7 +66,7 @@ export default function ScoreTrendWidget() {
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+          <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-accent rounded-full"></div>
           성적 추이
         </h2>
       </div>
@@ -73,33 +74,33 @@ export default function ScoreTrendWidget() {
       <div className="mb-4">
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-            <span className="text-gray-600">점수</span>
+            <div className="w-3 h-3 bg-info rounded-full"></div>
+            <span className="text-text-secondary">점수</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-            <span className="text-gray-600">백분율</span>
+            <div className="w-3 h-3 bg-success rounded-full"></div>
+            <span className="text-text-secondary">백분율</span>
           </div>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border()} />
           <XAxis
             dataKey="date"
             tick={{ fontSize: 12 }}
-            stroke="#6b7280"
+            stroke={chartColors.textMuted()}
           />
           <YAxis
             tick={{ fontSize: 12 }}
-            stroke="#6b7280"
+            stroke={chartColors.textMuted()}
             domain={[0, "dataMax"]}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "white",
-              border: "1px solid #e5e7eb",
+              backgroundColor: "var(--color-surface, #ffffff)",
+              border: `1px solid ${chartColors.border()}`,
               borderRadius: "8px",
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             }}
@@ -116,43 +117,43 @@ export default function ScoreTrendWidget() {
             type="monotone"
             dataKey="score"
             name="점수"
-            stroke="#3b82f6"
+            stroke={chartColors.info()}
             strokeWidth={2}
-            dot={{ r: 4, fill: "#3b82f6" }}
+            dot={{ r: 4, fill: chartColors.info() }}
             activeDot={{ r: 6 }}
           />
           <Line
             type="monotone"
             dataKey="percentage"
             name="백분율"
-            stroke="#10b981"
+            stroke={chartColors.success()}
             strokeWidth={2}
-            dot={{ r: 4, fill: "#10b981" }}
+            dot={{ r: 4, fill: chartColors.success() }}
             activeDot={{ r: 6 }}
           />
         </LineChart>
       </ResponsiveContainer>
 
       {chartData.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-border">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-sm text-gray-500">최근 점수</div>
-              <div className="text-lg font-semibold text-gray-900">
+              <div className="text-sm text-text-muted">최근 점수</div>
+              <div className="text-lg font-semibold text-text-primary">
                 {chartData[chartData.length - 1].score}점
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">평균 점수</div>
-              <div className="text-lg font-semibold text-gray-900">
+              <div className="text-sm text-text-muted">평균 점수</div>
+              <div className="text-lg font-semibold text-text-primary">
                 {Math.round(
                   chartData.reduce((sum, d) => sum + d.score, 0) / chartData.length
                 )}점
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">최고 점수</div>
-              <div className="text-lg font-semibold text-green-600">
+              <div className="text-sm text-text-muted">최고 점수</div>
+              <div className="text-lg font-semibold text-success">
                 {Math.max(...chartData.map((d) => d.score))}점
               </div>
             </div>

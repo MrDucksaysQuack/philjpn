@@ -126,15 +126,15 @@ export default function QuickStats() {
       label: "최근 평균 점수",
       value: recentAvg !== null ? `${recentAvg}점` : "-",
       icon: "📊",
-      color: "from-green-500 to-green-600",
-      bgColor: "from-green-50 to-green-100",
+      color: "from-success to-success",
+      bgColor: "from-success/10 to-success/20",
     },
     {
       label: "학습 중인 단어",
       value: wordCount || 0,
       icon: "📖",
-      color: "from-indigo-500 to-indigo-600",
-      bgColor: "from-indigo-50 to-indigo-100",
+      color: "from-info to-info",
+      bgColor: "from-info/10 to-info/20",
     },
   ];
 
@@ -143,13 +143,13 @@ export default function QuickStats() {
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-gradient-to-br bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+          className="bg-gradient-to-br bg-surface rounded-2xl shadow-lg p-6 border border-border-light hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
         >
           <div className="flex items-center justify-between mb-4">
             <div className={`w-14 h-14 ${stat.color || `bg-gradient-to-br ${stat.color}`} rounded-xl flex items-center justify-center text-2xl shadow-md`}>
               {stat.icon}
             </div>
-            <div className={`text-sm font-semibold px-3 py-1 rounded-lg ${stat.bgColor || `bg-gradient-to-r ${stat.bgColor}`} border border-gray-200`}>
+            <div className={`text-sm font-semibold px-3 py-1 rounded-lg ${stat.bgColor || `bg-gradient-to-r ${stat.bgColor}`} border border-border`}>
               {stat.label}
             </div>
           </div>

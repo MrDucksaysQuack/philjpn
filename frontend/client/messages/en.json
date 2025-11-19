@@ -47,6 +47,9 @@
       "invalidEmail": "Please enter a valid email format.",
       "loginFailed": "Login failed.",
       "registerFailed": "Registration failed."
+    },
+    "socialLogin": {
+      "divider": "Or continue with social account"
     }
   },
   "exam": {
@@ -165,7 +168,8 @@
         "contact": "Contact",
         "content": "Content by Language",
         "preview": "Preview",
-        "versions": "Version History"
+        "versions": "Version History",
+        "colorTheme": "Color Theme"
       }
     },
     "categoryManagement": {
@@ -477,5 +481,26 @@
     "diagnoseWeakness": "Diagnose Weakness",
     "generating": "Generating...",
     "diagnosing": "Diagnosing..."
+  },
+  "header": {
+    "home": "Go to Homepage",
+    "examList": "Exam List",
+    "menuTitle": "Menu",
+    "examCategories": "Exam Categories",
+    "allExams": "All Exams",
+    "language": "Language",
+    "nameSuffix": "",
+    "menu": {
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "badges": "Badge Gallery",
+      "results": "My Results",
+      "wordbook": "Wordbook",
+      "statistics": "Statistics",
+      "analysis": "Self Analysis",
+      "guide": "View Guide Again",
+      "admin": "Admin",
+      "logout": "Logout"
+    }
   }
 }

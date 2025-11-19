@@ -37,7 +37,7 @@ export class SessionService {
   async startExam(examId: string, userId: string, dto: StartExamDto, licenseKeyId?: string) {
     // 시험 존재 확인
     const exam = await this.prisma.exam.findFirst({
-      where: { id: examId, deletedAt: null, isActive: true },
+      where: { id: examId, isActive: true },
       include: {
         config: true,
         sections: {

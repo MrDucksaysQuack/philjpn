@@ -181,7 +181,7 @@ export default function ContactPage() {
                               href={contactInfo.socialMedia.instagram}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white flex items-center justify-center transition-all"
+                              className="w-12 h-12 rounded-xl bg-gradient-to-r from-theme-secondary to-theme-accent hover:from-theme-secondary hover:to-theme-accent text-white flex items-center justify-center transition-all"
                               aria-label="Instagram"
                             >
                               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

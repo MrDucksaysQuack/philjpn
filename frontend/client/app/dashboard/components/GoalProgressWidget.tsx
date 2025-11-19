@@ -56,10 +56,10 @@ export default function GoalProgressWidget() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <div className="w-1 h-8 bg-gradient-to-b from-yellow-600 to-orange-600 rounded-full"></div>
+          <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+            <div className="w-1 h-8 bg-gradient-to-b from-warning to-warning rounded-full"></div>
             목표 진행 상황
           </h2>
           {mainGoal && (
@@ -81,20 +81,20 @@ export default function GoalProgressWidget() {
             <div>
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  <h3 className="text-xl font-bold text-text-primary mb-1">
                     {mainGoal.type === "score_target" && "점수 목표"}
                     {mainGoal.type === "exam_count" && "시험 횟수 목표"}
                     {mainGoal.type === "word_count" && "단어 학습 목표"}
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-text-muted">
                     목표: {mainGoal.target} {mainGoal.type === "score_target" ? "점" : mainGoal.type === "exam_count" ? "회" : "개"}
                   </p>
                 </div>
                 <span
                   className={`px-4 py-2 rounded-lg font-semibold text-sm ${
                     mainGoal.onTrack
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
+                      ? "bg-success/20 text-success"
+                      : "bg-warning/20 text-warning"
                   }`}
                 >
                   {mainGoal.onTrack ? "✅ 진행 중" : "⚠️ 주의 필요"}
@@ -104,10 +104,10 @@ export default function GoalProgressWidget() {
               {/* 진행률 바 */}
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-text-primary">
                     진행률: {Math.round(mainGoal.progress * 100)}%
                   </span>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-text-secondary">
                     {mainGoal.current} / {mainGoal.target}
                   </span>
                 </div>
@@ -129,7 +129,7 @@ export default function GoalProgressWidget() {
 
               {/* 예상 완료 시점 */}
               {mainGoal.estimatedCompletion && (
-                <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-text-secondary bg-surface-hover rounded-lg p-3">
                   예상 완료 시점: {mainGoal.estimatedCompletion}
                 </div>
               )}
@@ -137,13 +137,13 @@ export default function GoalProgressWidget() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-theme-primary/20 to-theme-secondary/20 rounded-2xl mb-4">
               <span className="text-4xl">🎯</span>
             </div>
-            <p className="text-gray-600 mb-6">설정된 목표가 없습니다.</p>
+            <p className="text-text-secondary mb-6">설정된 목표가 없습니다.</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+              className="px-6 py-3 bg-gradient-to-r from-theme-primary to-theme-secondary text-white rounded-xl font-semibold hover:from-theme-primary hover:to-theme-secondary transition-all shadow-lg hover:shadow-xl"
             >
               목표 설정하기
             </button>
@@ -152,13 +152,13 @@ export default function GoalProgressWidget() {
 
         {/* 추가 목표가 있을 때 간단 표시 */}
         {goalProgress?.activeGoals && goalProgress.activeGoals.length > 1 && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-2">
+          <div className="mt-6 pt-6 border-t border-border">
+            <p className="text-sm text-text-secondary mb-2">
               다른 활성 목표 {goalProgress.activeGoals.length - 1}개 더 있음
             </p>
             <Link
               href="/analysis?tab=goals"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm text-link hover:text-link-hover font-medium"
             >
               모두 보기 →
             </Link>

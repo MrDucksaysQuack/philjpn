@@ -65,8 +65,8 @@ export default function HomePage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
           
           {/* Rotating Gradient Circles */}
-          <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-gradient-to-br from-purple-500 to-pink-500 opacity-15 rounded-full blur-2xl animate-spin-slow"></div>
-          <div className="absolute bottom-1/3 left-1/4 w-56 h-56 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-15 rounded-full blur-2xl animate-spin-reverse-slow"></div>
+          <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-gradient-to-br from-theme-secondary to-theme-accent opacity-15 rounded-full blur-2xl animate-spin-slow"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-56 h-56 bg-gradient-to-br from-theme-primary to-theme-accent opacity-15 rounded-full blur-2xl animate-spin-reverse-slow"></div>
           
           {/* Floating Particles */}
           <div className="absolute top-1/4 left-1/5 w-3 h-3 bg-white opacity-30 rounded-full animate-float-particle-1"></div>
@@ -81,8 +81,8 @@ export default function HomePage() {
           </div>
           
           {/* Gradient Waves */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-purple-900/20 to-transparent animate-wave"></div>
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-blue-900/20 to-transparent animate-wave-reverse"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-theme-secondary/20 to-transparent animate-wave"></div>
+          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-theme-primary/20 to-transparent animate-wave-reverse"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
@@ -164,10 +164,10 @@ export default function HomePage() {
       {/* Features Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-text-primary mb-4">
             {featuresSectionTitle}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
             {featuresSectionSubtitle}
           </p>
         </div>
@@ -192,14 +192,14 @@ export default function HomePage() {
             ];
             
             return (
-              <div key={index} className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+              <div key={index} className="group bg-surface p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-border-light">
                 <div className={`w-16 h-16 ${gradientClasses[index]} rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform`}>
                   {icons[index]}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <h3 className="text-2xl font-bold text-text-primary mb-3">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-text-secondary leading-relaxed">
                   {feature.description}
                 </p>
               </div>

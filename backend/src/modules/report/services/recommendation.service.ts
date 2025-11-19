@@ -75,7 +75,6 @@ export class RecommendationService {
     const allExams = await this.prisma.exam.findMany({
       where: {
         isActive: true,
-        deletedAt: null,
         isPublic: true,
       },
       include: {
@@ -460,7 +459,6 @@ export class RecommendationService {
     const allExams = await this.prisma.exam.findMany({
       where: {
         isActive: true,
-        deletedAt: null,
         isPublic: true,
       },
       include: {

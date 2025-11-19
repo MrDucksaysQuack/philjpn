@@ -7,10 +7,10 @@ import { useAuthStore } from "@/lib/store";
 import LoadingSkeleton from "@/components/common/LoadingSkeleton";
 
 const RARITY_COLORS = {
-  common: 'bg-gray-200 text-gray-800',
-  rare: 'bg-blue-200 text-blue-800',
-  epic: 'bg-purple-200 text-purple-800',
-  legendary: 'bg-yellow-200 text-yellow-800',
+  common: 'bg-text-muted/20 text-text-muted',
+  rare: 'bg-info/20 text-info',
+  epic: 'bg-theme-secondary/20 text-theme-secondary',
+  legendary: 'bg-warning/20 text-warning',
 };
 
 export default function BadgesWidget() {
@@ -33,16 +33,16 @@ export default function BadgesWidget() {
   const recentBadges = badges.slice(0, 6); // 최근 6개
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <div className="w-1 h-8 bg-gradient-to-b from-yellow-600 to-orange-600 rounded-full"></div>
+        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+          <div className="w-1 h-8 bg-gradient-to-b from-warning to-warning rounded-full"></div>
           내 배지
         </h2>
         {badges.length > 0 && (
           <Link
             href="/badges"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+            className="text-sm text-link hover:text-link-hover font-medium flex items-center gap-1"
           >
             전체 보기
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,11 +55,11 @@ export default function BadgesWidget() {
       {badges.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-5xl mb-3">🏆</div>
-          <p className="text-gray-600 mb-2">아직 획득한 배지가 없습니다.</p>
-          <p className="text-gray-500 text-sm mb-4">시험을 완료하고 배지를 획득해보세요!</p>
+          <p className="text-text-secondary mb-2">아직 획득한 배지가 없습니다.</p>
+          <p className="text-text-muted text-sm mb-4">시험을 완료하고 배지를 획득해보세요!</p>
           <Link
             href="/exams"
-            className="inline-block text-blue-600 hover:text-blue-700 text-sm font-medium"
+            className="inline-block text-link hover:text-link-hover text-sm font-medium"
           >
             시험 보러 가기 →
           </Link>
@@ -70,7 +70,7 @@ export default function BadgesWidget() {
             {recentBadges.map((badge: UserBadge) => (
               <div
                 key={badge.id}
-                className="aspect-square rounded-lg border-2 border-gray-200 bg-white p-2 flex flex-col items-center justify-center hover:shadow-md transition-all cursor-pointer"
+                className="aspect-square rounded-lg border-2 border-border bg-surface p-2 flex flex-col items-center justify-center hover:shadow-md transition-all cursor-pointer"
                 title={badge.name}
               >
                 <div className="text-3xl mb-1">{badge.icon || "🏆"}</div>
@@ -83,8 +83,8 @@ export default function BadgesWidget() {
             ))}
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">
-              총 <span className="font-semibold text-gray-900">{badges.length}개</span>의 배지를 획득했습니다
+            <p className="text-sm text-text-secondary">
+              총 <span className="font-semibold text-text-primary">{badges.length}개</span>의 배지를 획득했습니다
             </p>
           </div>
         </>

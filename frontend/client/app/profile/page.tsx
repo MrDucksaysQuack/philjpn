@@ -68,7 +68,7 @@ export default function ProfilePage() {
                 <div className="mt-4 flex gap-4">
                   <Link
                     href="/badges"
-                    className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
+                    className="text-link hover:text-link-hover font-medium flex items-center gap-2"
                   >
                     <span>🏆</span>
                     <span>{t("profile.viewBadgeGallery")}</span>
@@ -162,7 +162,7 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("profile.learningStats")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-info/10 to-info/20 rounded-lg p-6">
                   <div className="text-3xl mb-2">📊</div>
                   <div className="text-2xl font-bold text-gray-900 mb-1">{t("profile.statsTitle")}</div>
                   <Link
@@ -172,22 +172,22 @@ export default function ProfilePage() {
                     {t("profile.viewDetails")} →
                   </Link>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-theme-secondary/10 to-theme-secondary/20 rounded-lg p-6">
                   <div className="text-3xl mb-2">📈</div>
                   <div className="text-2xl font-bold text-gray-900 mb-1">{t("profile.analysisTitle")}</div>
                   <Link
                     href="/analysis"
-                    className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                    className="text-theme-secondary hover:text-theme-secondary text-sm font-medium"
                   >
                     {t("profile.viewDetails")} →
                   </Link>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-success/10 to-success/20 rounded-lg p-6">
                   <div className="text-3xl mb-2">📝</div>
                   <div className="text-2xl font-bold text-gray-900 mb-1">{t("profile.resultsTitle")}</div>
                   <Link
                     href="/results"
-                    className="text-green-600 hover:text-green-700 text-sm font-medium"
+                    className="text-success hover:text-success text-sm font-medium"
                   >
                     {t("profile.viewDetails")} →
                   </Link>

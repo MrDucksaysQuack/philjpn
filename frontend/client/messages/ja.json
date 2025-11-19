@@ -47,6 +47,9 @@
       "invalidEmail": "正しいメールアドレス形式を入力してください。",
       "loginFailed": "ログインに失敗しました。",
       "registerFailed": "会員登録に失敗しました。"
+    },
+    "socialLogin": {
+      "divider": "またはソーシャルアカウントで続ける"
     }
   },
   "exam": {
@@ -160,7 +163,8 @@
         "contact": "連絡先",
         "content": "言語別コンテンツ",
         "preview": "プレビュー",
-        "versions": "バージョン履歴"
+        "versions": "バージョン履歴",
+        "colorTheme": "カラーテーマ"
       }
     },
     "categoryManagement": {
@@ -596,6 +600,27 @@
     "diagnoseWeakness": "弱点診断",
     "generating": "生成中...",
     "diagnosing": "診断中..."
+  },
+  "header": {
+    "home": "ホームページへ",
+    "examList": "試験一覧",
+    "menuTitle": "メニュー",
+    "examCategories": "試験カテゴリー",
+    "allExams": "すべての試験",
+    "language": "言語選択",
+    "nameSuffix": "さん",
+    "menu": {
+      "dashboard": "ダッシュボード",
+      "profile": "プロフィール",
+      "badges": "バッジギャラリー",
+      "results": "私の結果",
+      "wordbook": "単語帳",
+      "statistics": "統計",
+      "analysis": "自己分析",
+      "guide": "ガイドを再度見る",
+      "admin": "管理者",
+      "logout": "ログアウト"
+    }
   }
 }
 

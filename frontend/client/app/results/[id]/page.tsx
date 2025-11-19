@@ -253,7 +253,7 @@ export default function ResultDetailPage() {
       <>
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center text-red-600">
+          <div className="text-center text-error">
             {t("common.error")}
           </div>
         </div>
@@ -264,16 +264,16 @@ export default function ResultDetailPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-theme-primary/5 to-theme-secondary/5">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-theme-primary via-theme-secondary to-theme-accent overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
                 {t("result.title")}
               </h1>
-              <p className="text-xl text-indigo-100 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 max-w-2xl mx-auto">
                 {t("result.summary")}
               </p>
             </div>
@@ -283,7 +283,7 @@ export default function ResultDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
             <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-theme-primary to-theme-secondary rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -306,7 +306,7 @@ export default function ResultDetailPage() {
                       onClick={() => setActiveFeedbackTab(tab.id as any)}
                       className={`py-4 px-1 border-b-2 font-medium text-sm ${
                         activeFeedbackTab === tab.id
-                          ? "border-indigo-500 text-indigo-600"
+                          ? "border-theme-primary text-theme-primary"
                           : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                       }`}
                     >
@@ -324,7 +324,7 @@ export default function ResultDetailPage() {
                 <button
                   onClick={handleDiagnoseWeakness}
                   disabled={diagnosingWeakness || diagnoseWeaknessMutation.isPending}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-3 bg-gradient-to-r from-theme-secondary to-theme-accent text-white rounded-lg font-semibold hover:from-theme-secondary hover:to-theme-accent transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {diagnosingWeakness || diagnoseWeaknessMutation.isPending ? (
                     <>
@@ -346,7 +346,7 @@ export default function ResultDetailPage() {
 
             {/* 약점 진단 결과 표시 */}
             {weaknessDiagnosisResult && (
-              <div className="mb-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 shadow-md">
+              <div className="mb-6 p-6 bg-gradient-to-r from-theme-secondary/10 to-theme-accent/10 rounded-xl border border-theme-secondary/20 shadow-md">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <span>🤖</span>
                   AI 약점 진단 결과
@@ -357,8 +357,8 @@ export default function ResultDetailPage() {
                       <h4 className="font-semibold text-gray-700 mb-2">주요 약점 영역</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {weaknessDiagnosisResult.weaknessAreas.map((area: any, index: number) => (
-                          <div key={index} className="bg-white rounded-lg p-4 border border-red-200">
-                            <div className="font-semibold text-red-700 mb-1">{area.tag}</div>
+                          <div key={index} className="bg-white rounded-lg p-4 border border-error/20">
+                            <div className="font-semibold text-error mb-1">{area.tag}</div>
                             <div className="text-sm text-gray-600 mb-2">
                               정답률: {area.correctRate.toFixed(1)}%
                             </div>
@@ -387,42 +387,42 @@ export default function ResultDetailPage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-md">
+              <div className="bg-gradient-to-br from-info/10 to-info/20 p-6 rounded-xl border border-info/20 shadow-md">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-info to-info rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <div className="text-sm font-semibold text-blue-700">{t("result.score")}</div>
+                  <div className="text-sm font-semibold text-info">{t("result.score")}</div>
                 </div>
                 <div className="text-3xl font-extrabold text-theme-primary">
                   {result.totalScore ?? "-"} <span className="text-lg text-gray-500">/ {result.maxScore ?? "-"}</span>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200 shadow-md">
+              <div className="bg-gradient-to-br from-success/10 to-success/20 p-6 rounded-xl border border-success/20 shadow-md">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-success to-success rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="text-sm font-semibold text-green-700">{t("result.correct")}</div>
+                  <div className="text-sm font-semibold text-success">{t("result.correct")}</div>
                 </div>
-                <div className="text-3xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">
+                <div className="text-3xl font-extrabold bg-gradient-to-r from-success to-success bg-clip-text text-transparent">
                   {result.percentage
                     ? `${parseFloat(result.percentage.toString()).toFixed(1)}%`
                     : "-"}
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-pink-100 p-6 rounded-xl border border-purple-200 shadow-md">
+              <div className="bg-gradient-to-br from-theme-secondary/10 to-theme-accent/10 p-6 rounded-xl border border-theme-secondary/20 shadow-md">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-theme-secondary to-theme-accent rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="text-sm font-semibold text-purple-700">{t("result.timeSpent")}</div>
+                  <div className="text-sm font-semibold text-theme-secondary">{t("result.timeSpent")}</div>
                 </div>
                 <div className="text-3xl font-extrabold text-theme-secondary">
                   {result.timeSpent
@@ -437,35 +437,35 @@ export default function ResultDetailPage() {
             <div className="space-y-8">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+                  <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-secondary rounded-full"></div>
                   섹션별 분석
                 </h2>
                 <div className="space-y-4">
                   {(report.sectionAnalysis || []).map(
                     (section: any, index: number) => (
-                      <div key={index} className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all">
+                      <div key={index} className="bg-gradient-to-r from-surface-hover to-info/10 rounded-xl p-6 border border-border shadow-md hover:shadow-lg transition-all">
                         <div className="flex justify-between items-center mb-4">
                           <h3 className="text-lg font-semibold text-gray-900">
                             {section.sectionTitle}
                           </h3>
-                          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          <span className="text-xl font-bold bg-gradient-to-r from-theme-primary to-theme-secondary bg-clip-text text-transparent">
                             {section.score} / {section.maxScore}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 rounded-full transition-all duration-1000 shadow-sm"
+                            className="h-full bg-gradient-to-r from-theme-primary via-theme-secondary to-theme-accent rounded-full transition-all duration-1000 shadow-sm"
                             style={{ width: `${section.correctRate}%` }}
                           />
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm">
-                          <span className="flex items-center gap-1.5 text-green-700 font-medium">
+                          <span className="flex items-center gap-1.5 text-success font-medium">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             {t("result.correct")}: {section.correctCount}
                           </span>
-                          <span className="flex items-center gap-1.5 text-red-700 font-medium">
+                          <span className="flex items-center gap-1.5 text-error font-medium">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -477,7 +477,7 @@ export default function ResultDetailPage() {
                             </svg>
                             {t("result.unanswered")}: {section.unansweredCount}
                           </span>
-                          <span className="flex items-center gap-1.5 text-purple-700 font-semibold">
+                          <span className="flex items-center gap-1.5 text-theme-secondary font-semibold">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
@@ -493,30 +493,30 @@ export default function ResultDetailPage() {
               {report.weakPoints && report.weakPoints.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-orange-600 rounded-full"></div>
+                    <div className="w-1 h-8 bg-gradient-to-b from-error to-warning rounded-full"></div>
                     약점 분석
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(report.weakPoints || []).map((weak: any, index: number) => (
                       <div
                         key={index}
-                        className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-5 border border-red-200 shadow-md hover:shadow-lg transition-all"
+                        className="bg-gradient-to-br from-error/10 to-warning/10 rounded-xl p-5 border border-error/20 shadow-md hover:shadow-lg transition-all"
                       >
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-error to-warning rounded-lg flex items-center justify-center">
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                           </div>
-                          <div className="font-semibold text-red-900 text-lg">
+                          <div className="font-semibold text-error text-lg">
                             {weak.tag}
                           </div>
                         </div>
                         <div className="ml-13">
-                          <div className="text-sm font-medium text-red-700 mb-1">
+                          <div className="text-sm font-medium text-error mb-1">
                             정답률: {weak.correctRate.toFixed(1)}%
                           </div>
-                          <div className="text-xs text-red-600">
+                          <div className="text-xs text-error">
                             {weak.questionCount}문제 출제
                           </div>
                         </div>
@@ -529,15 +529,15 @@ export default function ResultDetailPage() {
               {report.recommendations && report.recommendations.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <div className="w-1 h-8 bg-gradient-to-b from-green-600 to-emerald-600 rounded-full"></div>
+                    <div className="w-1 h-8 bg-gradient-to-b from-success to-success rounded-full"></div>
                     학습 추천사항
                   </h2>
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 shadow-md">
+                  <div className="bg-gradient-to-r from-success/10 to-success/20 rounded-xl p-6 border border-success/20 shadow-md">
                     <ul className="space-y-3">
                       {(report.recommendations || []).map(
                         (rec: string, index: number) => (
                           <li key={index} className="flex items-start gap-3">
-                            <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-6 h-6 bg-gradient-to-br from-success to-success rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
@@ -553,7 +553,7 @@ export default function ResultDetailPage() {
 
               {/* 다음 단계 강조 */}
               {result && result.status === "completed" && (
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl border border-blue-200 shadow-md">
+                <div className="mt-8 p-6 bg-gradient-to-r from-theme-primary/10 via-theme-secondary/10 to-theme-accent/10 rounded-xl border border-theme-primary/20 shadow-md">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <span className="text-xl">🎯</span>
                     다음 단계로 계속 학습하기
@@ -564,13 +564,13 @@ export default function ResultDetailPage() {
                   <div className="flex flex-wrap gap-3">
                     <Link 
                       href="/analysis" 
-                      className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                      className="inline-block bg-gradient-to-r from-theme-primary to-theme-secondary text-white px-6 py-3 rounded-lg font-semibold hover:from-theme-primary hover:to-theme-secondary transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
                       내 학습 패턴 분석하기 →
                     </Link>
                     <Link 
                       href="/exams/recommended" 
-                      className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                      className="inline-block bg-gradient-to-r from-theme-secondary to-theme-accent text-white px-6 py-3 rounded-lg font-semibold hover:from-theme-secondary hover:to-theme-accent transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
                       추천 시험 보기 →
                     </Link>
@@ -582,10 +582,10 @@ export default function ResultDetailPage() {
               {result && result.status === "completed" && (
                 <div className="mt-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <div className="w-1 h-8 bg-gradient-to-b from-teal-600 to-cyan-600 rounded-full"></div>
+                    <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-accent rounded-full"></div>
                     단어 학습 연계
                   </h2>
-                  <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-200 shadow-md">
+                  <div className="bg-gradient-to-r from-theme-primary/10 to-theme-accent/10 rounded-xl p-6 border border-theme-primary/20 shadow-md">
                     <p className="text-gray-700 mb-4">
                       오답 문제에서 나온 단어를 단어장에 자동으로 추가하여 복습하세요.
                     </p>
@@ -595,7 +595,7 @@ export default function ResultDetailPage() {
                           setShowWordExtraction(true);
                           refetchWords();
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
+                        className="px-6 py-3 bg-gradient-to-r from-theme-primary to-theme-accent text-white rounded-lg font-semibold hover:from-theme-primary hover:to-theme-accent transition-all shadow-md hover:shadow-lg"
                       >
                         {t("result.extractWords")}
                       </button>
@@ -617,12 +617,12 @@ export default function ResultDetailPage() {
                                   {word.context && (
                                     <div className="text-xs text-gray-500 italic">"{word.context}"</div>
                                   )}
-                                  <div className="text-xs text-teal-600 mt-2">{word.reason}</div>
+                                  <div className="text-xs text-theme-accent mt-2">{word.reason}</div>
                                 </div>
                                 <span className={`px-2 py-1 text-xs rounded ${
-                                  word.difficulty === "hard" ? "bg-red-100 text-red-700" :
-                                  word.difficulty === "medium" ? "bg-yellow-100 text-yellow-700" :
-                                  "bg-green-100 text-green-700"
+                                  word.difficulty === "hard" ? "bg-error/20 text-error" :
+                                  word.difficulty === "medium" ? "bg-warning/20 text-warning" :
+                                  "bg-success/20 text-success"
                                 }`}>
                                   {word.difficulty === "hard" ? "어려움" : word.difficulty === "medium" ? "중급" : "쉬움"}
                                 </span>
@@ -637,7 +637,7 @@ export default function ResultDetailPage() {
                             }
                           }}
                           disabled={addWordsMutation.isPending}
-                          className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                          className="w-full px-6 py-3 bg-gradient-to-r from-theme-primary to-theme-accent text-white rounded-lg font-semibold hover:from-theme-primary hover:to-theme-accent transition-all shadow-md hover:shadow-lg disabled:opacity-50"
                         >
                           {addWordsMutation.isPending ? t("common.loadingText") : t("result.addToWordbook")}
                         </button>
@@ -669,7 +669,7 @@ export default function ResultDetailPage() {
           {activeFeedbackTab === "questions" && detailedFeedback && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
+                <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-accent rounded-full"></div>
                 문제별 상세 분석
               </h2>
               <div className="space-y-4">
@@ -678,8 +678,8 @@ export default function ResultDetailPage() {
                     key={question.questionId}
                     className={`bg-white rounded-xl p-6 border-2 ${
                       question.isCorrect
-                        ? "border-green-200 bg-green-50/30"
-                        : "border-red-200 bg-red-50/30"
+                        ? "border-success/20 bg-success/10"
+                        : "border-error/20 bg-error/10"
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -688,8 +688,8 @@ export default function ResultDetailPage() {
                         <span
                           className={`px-3 py-1 rounded-lg text-xs font-semibold ${
                             question.isCorrect
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-success/20 text-success"
+                              : "bg-error/20 text-error"
                           }`}
                         >
                           {question.isCorrect ? t("result.correct") : t("result.incorrect")}
@@ -698,10 +698,10 @@ export default function ResultDetailPage() {
                           <span
                             className={`px-3 py-1 rounded-lg text-xs font-semibold ${
                               question.mistakeType === "conceptual"
-                                ? "bg-purple-100 text-purple-800"
+                                ? "bg-theme-secondary/20 text-theme-secondary"
                                 : question.mistakeType === "careless"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-orange-100 text-orange-800"
+                                ? "bg-warning/20 text-warning"
+                                : "bg-warning/20 text-warning"
                             }`}
                           >
                             {question.mistakeType === "conceptual"
@@ -727,8 +727,8 @@ export default function ResultDetailPage() {
                         <span className="font-semibold">정답:</span> {question.correctAnswer}
                       </div>
                       {question.explanation ? (
-                        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
+                        <div className="mt-4 p-4 bg-info/10 rounded-lg border border-info/20">
+                          <div className="text-sm font-semibold text-info mb-2 flex items-center gap-2">
                             <span>🤖 AI 해설</span>
                           </div>
                           <div className="text-sm text-gray-700">{question.explanation}</div>
@@ -747,7 +747,7 @@ export default function ResultDetailPage() {
                             <button
                               onClick={() => handleGenerateExplanation(question)}
                               disabled={generatingExplanations[question.questionId]}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              className="px-4 py-2 bg-gradient-to-r from-theme-primary to-theme-secondary text-white rounded-lg text-sm font-semibold hover:from-theme-primary hover:to-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {generatingExplanations[question.questionId] ? (
                                 <>
@@ -776,7 +776,7 @@ export default function ResultDetailPage() {
                           {(question.relatedWords || []).map((word: string, i: number) => (
                             <span
                               key={i}
-                              className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs"
+                              className="px-2 py-1 bg-theme-primary/20 text-theme-primary rounded text-xs"
                             >
                               {word}
                             </span>
@@ -794,7 +794,7 @@ export default function ResultDetailPage() {
           {activeFeedbackTab === "sections" && detailedFeedback && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+                <div className="w-1 h-8 bg-gradient-to-b from-theme-secondary to-theme-accent rounded-full"></div>
                 섹션별 분석 및 개선 계획
               </h2>
               {(detailedFeedback.detailedFeedback?.sectionLevel || []).map((section: any) => (
@@ -806,7 +806,7 @@ export default function ResultDetailPage() {
                   
                   {section.strengths && section.strengths.length > 0 && (
                     <div className="mb-6">
-                      <div className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
+                      <div className="text-sm font-semibold text-success mb-3 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -815,7 +815,7 @@ export default function ResultDetailPage() {
                       <ul className="space-y-2">
                         {(section.strengths || []).map((strength: string, i: number) => (
                           <li key={i} className="text-gray-700 flex items-start gap-2">
-                            <span className="text-green-500">✓</span>
+                            <span className="text-success">✓</span>
                             {strength}
                           </li>
                         ))}
@@ -825,7 +825,7 @@ export default function ResultDetailPage() {
 
                   {section.weaknesses && section.weaknesses.length > 0 && (
                     <div className="mb-6">
-                      <div className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+                      <div className="text-sm font-semibold text-error mb-3 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
@@ -834,7 +834,7 @@ export default function ResultDetailPage() {
                       <ul className="space-y-2">
                         {(section.weaknesses || []).map((weakness: string, i: number) => (
                           <li key={i} className="text-gray-700 flex items-start gap-2">
-                            <span className="text-red-500">⚠</span>
+                            <span className="text-error">⚠</span>
                             {weakness}
                           </li>
                         ))}
@@ -843,8 +843,8 @@ export default function ResultDetailPage() {
                   )}
 
                   {section.improvementPlan && (
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
-                      <div className="text-sm font-semibold text-purple-700 mb-4">개선 계획</div>
+                    <div className="bg-gradient-to-r from-theme-secondary/10 to-theme-accent/10 rounded-lg p-6 border border-theme-secondary/20">
+                      <div className="text-sm font-semibold text-theme-secondary mb-4">개선 계획</div>
                       <div className="space-y-3">
                         <div>
                           <div className="text-xs text-gray-600 mb-1">집중 영역</div>
@@ -852,7 +852,7 @@ export default function ResultDetailPage() {
                             {(section.improvementPlan?.focusAreas || []).map((area: string, i: number) => (
                               <span
                                 key={i}
-                                className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium"
+                                className="px-3 py-1 bg-theme-secondary/20 text-theme-secondary rounded-lg text-sm font-medium"
                               >
                                 {area}
                               </span>
@@ -862,13 +862,13 @@ export default function ResultDetailPage() {
                         <div className="flex items-center gap-6">
                           <div>
                             <div className="text-xs text-gray-600 mb-1">추천 연습 문제</div>
-                            <div className="text-lg font-bold text-purple-900">
+                            <div className="text-lg font-bold text-theme-secondary">
                               {section.improvementPlan.practiceQuestions}문제
                             </div>
                           </div>
                           <div>
                             <div className="text-xs text-gray-600 mb-1">예상 개선 시간</div>
-                            <div className="text-lg font-bold text-purple-900">
+                            <div className="text-lg font-bold text-theme-secondary">
                               {section.improvementPlan.estimatedTime}
                             </div>
                           </div>
@@ -885,18 +885,18 @@ export default function ResultDetailPage() {
           {activeFeedbackTab === "overall" && detailedFeedback && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <div className="w-1 h-8 bg-gradient-to-b from-green-600 to-emerald-600 rounded-full"></div>
+                <div className="w-1 h-8 bg-gradient-to-b from-success to-success rounded-full"></div>
                 종합 학습 인사이트
               </h2>
 
               {/* 학습 인사이트 */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-200">
-                <div className="text-lg font-semibold text-blue-900 mb-4">📊 학습 인사이트</div>
+              <div className="bg-gradient-to-r from-theme-primary/10 to-theme-accent/10 rounded-xl p-8 border border-theme-primary/20">
+                <div className="text-lg font-semibold text-theme-primary mb-4">📊 학습 인사이트</div>
                 <ul className="space-y-3">
                   {(detailedFeedback.detailedFeedback?.overall?.learningInsights || []).map(
                     (insight: string, index: number) => (
                       <li key={index} className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -909,13 +909,13 @@ export default function ResultDetailPage() {
               </div>
 
               {/* 다음 단계 */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-200">
-                <div className="text-lg font-semibold text-green-900 mb-4">🎯 다음 학습 단계</div>
+              <div className="bg-gradient-to-r from-success/10 to-success/20 rounded-xl p-8 border border-success/20">
+                <div className="text-lg font-semibold text-success mb-4">🎯 다음 학습 단계</div>
                 <ul className="space-y-3">
                   {(detailedFeedback.detailedFeedback?.overall?.nextSteps || []).map(
                     (step: string, index: number) => (
                       <li key={index} className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-6 h-6 bg-success rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                           <span className="text-white font-bold text-sm">{index + 1}</span>
                         </div>
                         <span className="text-gray-700 leading-relaxed">{step}</span>

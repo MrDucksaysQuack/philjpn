@@ -25,10 +25,10 @@ export default function RecentActivityWidget() {
   const recentResults = (data || []).slice(0, 3);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <div className="w-1 h-8 bg-gradient-to-b from-green-600 to-emerald-600 rounded-full"></div>
+        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+          <div className="w-1 h-8 bg-gradient-to-b from-success to-success rounded-full"></div>
           최근 학습 활동
         </h2>
         {recentResults.length > 0 && (
@@ -74,12 +74,12 @@ export default function RecentActivityWidget() {
               <Link
                 key={result.id}
                 href={`/results/${result.id}`}
-                className="group block bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 hover:border-green-400 hover:shadow-lg transition-all"
+                className="group block bg-gradient-to-r from-success/10 to-success/20 rounded-xl p-6 border border-success/20 hover:border-success/40 hover:shadow-lg transition-all"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-text-muted">
                         {new Date(result.startedAt).toLocaleDateString("ko-KR", {
                           month: "short",
                           day: "numeric",
@@ -88,7 +88,7 @@ export default function RecentActivityWidget() {
                       {improvement !== null && (
                         <span
                           className={`text-xs font-semibold flex items-center gap-1 ${
-                            improvement > 0 ? "text-green-600" : improvement < 0 ? "text-red-600" : "text-gray-500"
+                            improvement > 0 ? "text-success" : improvement < 0 ? "text-error" : "text-text-muted"
                           }`}
                         >
                           {improvement > 0 ? (
@@ -111,17 +111,17 @@ export default function RecentActivityWidget() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                    <h3 className="text-lg font-bold text-text-primary mb-2 group-hover:text-success transition-colors">
                       시험 #{result.id.slice(0, 8)}
                     </h3>
                     {percentage !== null && (
-                      <div className="text-2xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                      <div className="text-2xl font-extrabold bg-gradient-to-r from-success to-success bg-clip-text text-transparent">
                         {Math.round(percentage)}점
                       </div>
                     )}
                   </div>
                   <div className="ml-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-gradient-to-br from-success to-success rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -134,13 +134,13 @@ export default function RecentActivityWidget() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-success/20 to-success/30 rounded-2xl mb-4">
             <span className="text-4xl">📈</span>
           </div>
-          <p className="text-gray-600 mb-6">아직 응시한 시험이 없습니다.</p>
+          <p className="text-text-secondary mb-6">아직 응시한 시험이 없습니다.</p>
           <Link
             href="/exams"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-theme-primary to-theme-secondary text-white rounded-xl font-semibold hover:from-theme-primary hover:to-theme-secondary transition-all shadow-lg"
           >
             시험 시작하기
           </Link>

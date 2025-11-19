@@ -130,7 +130,7 @@ export default function ResultsPage() {
       <Header />
       <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-success via-success to-success overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
@@ -256,16 +256,16 @@ export default function ResultsPage() {
                   {/* 그라데이션 헤더 */}
                   <div className={`h-2 ${
                     result.status === "completed"
-                      ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                      ? "bg-gradient-to-r from-success to-success"
                       : result.status === "in_progress"
-                        ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                        : "bg-gradient-to-r from-gray-400 to-gray-500"
+                        ? "bg-gradient-to-r from-warning to-warning"
+                        : "bg-gradient-to-r from-text-muted to-text-muted"
                   }`}></div>
                   
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-green-600 group-hover:to-teal-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
+                        <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-success group-hover:to-success group-hover:bg-clip-text group-hover:text-transparent transition-all">
                           시험 #{result.id.slice(0, 8)}
                         </h2>
                         <p className="text-sm text-gray-500 flex items-center gap-1">
@@ -281,10 +281,10 @@ export default function ResultsPage() {
                       </div>
                       <div className={`w-16 h-16 rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-lg ${
                         result.status === "completed"
-                          ? "bg-gradient-to-br from-green-500 to-emerald-600"
+                          ? "bg-gradient-to-br from-success to-success"
                           : result.status === "in_progress"
-                            ? "bg-gradient-to-br from-yellow-400 to-orange-500"
-                            : "bg-gradient-to-br from-gray-400 to-gray-500"
+                            ? "bg-gradient-to-br from-warning to-warning"
+                            : "bg-gradient-to-br from-text-muted to-text-muted"
                       }`}>
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -338,7 +338,7 @@ export default function ResultsPage() {
 
           {data?.length === 0 && (
             <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-6 shadow-lg">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-success/20 to-success/30 rounded-2xl mb-6 shadow-lg">
                 <svg className="w-12 h-12 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>

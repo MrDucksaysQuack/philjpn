@@ -138,7 +138,7 @@ export class AdminService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { deletedAt: new Date(), isActive: false },
+      data: { isActive: false },
     });
 
     return { message: '사용자가 삭제되었습니다.' };

@@ -55,15 +55,15 @@ export default function LearningInsightsWidget() {
   const improvementRate = (efficiency as any)?.learningSpeed?.weeklyImprovementRate || 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+          <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-secondary rounded-full"></div>
           학습 패턴 인사이트
         </h2>
         <Link
           href="/analysis"
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+          className="text-sm text-link hover:text-link-hover font-medium flex items-center gap-1"
         >
           자세한 분석 보기
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,15 +74,15 @@ export default function LearningInsightsWidget() {
 
       <div className="space-y-6">
         {/* 최적 학습 시간대 */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-5 border border-indigo-200">
+        <div className="bg-gradient-to-r from-theme-primary/10 to-theme-secondary/10 rounded-xl p-5 border border-theme-primary/20">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">⏰</span>
             <div>
-              <div className="text-sm font-semibold text-gray-700 mb-1">최적 학습 시간대</div>
-              <div className="text-xl font-bold text-indigo-700">{optimalHourText}</div>
+              <div className="text-sm font-semibold text-text-primary mb-1">최적 학습 시간대</div>
+              <div className="text-xl font-bold text-theme-primary">{optimalHourText}</div>
             </div>
           </div>
-          <p className="text-xs text-gray-600 mt-2">
+          <p className="text-xs text-text-secondary mt-2">
             이 시간대에 학습하면 가장 효율적입니다
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function LearningInsightsWidget() {
         {/* 주요 약점 영역 */}
         {topWeaknesses.length > 0 && (
           <div>
-            <div className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <div className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
               <span className="text-lg">⚠️</span>
               주요 약점 영역
             </div>
@@ -98,17 +98,17 @@ export default function LearningInsightsWidget() {
               {topWeaknesses.map((area: any, index: number) => (
                 <div
                   key={index}
-                  className="bg-red-50 rounded-lg p-3 border border-red-200"
+                  className="bg-error/10 rounded-lg p-3 border border-error/20"
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-900">{area.tag}</span>
-                    <span className="text-xs font-semibold text-red-600">
+                    <span className="text-sm font-medium text-text-primary">{area.tag}</span>
+                    <span className="text-xs font-semibold text-error">
                       {Math.round(area.correctRate)}% 정답률
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-border rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full transition-all"
+                      className="h-2 bg-gradient-to-r from-error to-error rounded-full transition-all"
                       style={{ width: `${area.correctRate}%` }}
                     />
                   </div>
@@ -119,17 +119,17 @@ export default function LearningInsightsWidget() {
         )}
 
         {/* 효율성 지표 */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border border-blue-200">
+        <div className="bg-gradient-to-r from-theme-primary/10 to-theme-secondary/10 rounded-xl p-5 border border-theme-primary/20">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">📈</span>
             <div>
-              <div className="text-sm font-semibold text-gray-700 mb-1">주당 점수 향상률</div>
-              <div className="text-xl font-bold text-blue-700">
+              <div className="text-sm font-semibold text-text-primary mb-1">주당 점수 향상률</div>
+              <div className="text-xl font-bold text-theme-primary">
                 {improvementRate > 0 ? "+" : ""}{Math.round(improvementRate * 10) / 10}점/주
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-600 mt-2">
+          <p className="text-xs text-text-secondary mt-2">
             지속적인 학습으로 점진적 향상을 보이고 있습니다
           </p>
         </div>

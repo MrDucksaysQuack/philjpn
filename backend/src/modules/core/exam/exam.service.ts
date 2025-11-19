@@ -20,7 +20,7 @@ export class ExamService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.ExamWhereInput & { categoryId?: string; subcategoryId?: string } = {
-      deletedAt: null, // Soft delete 필터
+      isActive: true, // 활성화된 시험만
     };
     if (examType) where.examType = examType;
     if (subject) where.subject = subject;
@@ -104,7 +104,7 @@ export class ExamService {
     };
 
     const exam = await this.prisma.exam.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, isActive: true },
       include,
     });
 
@@ -166,7 +166,7 @@ export class ExamService {
   async update(id: string, updateExamDto: UpdateExamDto) {
     // 시험 존재 확인
     const existingExam = await this.prisma.exam.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, isActive: true },
     });
 
     if (!existingExam) {
@@ -237,10 +237,10 @@ export class ExamService {
   }
 
   async remove(id: string) {
-    // Soft delete
+    // Soft delete - isActive를 false로 설정
     const exam = await this.prisma.exam.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { isActive: false },
     });
 
     if (!exam) {
@@ -271,7 +271,7 @@ export class ExamService {
   ) {
     // 원본 시험 조회 (섹션 및 문제 포함)
     const originalExam = await this.prisma.exam.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, isActive: true },
       include: {
         config: true,
         sections: {

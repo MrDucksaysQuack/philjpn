@@ -109,14 +109,14 @@ export default function AnalysisPage() {
       <Header />
       <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-theme-primary via-theme-secondary to-theme-accent overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
                 자기 분석 대시보드
               </h1>
-              <p className="text-xl text-indigo-100 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 max-w-2xl mx-auto">
                 학습 패턴과 약점을 분석하여 효과적인 학습 경로를 찾아보세요
               </p>
             </div>
@@ -138,7 +138,7 @@ export default function AnalysisPage() {
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-t-lg ${
                     activeTab === tab.id
-                      ? "border-indigo-500 text-indigo-600"
+                      ? "border-theme-primary text-theme-primary"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                   aria-label={`${tab.label} 탭으로 전환`}
@@ -163,7 +163,7 @@ export default function AnalysisPage() {
                   {/* 시간 패턴 */}
                   <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+                      <div className="w-1 h-8 bg-gradient-to-b from-theme-primary to-theme-secondary rounded-full"></div>
                       시간대별 학습 패턴
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -185,18 +185,18 @@ export default function AnalysisPage() {
                         </div>
                       </div>
                       <div className="bg-theme-secondary-light rounded-xl p-6 border border-theme-secondary">
-                        <div className="text-sm font-semibold text-purple-700 mb-2">평균 세션 길이</div>
-                        <div className="text-3xl font-extrabold text-purple-900">
+                        <div className="text-sm font-semibold text-theme-secondary mb-2">평균 세션 길이</div>
+                        <div className="text-3xl font-extrabold text-theme-secondary">
                           {patterns.timePatterns.averageSessionDuration}분
                         </div>
                       </div>
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-                        <div className="text-sm font-semibold text-green-700 mb-2">선호 학습 요일</div>
+                      <div className="bg-gradient-to-br from-success/10 to-success/20 rounded-xl p-6 border border-success/20">
+                        <div className="text-sm font-semibold text-success mb-2">선호 학습 요일</div>
                         <div className="flex flex-wrap gap-2">
                           {patterns.timePatterns.preferredStudyDays.map((day) => (
                             <span
                               key={day}
-                              className="px-3 py-1 bg-green-500 text-white rounded-lg font-medium"
+                              className="px-3 py-1 bg-success text-white rounded-lg font-medium"
                             >
                               {day}
                             </span>
@@ -225,22 +225,22 @@ export default function AnalysisPage() {
                   {/* 집중력 분석 */}
                   <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+                      <div className="w-1 h-8 bg-gradient-to-b from-theme-secondary to-theme-accent rounded-full"></div>
                       집중력 분석
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-                        <div className="text-sm font-semibold text-purple-700 mb-2">최적 세션 길이</div>
-                        <div className="text-3xl font-extrabold text-purple-900">
+                      <div className="bg-gradient-to-br from-theme-secondary/10 to-theme-accent/10 rounded-xl p-6 border border-theme-secondary/20">
+                        <div className="text-sm font-semibold text-theme-secondary mb-2">최적 세션 길이</div>
+                        <div className="text-3xl font-extrabold text-theme-secondary">
                           {patterns.attentionSpan.optimalSessionLength}분
                         </div>
                         <div className="text-xs text-gray-500 mt-2">
                           집중력 하락 시점: {patterns.attentionSpan.focusDeclinePoint}분
                         </div>
                       </div>
-                      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200">
-                        <div className="text-sm font-semibold text-indigo-700 mb-2">난이도 선호도</div>
-                        <div className="text-xl font-bold text-indigo-900 mb-2">
+                      <div className="bg-gradient-to-br from-theme-primary/10 to-theme-accent/10 rounded-xl p-6 border border-theme-primary/20">
+                        <div className="text-sm font-semibold text-theme-primary mb-2">난이도 선호도</div>
+                        <div className="text-xl font-bold text-theme-primary mb-2">
                           {patterns.difficultyPreference.optimalDifficulty}
                         </div>
                         <div className="text-sm text-gray-600">
@@ -270,18 +270,18 @@ export default function AnalysisPage() {
                       {/* 약점 영역 */}
                       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                          <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-orange-600 rounded-full"></div>
+                          <div className="w-1 h-8 bg-gradient-to-b from-error to-warning rounded-full"></div>
                           주요 약점 영역
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {(weakness.weaknessAreas || []).map((area, index) => (
                             <div
                               key={index}
-                              className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 border border-red-200 hover:shadow-lg transition-all"
+                              className="bg-gradient-to-br from-error/10 to-warning/10 rounded-xl p-6 border border-error/20 hover:shadow-lg transition-all"
                             >
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold text-gray-900">{area.tag}</h3>
-                                <span className="px-3 py-1 bg-red-100 text-red-800 rounded-lg font-bold">
+                                <span className="px-3 py-1 bg-error/20 text-error rounded-lg font-bold">
                                   {area.correctRate.toFixed(1)}%
                                 </span>
                               </div>
@@ -299,7 +299,7 @@ export default function AnalysisPage() {
                                       {(area.mistakePattern.commonErrors || []).map((error, i) => (
                                         <span
                                           key={i}
-                                          className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
+                                          className="px-2 py-1 bg-error/20 text-error rounded text-xs"
                                         >
                                           {error}
                                         </span>
@@ -314,7 +314,7 @@ export default function AnalysisPage() {
                                   <ul className="space-y-1">
                                     {(area.improvementSuggestions || []).map((suggestion, i) => (
                                       <li key={i} className="text-xs text-gray-600 flex items-start gap-2">
-                                        <span className="text-green-500">✓</span>
+                                        <span className="text-success">✓</span>
                                         {suggestion}
                                       </li>
                                     ))}
@@ -330,14 +330,14 @@ export default function AnalysisPage() {
                       {weakness.knowledgeGaps.length > 0 && (
                         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <div className="w-1 h-8 bg-gradient-to-b from-yellow-600 to-orange-600 rounded-full"></div>
+                            <div className="w-1 h-8 bg-gradient-to-b from-warning to-warning rounded-full"></div>
                             지식 격차 분석
                           </h2>
                           <div className="space-y-4">
                             {weakness.knowledgeGaps.map((gap, index) => (
                               <div
                                 key={index}
-                                className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200"
+                                className="bg-gradient-to-r from-warning/10 to-warning/20 rounded-xl p-6 border border-warning/20"
                               >
                                 <div className="flex justify-between items-center mb-3">
                                   <h3 className="font-semibold text-gray-900">{gap.concept}</h3>
@@ -347,7 +347,7 @@ export default function AnalysisPage() {
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden mb-2">
                                   <div
-                                    className="bg-gradient-to-r from-yellow-400 to-orange-500 h-3 rounded-full"
+                                    className="bg-gradient-to-r from-warning to-warning h-3 rounded-full"
                                     style={{ width: `${gap.understandingLevel * 100}%` }}
                                   />
                                 </div>
@@ -362,8 +362,8 @@ export default function AnalysisPage() {
                     </>
                   ) : (
                     <div className="text-center py-20 bg-white rounded-2xl">
-                      <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-2xl mb-6">
-                        <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="inline-flex items-center justify-center w-24 h-24 bg-success/20 rounded-2xl mb-6">
+                        <svg className="w-12 h-12 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
@@ -395,23 +395,23 @@ export default function AnalysisPage() {
                     </div>
                     <div className="text-sm text-gray-600">주당 점수 향상도</div>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl shadow-lg p-8 border border-green-200">
-                    <div className="text-sm font-semibold text-green-700 mb-2">지식 보유율</div>
-                    <div className="text-4xl font-extrabold text-green-900 mb-2">
+                  <div className="bg-gradient-to-br from-success/10 to-success/20 rounded-2xl shadow-lg p-8 border border-success/20">
+                    <div className="text-sm font-semibold text-success mb-2">지식 보유율</div>
+                    <div className="text-4xl font-extrabold text-success mb-2">
                       {Math.round(efficiency.retentionRate * 100)}%
                     </div>
                     <div className="text-sm text-gray-600">1주 후 기억 유지율</div>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-100 rounded-2xl shadow-lg p-8 border border-purple-200">
-                    <div className="text-sm font-semibold text-purple-700 mb-2">연습 효율성</div>
-                    <div className="text-4xl font-extrabold text-purple-900 mb-2">
+                  <div className="bg-gradient-to-br from-theme-secondary/10 to-theme-accent/10 rounded-2xl shadow-lg p-8 border border-theme-secondary/20">
+                    <div className="text-sm font-semibold text-theme-secondary mb-2">연습 효율성</div>
+                    <div className="text-4xl font-extrabold text-theme-secondary mb-2">
                       {efficiency.practiceEfficiency.toFixed(2)}
                     </div>
                     <div className="text-sm text-gray-600">시간당 점수 향상</div>
                   </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-red-100 rounded-2xl shadow-lg p-8 border border-orange-200">
-                    <div className="text-sm font-semibold text-orange-700 mb-2">약점 회복율</div>
-                    <div className="text-4xl font-extrabold text-orange-900 mb-2">
+                  <div className="bg-gradient-to-br from-warning/10 to-error/10 rounded-2xl shadow-lg p-8 border border-warning/20">
+                    <div className="text-sm font-semibold text-warning mb-2">약점 회복율</div>
+                    <div className="text-4xl font-extrabold text-warning mb-2">
                       {Math.round(efficiency.weaknessRecoveryRate * 100)}%
                     </div>
                     <div className="text-sm text-gray-600">약점 개선 성공률</div>
@@ -473,10 +473,10 @@ export default function AnalysisPage() {
                               <div
                                 className={`h-4 rounded-full transition-all ${
                                   goal.progress >= 0.8
-                                    ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                                    ? "bg-gradient-to-r from-success to-success"
                                     : goal.progress >= 0.5
-                                    ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                                    : "bg-gradient-to-r from-red-500 to-pink-500"
+                                    ? "bg-gradient-to-r from-warning to-warning"
+                                    : "bg-gradient-to-r from-error to-error"
                                 }`}
                                 style={{ width: `${Math.min(goal.progress * 100, 100)}%` }}
                               />
@@ -493,7 +493,7 @@ export default function AnalysisPage() {
                               </p>
                             )}
                             {goal.progress < 0.5 && (
-                              <p className="text-sm text-center text-orange-600 font-semibold mt-2">
+                              <p className="text-sm text-center text-warning font-semibold mt-2">
                                 🚀 시작이 좋아요! 꾸준히 해봐요!
                               </p>
                             )}

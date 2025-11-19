@@ -10,7 +10,7 @@ export class SectionService {
   async findAllByExamId(examId: string) {
     // 시험 존재 확인
     const exam = await this.prisma.exam.findFirst({
-      where: { id: examId, deletedAt: null },
+      where: { id: examId, isActive: true },
     });
 
     if (!exam) {
@@ -64,7 +64,7 @@ export class SectionService {
   async create(examId: string, createSectionDto: CreateSectionDto) {
     // 시험 존재 확인
     const exam = await this.prisma.exam.findFirst({
-      where: { id: examId, deletedAt: null },
+      where: { id: examId, isActive: true },
     });
 
     if (!exam) {

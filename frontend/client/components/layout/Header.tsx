@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore, useLocaleStore, type Locale } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { siteSettingsAPI, categoryAPI, type Category, type SiteSettings } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n";
 import AboutUsDropdown from "./AboutUsDropdown";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
@@ -15,6 +16,7 @@ import SettingsSync from "@/components/common/SettingsSync";
 export default function Header() {
   const { user, clearAuth } = useAuthStore();
   const { locale, setLocale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -109,13 +111,13 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const menuItems = [
-    { href: "/dashboard", label: "대시보드", icon: "📊", isPrimary: true },
-    { href: "/profile", label: "프로필", icon: "👤", isPrimary: false },
-    { href: "/badges", label: "배지 갤러리", icon: "🏆", isPrimary: false },
-    { href: "/results", label: "내 결과", icon: "📝" },
-    { href: "/wordbook", label: "단어장", icon: "📖" },
-    { href: "/statistics", label: "통계", icon: "📈" },
-    { href: "/analysis", label: "자기 분석", icon: "🔍" },
+    { href: "/dashboard", labelKey: "header.menu.dashboard", icon: "📊", isPrimary: true },
+    { href: "/profile", labelKey: "header.menu.profile", icon: "👤", isPrimary: false },
+    { href: "/badges", labelKey: "header.menu.badges", icon: "🏆", isPrimary: false },
+    { href: "/results", labelKey: "header.menu.results", icon: "📝" },
+    { href: "/wordbook", labelKey: "header.menu.wordbook", icon: "📖" },
+    { href: "/statistics", labelKey: "header.menu.statistics", icon: "📈" },
+    { href: "/analysis", labelKey: "header.menu.analysis", icon: "🔍" },
   ];
 
   return (
@@ -126,7 +128,7 @@ export default function Header() {
             <Link 
               href="/" 
               className="text-xl font-bold gradient-text flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 rounded-lg"
-              aria-label="홈페이지로 이동"
+              aria-label={t("header.home")}
             >
               <div className="w-8 h-8 bg-theme-gradient-diagonal rounded-lg flex items-center justify-center overflow-hidden" aria-hidden="true">
                 {logoUrl && !logoError ? (
@@ -163,9 +165,9 @@ export default function Header() {
                 <Link
                   href="/exams"
                   className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
-                  aria-label="시험 목록 페이지로 이동"
+                  aria-label={t("header.examList")}
                 >
-                  시험 목록
+                  {t("header.examList")}
                 </Link>
               )}
             </nav>
@@ -204,7 +206,7 @@ export default function Header() {
                     <div className="w-8 h-8 bg-theme-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">
                       {user.name.charAt(0)}
                     </div>
-                    <span className="text-sm font-medium text-text-primary">{user.name}님</span>
+                    <span className="text-sm font-medium text-text-primary">{user.name}{t("header.nameSuffix")}</span>
                     <svg
                       className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${
                         isMenuOpen ? "transform rotate-180" : ""
@@ -220,8 +222,8 @@ export default function Header() {
                   {/* 드롭다운 메뉴 */}
                   {isMenuOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-surface rounded-xl shadow-lg border border-border py-2 z-50 animate-fade-in">
-                      <div className="px-4 py-3 border-b border-border-light">
-                        <div className="text-sm font-semibold text-text-primary">{user.name}님</div>
+                      <div className="px-4 py-3 border-b border-border-light bg-surface-hover/50">
+                        <div className="text-sm font-semibold text-text-primary">{user.name}{t("header.nameSuffix")}</div>
                         <div className="text-xs text-text-muted mt-1">{user.email}</div>
                       </div>
                       
@@ -236,10 +238,10 @@ export default function Header() {
                                 ? "text-theme-primary font-semibold bg-theme-primary-light hover:bg-theme-primary-light"
                                 : "text-text-primary hover:bg-surface-hover hover:text-text-primary"
                             }`}
-                            aria-label={`${item.label} 페이지로 이동`}
+                            aria-label={`${t(item.labelKey)} 페이지로 이동`}
                           >
                             <span className="text-base">{item.icon}</span>
-                            <span>{item.label}</span>
+                            <span>{t(item.labelKey)}</span>
                           </Link>
                         ))}
                         <button
@@ -251,7 +253,7 @@ export default function Header() {
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-hover hover:text-text-primary transition-colors text-left"
                         >
                           <span className="text-base">📚</span>
-                          <span>가이드 다시 보기</span>
+                          <span>{t("header.menu.guide")}</span>
                         </button>
                       </div>
 
@@ -261,20 +263,20 @@ export default function Header() {
                             href="/admin"
                             onClick={() => setIsMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-theme-secondary hover:bg-theme-secondary-light transition-colors"
-                            aria-label="관리자 페이지로 이동"
+                            aria-label={t("header.menu.admin")}
                           >
                             <span className="text-base">⚙️</span>
-                            <span>관리자</span>
+                            <span>{t("header.menu.admin")}</span>
                           </Link>
                         )}
                         <button
                           onClick={handleLogout}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error/10 transition-colors text-left"
-                          aria-label="로그아웃"
+                          aria-label={t("header.menu.logout")}
                           type="button"
                         >
                           <span className="text-base">🚪</span>
-                          <span>로그아웃</span>
+                          <span>{t("header.menu.logout")}</span>
                         </button>
                       </div>
                     </div>
@@ -293,16 +295,16 @@ export default function Header() {
                 <Link
                   href="/login"
                   className="px-4 py-2 text-sm font-medium text-text-primary hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 rounded-lg"
-                  aria-label="로그인 페이지로 이동"
+                  aria-label={t("auth.login")}
                 >
-                  로그인
+                  {t("auth.login")}
                 </Link>
                 <Link
                   href="/register"
                   className="px-6 py-2 text-sm font-semibold bg-theme-gradient-primary text-white rounded-lg hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
-                  aria-label="회원가입 페이지로 이동"
+                  aria-label={t("auth.register")}
                 >
-                  회원가입
+                  {t("auth.register")}
                 </Link>
               </>
             )}
@@ -311,8 +313,8 @@ export default function Header() {
             <div className="relative" ref={localeMenuRef}>
               <button
                 onClick={() => setIsLocaleMenuOpen(!isLocaleMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
-                aria-label="언어 선택"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 bg-surface-hover/30"
+                aria-label={t("header.language")}
                 aria-expanded={isLocaleMenuOpen}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,8 +352,8 @@ export default function Header() {
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50" ref={mobileMenuRef}>
           <div className="bg-surface w-80 h-full shadow-xl overflow-y-auto">
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-text-primary">메뉴</h2>
+            <div className="p-4 border-b border-border flex items-center justify-between bg-surface-hover/30">
+              <h2 className="text-lg font-semibold text-text-primary">{t("header.menuTitle")}</h2>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-2 rounded-lg text-text-primary hover:bg-surface-hover"
@@ -368,7 +370,7 @@ export default function Header() {
               {/* 카테고리 메뉴 (모든 사용자에게 표시) */}
               {Array.isArray(categories) && categories.length > 0 && (
                 <div className="mb-4 pb-4 border-b border-border">
-                  <h3 className="text-sm font-semibold text-text-primary mb-2">시험 카테고리</h3>
+                  <h3 className="text-sm font-semibold text-text-primary mb-2">{t("header.examCategories")}</h3>
                   <div className="space-y-1">
                     {categories.map((category: Category) => (
                       <Link
@@ -387,7 +389,7 @@ export default function Header() {
                       className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-text-primary hover:bg-surface-hover transition-colors"
                     >
                       <span className="text-lg">📋</span>
-                      <span>전체 시험 목록</span>
+                      <span>{t("header.allExams")}</span>
                     </Link>
                   </div>
                 </div>
@@ -396,13 +398,13 @@ export default function Header() {
               {user ? (
                 <>
                   {/* 사용자 정보 */}
-                  <div className="mb-4 pb-4 border-b border-border">
+                  <div className="mb-4 pb-4 border-b border-border bg-surface-hover/30">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 bg-theme-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-semibold text-text-primary">{user.name}님</div>
+                        <div className="font-semibold text-text-primary">{user.name}{t("header.nameSuffix")}</div>
                         <div className="text-xs text-text-muted">{user.email}</div>
                       </div>
                     </div>
@@ -422,7 +424,7 @@ export default function Header() {
                         }`}
                       >
                         <span className="text-lg">{item.icon}</span>
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </Link>
                     ))}
                     <button
@@ -434,7 +436,7 @@ export default function Header() {
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-text-primary hover:bg-surface-hover transition-colors text-left"
                     >
                       <span className="text-lg">📚</span>
-                      <span>가이드 다시 보기</span>
+                      <span>{t("header.menu.guide")}</span>
                     </button>
                   </div>
 
@@ -447,7 +449,7 @@ export default function Header() {
                         className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-theme-secondary bg-theme-secondary-light hover:bg-theme-secondary-light transition-colors"
                       >
                         <span className="text-lg">⚙️</span>
-                        <span>관리자</span>
+                        <span>{t("header.menu.admin")}</span>
                       </Link>
                     </div>
                   )}
@@ -463,7 +465,7 @@ export default function Header() {
                       type="button"
                     >
                       <span className="text-lg">🚪</span>
-                      <span>로그아웃</span>
+                      <span>{t("header.menu.logout")}</span>
                     </button>
                   </div>
                 </>
@@ -474,14 +476,14 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block w-full text-center px-4 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
                   >
-                    로그인
+                    {t("auth.login")}
                   </Link>
                   <Link
                     href="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block w-full text-center px-4 py-3 border border-border text-text-primary rounded-lg font-semibold hover:bg-surface-hover transition-colors"
                   >
-                    회원가입
+                    {t("auth.register")}
                   </Link>
                 </div>
               )}

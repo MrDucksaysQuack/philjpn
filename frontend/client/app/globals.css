@@ -12,6 +12,42 @@
   --color-secondary-rgb: 118, 75, 162;
   --color-accent-rgb: 79, 172, 254;
   
+  /* 상태 색상 (기본값) */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  --color-success-rgb: 16, 185, 129;
+  --color-error-rgb: 239, 68, 68;
+  --color-warning-rgb: 245, 158, 11;
+  --color-info-rgb: 59, 130, 246;
+  
+  /* 배경 색상 (기본값) */
+  --color-background: #fafafa;
+  --color-background-secondary: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f9fafb;
+  
+  /* 텍스트 색상 (기본값) */
+  --color-text-primary: #171717;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
+  
+  /* 테두리 색상 (기본값) */
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-border-dark: #d1d5db;
+  
+  /* 링크 색상 (기본값) */
+  --color-link: #3b82f6;
+  --color-link-hover: #2563eb;
+  
+  /* 버튼 색상 (기본값) */
+  --color-button-primary: var(--color-primary);
+  --color-button-secondary: var(--color-secondary);
+  --color-button-text: #ffffff;
+  
   /* 디자인 시스템 색상 (동적 테마 적용) */
   --primary-gradient: var(--gradient-primary, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
   --secondary-gradient: var(--gradient-secondary, linear-gradient(135deg, #f093fb 0%, #f5576c 100%));
@@ -308,6 +344,141 @@ html {
 /* 텍스트 색상 (투명도 조절) */
 .text-theme-primary-light {
   color: rgba(var(--color-primary-rgb, 102, 126, 234), 0.8);
+}
+
+/* ============================================
+   추가 색상 테마 유틸리티 클래스
+   ============================================ */
+
+/* 배경 색상 */
+.bg-surface {
+  background-color: var(--color-surface, #ffffff);
+}
+
+.bg-surface-hover {
+  background-color: var(--color-surface-hover, #f9fafb);
+}
+
+.bg-background-secondary {
+  background-color: var(--color-background-secondary, #ffffff);
+}
+
+.hover\:bg-surface-hover:hover {
+  background-color: var(--color-surface-hover, #f9fafb);
+}
+
+/* 텍스트 색상 */
+.text-text-primary {
+  color: var(--color-text-primary, #171717);
+}
+
+.text-text-secondary {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.text-text-muted {
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.text-text-inverse {
+  color: var(--color-text-inverse, #ffffff);
+}
+
+.hover\:text-text-primary:hover {
+  color: var(--color-text-primary, #171717);
+}
+
+/* 테두리 색상 */
+.border-border {
+  border-color: var(--color-border, #e5e7eb);
+}
+
+.border-border-light {
+  border-color: var(--color-border-light, #f3f4f6);
+}
+
+.border-border-dark {
+  border-color: var(--color-border-dark, #d1d5db);
+}
+
+/* 링크 색상 */
+.text-link {
+  color: var(--color-link, #3b82f6);
+}
+
+.hover\:text-link-hover:hover {
+  color: var(--color-link-hover, #2563eb);
+}
+
+/* 상태 색상 - 배경 */
+.bg-success {
+  background-color: var(--color-success, #10b981);
+}
+
+.bg-error {
+  background-color: var(--color-error, #ef4444);
+}
+
+.bg-warning {
+  background-color: var(--color-warning, #f59e0b);
+}
+
+.bg-info {
+  background-color: var(--color-info, #3b82f6);
+}
+
+.hover\:bg-success:hover {
+  background-color: var(--color-success, #10b981);
+}
+
+.hover\:bg-error:hover {
+  background-color: var(--color-error, #ef4444);
+}
+
+.hover\:bg-warning:hover {
+  background-color: var(--color-warning, #f59e0b);
+}
+
+.hover\:bg-info:hover {
+  background-color: var(--color-info, #3b82f6);
+}
+
+/* 상태 색상 - 텍스트 */
+.text-success {
+  color: var(--color-success, #10b981);
+}
+
+.text-error {
+  color: var(--color-error, #ef4444);
+}
+
+.text-warning {
+  color: var(--color-warning, #f59e0b);
+}
+
+.text-info {
+  color: var(--color-info, #3b82f6);
+}
+
+/* 버튼 색상 */
+.bg-button-primary {
+  background-color: var(--color-button-primary, var(--color-primary, #667eea));
+}
+
+.bg-button-secondary {
+  background-color: var(--color-button-secondary, var(--color-secondary, #764ba2));
+}
+
+.text-button-text {
+  color: var(--color-button-text, #ffffff);
+}
+
+.hover\:bg-button-primary:hover {
+  background-color: var(--color-button-primary, var(--color-primary, #667eea));
+}
+
+.hover\:bg-button-secondary:hover {
+  background-color: var(--color-button-secondary, var(--color-secondary, #764ba2));
 }
 
 /* About 페이지 애니메이션 */
