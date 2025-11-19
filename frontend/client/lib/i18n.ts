@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import koMessages from "../messages/ko.json";
 import enMessages from "../messages/en.json";
 import jaMessages from "../messages/ja.json";
@@ -14,10 +14,10 @@ const messages: Record<Locale, Record<string, any>> = {
 };
 
 export const useTranslation = (locale: Locale = "ko") => {
-  const t = useMemo(() => {
-    const messageSet = messages[locale] || messages.ko;
+  const messageSet = useMemo(() => messages[locale] || messages.ko, [locale]);
 
-    return (key: string, params?: Record<string, string | number>) => {
+  const t = useCallback(
+    (key: string, params?: Record<string, string | number>) => {
       const keys = key.split(".");
       let value: any = messageSet;
 
@@ -43,8 +43,9 @@ export const useTranslation = (locale: Locale = "ko") => {
       }
 
       return value;
-    };
-  }, [locale]);
+    },
+    [messageSet],
+  );
 
   return { t, locale };
 };

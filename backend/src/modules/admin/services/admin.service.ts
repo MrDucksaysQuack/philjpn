@@ -177,11 +177,9 @@ export class AdminService {
           totalAttempts,
           completedResults,
         ] = await Promise.all([
+          this.prisma.exam.count(),
           this.prisma.exam.count({
-            where: { deletedAt: null },
-          }),
-          this.prisma.exam.count({
-            where: { deletedAt: null, isActive: true },
+            where: { isActive: true },
           }),
           this.prisma.examResult.count(),
           this.prisma.examResult.count({
@@ -347,7 +345,7 @@ export class AdminService {
         ] = await Promise.all([
           this.prisma.user.count(),
           this.prisma.user.count({ where: { isActive: true } }),
-          this.prisma.exam.count({ where: { deletedAt: null } }),
+          this.prisma.exam.count({ where: { isActive: true } }),
           this.prisma.examResult.count(),
           this.prisma.examResult.findMany({
             take: 10,
