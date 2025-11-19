@@ -432,6 +432,25 @@ function BadgeModal({
 }) {
   const { locale } = useLocaleStore();
   const { t } = useTranslation(locale);
+  
+  const BADGE_TYPES = useMemo(() => [
+    { value: 'exam_completed', label: t("admin.badgeManagement.types.examCompleted") },
+    { value: 'perfect_score', label: t("admin.badgeManagement.types.perfectScore") },
+    { value: 'streak_days', label: t("admin.badgeManagement.types.streakDays") },
+    { value: 'word_master', label: t("admin.badgeManagement.types.wordMaster") },
+    { value: 'improvement', label: t("admin.badgeManagement.types.improvement") },
+    { value: 'category_master', label: t("admin.badgeManagement.types.categoryMaster") },
+    { value: 'speed_demon', label: t("admin.badgeManagement.types.speedDemon") },
+    { value: 'consistency', label: t("admin.badgeManagement.types.consistency") },
+  ], [t]);
+
+  const RARITY_OPTIONS = useMemo(() => [
+    { value: 'common', label: t("admin.badgeManagement.rarity.common"), color: 'bg-gray-200 text-gray-800' },
+    { value: 'rare', label: t("admin.badgeManagement.rarity.rare"), color: 'bg-blue-200 text-blue-800' },
+    { value: 'epic', label: t("admin.badgeManagement.rarity.epic"), color: 'bg-purple-200 text-purple-800' },
+    { value: 'legendary', label: t("admin.badgeManagement.rarity.legendary"), color: 'bg-yellow-200 text-yellow-800' },
+  ], [t]);
+
   const [formData, setFormData] = useState({
     badgeType: badge?.badgeType || 'exam_completed',
     name: badge?.name || "",
@@ -884,6 +903,16 @@ function BadgePreview({
   rarity: string;
   description?: string;
 }) {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+  
+  const RARITY_OPTIONS = useMemo(() => [
+    { value: 'common', label: t("admin.badgeManagement.rarity.common"), color: 'bg-gray-200 text-gray-800' },
+    { value: 'rare', label: t("admin.badgeManagement.rarity.rare"), color: 'bg-blue-200 text-blue-800' },
+    { value: 'epic', label: t("admin.badgeManagement.rarity.epic"), color: 'bg-purple-200 text-purple-800' },
+    { value: 'legendary', label: t("admin.badgeManagement.rarity.legendary"), color: 'bg-yellow-200 text-yellow-800' },
+  ], [t]);
+  
   const rarityOption = RARITY_OPTIONS.find(r => r.value === rarity);
   
   // 희귀도별 배경 그라데이션
