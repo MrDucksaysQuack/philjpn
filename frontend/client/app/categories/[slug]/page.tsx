@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { categoryAPI, examAPI, Category, Exam, Subcategory, PaginatedResponse } from "@/lib/api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useLocaleStore } from "@/lib/store";
@@ -82,7 +83,7 @@ export default function CategoryPage() {
               <p className="text-gray-600 mb-6">요청하신 카테고리가 존재하지 않거나 삭제되었습니다.</p>
               <Link
                 href="/exams"
-                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-block px-6 py-3 bg-button-primary text-button-text rounded-lg hover:opacity-90 transition-colors"
               >
                 시험 목록으로 돌아가기
               </Link>
@@ -161,7 +162,7 @@ export default function CategoryPage() {
                 <p className="mb-4">이 카테고리에 등록된 시험이 없습니다.</p>
                 <Link
                   href="/exams"
-                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="inline-block px-4 py-2 bg-button-primary text-button-text rounded-lg hover:opacity-90"
                 >
                   전체 시험 보기
                 </Link>

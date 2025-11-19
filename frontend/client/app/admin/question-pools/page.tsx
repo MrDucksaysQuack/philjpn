@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, QuestionPool } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -514,14 +515,15 @@ function QuestionPoolModal({
                 </div>
 
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={handlePreCheck}
                     disabled={isPreChecking}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50"
+                    isLoading={isPreChecking}
+                    size="sm"
                   >
-                    {isPreChecking ? "확인 중..." : "규칙 검증"}
-                  </button>
+                    규칙 검증
+                  </Button>
                   {preCheckResult && (
                     <div
                       className={`flex-1 px-4 py-2 rounded-md text-sm ${

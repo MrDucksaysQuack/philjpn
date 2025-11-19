@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { examAPI, apiClient, PaginatedResponse, Exam } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { toast } from "@/components/common/Toast";
@@ -133,7 +134,7 @@ export default function AdminExamsPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
             {t("admin.examManagement.title")}
           </h1>
           <div className="flex gap-2">
@@ -145,7 +146,7 @@ export default function AdminExamsPage() {
             </Link>
             <Link
               href="/admin/exams/create"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              className="bg-button-primary text-button-text px-4 py-2 rounded-md hover:opacity-90 inline-flex items-center justify-center"
             >
               + {t("admin.examManagement.createNew")}
             </Link>
@@ -245,10 +246,10 @@ export default function AdminExamsPage() {
               return (
                 <div
                   key={exam.id}
-                  className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+                  className="bg-surface rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                    <h3 className="text-lg font-semibold text-text-primary line-clamp-2">
                       {exam.title}
                     </h3>
                     <div className="flex items-center gap-2">
@@ -259,7 +260,7 @@ export default function AdminExamsPage() {
                               ? "bg-blue-100 text-blue-800"
                               : exam.status === "draft"
                               ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
+                              : "bg-surface-hover text-text-primary"
                           }`}
                         >
                           {exam.status === "published"
@@ -274,7 +275,7 @@ export default function AdminExamsPage() {
                           className={`px-2 py-1 text-xs rounded ${
                             exam.isActive
                               ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              : "bg-surface-hover text-text-primary"
                           }`}
                         >
                           {exam.isActive ? t("admin.examManagement.status.active") : t("admin.examManagement.status.inactive")}
@@ -282,7 +283,7 @@ export default function AdminExamsPage() {
                       </div>
                       <ContextMenu items={contextMenuItems}>
                         <svg
-                          className="w-5 h-5 text-gray-600"
+                          className="w-5 h-5 text-text-secondary"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -297,25 +298,25 @@ export default function AdminExamsPage() {
                       </ContextMenu>
                     </div>
                   </div>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                <p className="text-sm text-text-secondary mb-3 line-clamp-2">
                   {exam.description}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                  <span className="px-2 py-1 text-xs bg-info/20 text-info rounded">
                     {exam.examType}
-                  </span>
+                  </span> 
                   {exam.subject && (
                     <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">
                       {exam.subject}
                     </span>
                   )}
                   {exam.difficulty && (
-                    <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
+                    <span className="px-2 py-1 text-xs bg-warning/20 text-warning rounded">
                       {exam.difficulty}
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-500 mb-4">
+                <div className="text-sm text-text-muted mb-4">
                   <div>{t("admin.examManagement.details.questionCount")}: {exam.totalQuestions}</div>
                   <div>{t("admin.examManagement.details.sectionCount")}: {exam.totalSections}</div>
                   {exam.estimatedTime && (
@@ -325,7 +326,7 @@ export default function AdminExamsPage() {
                 <div className="flex gap-2">
                   <Link
                     href={`/admin/exams/${exam.id}`}
-                    className="flex-1 text-center bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm"
+                    className="flex-1 text-center bg-button-primary text-button-text px-3 py-2 rounded-md hover:opacity-90 text-sm inline-flex items-center justify-center"
                   >
                     {exam.status === "draft" ? t("admin.examManagement.details.continueEditing") : t("admin.examManagement.details.viewEdit")}
                   </Link>
@@ -362,38 +363,38 @@ export default function AdminExamsPage() {
         {/* 시험 복제 모달 */}
         {showCloneModal && selectedExam && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl max-w-md w-full m-4">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">시험 복제</h2>
-                <p className="text-sm text-gray-600 mt-1">
+            <div className="bg-surface rounded-2xl max-w-md w-full m-4">
+              <div className="p-6 border-b border-border">
+                <h2 className="text-2xl font-bold text-text-primary">시험 복제</h2>
+                <p className="text-sm text-text-secondary mt-1">
                   시험의 구조, 섹션, 문제를 그대로 복사합니다.
                 </p>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-primary mb-2">
                     원본 시험
                   </label>
-                  <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  <div className="px-4 py-2 bg-surface-hover rounded-lg text-text-primary">
                     {selectedExam.title}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-primary mb-2">
                     새 시험 제목 *
                   </label>
                   <input
                     type="text"
                     value={cloneTitle}
                     onChange={(e) => setCloneTitle(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary"
                     placeholder="복제된 시험 제목을 입력하세요"
                     required
                   />
                 </div>
 
                 {/* 버전 생성 옵션 */}
-                <div className="border-t border-gray-200 pt-4">
+                <div className="border-t border-border pt-4">
                   <div className="flex items-center gap-3 mb-4">
                     <input
                       type="checkbox"
@@ -407,7 +408,7 @@ export default function AdminExamsPage() {
                       }}
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
-                    <label htmlFor="createVersion" className="text-sm font-semibold text-gray-700">
+                    <label htmlFor="createVersion" className="text-sm font-semibold text-text-primary">
                       버전으로 생성 (A/B/C 버전 관리)
                     </label>
                   </div>
@@ -553,7 +554,7 @@ export default function AdminExamsPage() {
                                     ? "bg-blue-100 text-blue-800"
                                     : v.status === "draft"
                                     ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-gray-100 text-gray-800"
+                                    : "bg-surface-hover text-text-primary"
                                 }`}
                               >
                                 {v.status === "published"
@@ -571,7 +572,7 @@ export default function AdminExamsPage() {
                         <div className="flex gap-2">
                           <Link
                             href={`/admin/exams/${v.id}`}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                            className="px-4 py-2 bg-button-primary text-button-text rounded-md hover:opacity-90 text-sm inline-flex items-center justify-center"
                           >
                             상세
                           </Link>
@@ -587,15 +588,15 @@ export default function AdminExamsPage() {
               </div>
 
               <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-                <button
+                <Button
                   onClick={() => {
                     setShowVersionsModal(false);
                     setVersionsExamId(null);
                   }}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                  variant="outline"
                 >
                   닫기
-                </button>
+                </Button>
               </div>
             </div>
           </div>

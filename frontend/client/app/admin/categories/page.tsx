@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { categoryAPI, Category, Subcategory } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -326,7 +327,7 @@ export default function AdminCategoriesPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
             {t("admin.categoryManagement.title")}
           </h1>
           <div className="flex gap-2">
@@ -336,15 +337,15 @@ export default function AdminCategoriesPage() {
             >
               ← 대시보드
             </Link>
-            <button
+            <Button
               onClick={() => {
                 setEditingCategory(null);
                 setShowCategoryModal(true);
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              size="sm"
             >
               + 새 카테고리
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -360,7 +361,7 @@ export default function AdminCategoriesPage() {
           >
         <div className="space-y-4">
               {sortedCategories.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            <div className="bg-surface rounded-lg shadow p-8 text-center text-text-muted">
               카테고리가 없습니다. 새 카테고리를 생성해주세요.
             </div>
           ) : (
@@ -482,14 +483,14 @@ function SortableCategoryItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white rounded-lg shadow ${!category.isActive ? 'opacity-60' : ''}`}
+      className={`bg-surface rounded-lg shadow ${!category.isActive ? 'opacity-60' : ''}`}
     >
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+            className="cursor-grab active:cursor-grabbing text-text-muted hover:text-text-secondary"
             title="드래그하여 순서 변경"
           >
             <svg
@@ -508,22 +509,22 @@ function SortableCategoryItem({
           </div>
           <button
             onClick={onToggle}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-text-muted hover:text-text-primary"
           >
             {isExpanded ? '▼' : '▶'}
           </button>
           {category.icon && <span className="text-2xl">{category.icon}</span>}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-text-primary">
               {category.name}
               {!category.isActive && (
-                <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
+                <span className="ml-2 text-xs bg-surface-hover text-text-secondary px-2 py-1 rounded">
                   비활성
                 </span>
               )}
             </h3>
             {category.description && (
-              <p className="text-sm text-gray-500">{category.description}</p>
+              <p className="text-sm text-text-muted">{category.description}</p>
             )}
           </div>
         </div>
@@ -551,9 +552,9 @@ function SortableCategoryItem({
 
       {/* 서브카테고리 목록 */}
       {isExpanded && (
-        <div className="p-4 bg-gray-50">
+        <div className="p-4 bg-surface-hover">
           {subcategories.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
+            <p className="text-sm text-text-muted text-center py-4">
               서브카테고리가 없습니다.
             </p>
           ) : (
@@ -614,13 +615,13 @@ function SortableSubcategoryItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white rounded p-3 flex items-center justify-between border"
+      className="bg-surface rounded p-3 flex items-center justify-between border"
     >
       <div className="flex items-center gap-2 flex-1">
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+          className="cursor-grab active:cursor-grabbing text-text-muted hover:text-text-secondary"
           title="드래그하여 순서 변경"
         >
           <svg
@@ -640,7 +641,7 @@ function SortableSubcategoryItem({
         {subcategory.icon && <span>{subcategory.icon}</span>}
         <span className="font-medium">{subcategory.name}</span>
         {!subcategory.isActive && (
-          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
+          <span className="text-xs bg-surface-hover text-text-secondary px-2 py-0.5 rounded">
             비활성
           </span>
         )}
@@ -726,7 +727,7 @@ function CategoryModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               />
             </div>
             <div>
@@ -737,7 +738,7 @@ function CategoryModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               />
             </div>
             <div>
@@ -749,7 +750,7 @@ function CategoryModal({
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
                 placeholder="예: 📚"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               />
             </div>
             <div>
@@ -771,13 +772,14 @@ function CategoryModal({
             >
               취소
             </button>
-            <button
+            <Button
               type="submit"
               disabled={isSaving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              isLoading={isSaving}
+              className="flex-1"
             >
-              {isSaving ? "저장 중..." : "저장"}
-            </button>
+              저장
+            </Button>
           </div>
         </form>
       </div>
@@ -860,7 +862,7 @@ function SubcategoryModal({
                 value={selectedCategoryId}
                 onChange={(e) => setSelectedCategoryId(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               >
                 <option value="">선택하세요</option>
                 {categories.map((cat) => (
@@ -879,7 +881,7 @@ function SubcategoryModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               />
             </div>
             <div>
@@ -890,7 +892,7 @@ function SubcategoryModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               />
             </div>
             <div>
@@ -902,7 +904,7 @@ function SubcategoryModal({
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
                 placeholder="예: 📚"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
               />
             </div>
             <div>
@@ -924,13 +926,14 @@ function SubcategoryModal({
             >
               취소
             </button>
-            <button
+            <Button
               type="submit"
               disabled={isSaving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              isLoading={isSaving}
+              className="flex-1"
             >
-              {isSaving ? "저장 중..." : "저장"}
-            </button>
+              저장
+            </Button>
           </div>
         </form>
       </div>

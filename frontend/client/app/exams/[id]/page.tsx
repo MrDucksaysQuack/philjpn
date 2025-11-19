@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { examAPI, sessionAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { emotionalToast, toast } from "@/components/common/Toast";
@@ -201,13 +202,15 @@ export default function ExamDetailPage() {
                     {error}
                   </div>
                 )}
-                <button
+                <Button
                   onClick={handleStartExam}
                   disabled={loading}
-                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  isLoading={loading}
+                  fullWidth
+                  className="font-medium"
                 >
-                  {loading ? "시험 시작 중..." : "시험 시작"}
-                </button>
+                  시험 시작
+                </Button>
               </>
             )}
           </div>

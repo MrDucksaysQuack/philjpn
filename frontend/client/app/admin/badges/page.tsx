@@ -10,11 +10,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, Badge, BadgeStatistics, categoryAPI, Category } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { toast } from "@/components/common/Toast";
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { badgeRarityColors, chartColors } from "@/lib/chart-colors";
 
 export default function AdminBadgesPage() {
   const { locale } = useLocaleStore();
@@ -141,12 +143,12 @@ export default function AdminBadgesPage() {
     return acc;
   }, {} as Record<string, Badge[]>);
 
-  // 차트 데이터 준비
+  // 차트 데이터 준비 - 테마 색상 사용
   const rarityColors = {
-    common: '#9CA3AF',
-    rare: '#3B82F6',
-    epic: '#8B5CF6',
-    legendary: '#F59E0B',
+    common: badgeRarityColors.common(),
+    rare: badgeRarityColors.rare(),
+    epic: badgeRarityColors.epic(),
+    legendary: badgeRarityColors.legendary(),
   };
 
   const rarityLabels = useMemo(() => ({
@@ -172,7 +174,7 @@ export default function AdminBadgesPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
             {t("admin.badgeManagement.title")}
           </h1>
           <div className="flex gap-2">
@@ -187,7 +189,7 @@ export default function AdminBadgesPage() {
                 setEditingBadge(null);
                 setShowModal(true);
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              className="bg-button-primary text-button-text px-4 py-2 rounded-md hover:bg-button-primary"
             >
               + {t("admin.badgeManagement.createNew")}
             </button>
@@ -198,31 +200,31 @@ export default function AdminBadgesPage() {
         {statistics && !statisticsLoading && (
           <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 전체 통계 카드 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{t("admin.badgeManagement.statistics.overall")}</h2>
+            <div className="bg-surface rounded-lg shadow-md p-6 border border-border">
+              <h2 className="text-xl font-bold text-text-primary mb-4">{t("admin.badgeManagement.statistics.overall")}</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">{t("admin.badgeManagement.statistics.totalBadges")}</p>
-                  <p className="text-2xl font-bold text-gray-900">{statistics.totalBadges}</p>
+                  <p className="text-sm text-text-secondary">{t("admin.badgeManagement.statistics.totalBadges")}</p>
+                  <p className="text-2xl font-bold text-text-primary">{statistics.totalBadges}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t("admin.badgeManagement.statistics.totalUsers")}</p>
-                  <p className="text-2xl font-bold text-gray-900">{statistics.totalUsers}</p>
+                  <p className="text-sm text-text-secondary">{t("admin.badgeManagement.statistics.totalUsers")}</p>
+                  <p className="text-2xl font-bold text-text-primary">{statistics.totalUsers}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t("admin.badgeManagement.statistics.totalEarned")}</p>
-                  <p className="text-2xl font-bold text-blue-600">{statistics.totalEarned}</p>
+                  <p className="text-sm text-text-secondary">{t("admin.badgeManagement.statistics.totalEarned")}</p>
+                  <p className="text-2xl font-bold text-info">{statistics.totalEarned}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{t("admin.badgeManagement.statistics.overallEarnedRate")}</p>
-                  <p className="text-2xl font-bold text-green-600">{statistics.overallEarnedRate.toFixed(1)}%</p>
+                  <p className="text-sm text-text-secondary">{t("admin.badgeManagement.statistics.overallEarnedRate")}</p>
+                  <p className="text-2xl font-bold text-success">{statistics.overallEarnedRate.toFixed(1)}%</p>
                 </div>
               </div>
             </div>
 
             {/* 희귀도별 분포 파이 차트 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{t("admin.badgeManagement.statistics.rarityDistribution")}</h2>
+            <div className="bg-surface rounded-lg shadow-md p-6 border border-border">
+              <h2 className="text-xl font-bold text-text-primary mb-4">{t("admin.badgeManagement.statistics.rarityDistribution")}</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
@@ -244,8 +246,8 @@ export default function AdminBadgesPage() {
             </div>
 
             {/* 희귀도별 획득률 바 차트 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{t("admin.badgeManagement.statistics.rarityEarnedRate")}</h2>
+            <div className="bg-surface rounded-lg shadow-md p-6 border border-border">
+              <h2 className="text-xl font-bold text-text-primary mb-4">{t("admin.badgeManagement.statistics.rarityEarnedRate")}</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={statistics.rarityDistribution.map(r => ({
                   ...r,
@@ -255,14 +257,14 @@ export default function AdminBadgesPage() {
                   <XAxis dataKey="rarity" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="earnedRate" fill="#3B82F6" />
+                  <Bar dataKey="earnedRate" fill={chartColors.info()} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* 타입별 분포 바 차트 */}
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{t("admin.badgeManagement.statistics.typeDistribution")}</h2>
+            <div className="bg-surface rounded-lg shadow-md p-6 border border-border">
+              <h2 className="text-xl font-bold text-text-primary mb-4">{t("admin.badgeManagement.statistics.typeDistribution")}</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={statistics.typeDistribution.map(t => ({
                   ...t,
@@ -272,15 +274,15 @@ export default function AdminBadgesPage() {
                   <XAxis dataKey="type" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#8B5CF6" />
+                  <Bar dataKey="count" fill={chartColors.secondary()} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* 최근 획득 추이 라인 차트 */}
             {statistics.dailyEarned.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 lg:col-span-2">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">{t("admin.badgeManagement.statistics.dailyTrend")}</h2>
+              <div className="bg-surface rounded-lg shadow-md p-6 border border-border lg:col-span-2">
+                <h2 className="text-xl font-bold text-text-primary mb-4">{t("admin.badgeManagement.statistics.dailyTrend")}</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={statistics.dailyEarned}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -299,7 +301,7 @@ export default function AdminBadgesPage() {
                       }}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="count" stroke="#10B981" strokeWidth={2} name={t("admin.badgeManagement.statistics.totalEarned")} />
+                    <Line type="monotone" dataKey="count" stroke={chartColors.success()} strokeWidth={2} name={t("admin.badgeManagement.statistics.totalEarned")} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -316,7 +318,7 @@ export default function AdminBadgesPage() {
               onChange={(e) => setIncludeInactive(e.target.checked)}
               className="rounded"
             />
-            <span className="text-sm text-gray-700">{t("admin.badgeManagement.includeInactive")}</span>
+            <span className="text-sm text-text-primary">{t("admin.badgeManagement.includeInactive")}</span>
           </label>
         </div>
 
@@ -877,13 +879,14 @@ function BadgeModal({
             >
               {t("common.cancel")}
             </button>
-            <button
+            <Button
               type="submit"
               disabled={isSaving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              isLoading={isSaving}
+              className="flex-1"
             >
-              {isSaving ? t("common.loadingText") : t("common.save")}
-            </button>
+              {t("common.save")}
+            </Button>
           </div>
         </form>
       </div>
@@ -919,15 +922,15 @@ function BadgePreview({
   const getRarityGradient = (rarity: string) => {
     switch (rarity) {
       case 'common':
-        return 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300';
+        return 'bg-gradient-to-br from-text-muted/20 to-text-muted/30 border-text-muted/30';
       case 'rare':
-        return 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300';
+        return 'bg-gradient-to-br from-info/20 to-info/30 border-info/30';
       case 'epic':
-        return 'bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300';
+        return 'bg-gradient-to-br from-theme-secondary/20 to-theme-secondary/30 border-theme-secondary/30';
       case 'legendary':
-        return 'bg-gradient-to-br from-yellow-100 via-yellow-200 to-yellow-300 border-yellow-400';
+        return 'bg-gradient-to-br from-warning/20 via-warning/30 to-warning/40 border-warning/40';
       default:
-        return 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300';
+        return 'bg-gradient-to-br from-text-muted/20 to-text-muted/30 border-text-muted/30';
     }
   };
 

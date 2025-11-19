@@ -70,7 +70,7 @@ export default function TeamMemberCard({
               href={socialLinks.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-theme-primary hover:text-white flex items-center justify-center transition-colors"
               aria-label="LinkedIn"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

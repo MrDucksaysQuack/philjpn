@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { apiClient } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 
@@ -83,26 +84,26 @@ export default function MonitoringPage() {
             >
               {autoRefresh ? "🟢 자동 새로고침" : "⏸️ 일시정지"}
             </button>
-            <button
+            <Button
               onClick={() => refetch()}
-              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium"
+              size="sm"
             >
               🔄 새로고침
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-md p-6">
+          <div className="bg-gradient-to-br from-info/10 to-info/20 rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-600 mb-2">활성 세션</div>
-            <div className="text-3xl font-bold text-blue-700">
+            <div className="text-3xl font-bold text-info">
               {sessions.length}
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-md p-6">
+          <div className="bg-gradient-to-br from-theme-secondary/10 to-theme-secondary/20 rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-600 mb-2">평균 진행 시간</div>
-            <div className="text-3xl font-bold text-purple-700">
+            <div className="text-3xl font-bold text-theme-secondary">
               {sessions.length > 0
                 ? Math.round(
                     sessions.reduce((sum: number, s: ActiveSession) => sum + s.duration, 0) /
@@ -112,15 +113,15 @@ export default function MonitoringPage() {
               분
             </div>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg shadow-md p-6">
+          <div className="bg-gradient-to-br from-warning/10 to-warning/20 rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-600 mb-2">탭 전환 경고</div>
-            <div className="text-3xl font-bold text-orange-700">
+            <div className="text-3xl font-bold text-warning">
               {sessions.filter((s: ActiveSession) => s.tabSwitches > 3).length}
             </div>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-md p-6">
+          <div className="bg-gradient-to-br from-success/10 to-success/20 rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-600 mb-2">정상 진행</div>
-            <div className="text-3xl font-bold text-green-700">
+            <div className="text-3xl font-bold text-success">
               {sessions.filter(
                 (s: ActiveSession) => s.tabSwitches <= 3 && s.duration > 5
               ).length}

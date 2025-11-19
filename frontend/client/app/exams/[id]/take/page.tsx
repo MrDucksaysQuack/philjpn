@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { sessionAPI, NextQuestionResponse, questionAPI, Question } from "@/lib/api";
 import { socketClient } from "@/lib/socket";
 import { useAuthStore } from "@/lib/store";
@@ -276,7 +277,7 @@ export default function TakeExamPage() {
       <>
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center text-red-600">
+          <div className="text-center text-error">
             {t("common.error")}
           </div>
         </div>
@@ -323,10 +324,10 @@ export default function TakeExamPage() {
 
           {/* 적응형 시험 정보 */}
           {isAdaptive && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+            <div className="mb-4 p-4 bg-gradient-to-r from-theme-secondary/10 to-theme-primary/10 rounded-lg border border-theme-secondary/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-purple-700">🎯 {t("exam.adaptive")}</span>
+                  <span className="text-sm font-semibold text-theme-secondary">🎯 {t("exam.adaptive")}</span>
                   {ability !== null && (
                     <span className="text-sm text-gray-600">
                       능력 추정: <span className="font-semibold">{ability.toFixed(2)}</span>
@@ -369,9 +370,9 @@ export default function TakeExamPage() {
                     <div className="text-sm text-gray-500">문제 {currentQuestion.order}</div>
                     {currentQuestion.question.difficulty && (
                       <span className={`px-2 py-1 text-xs rounded ${
-                        currentQuestion.question.difficulty === 'hard' ? 'bg-red-100 text-red-700' :
-                        currentQuestion.question.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-green-100 text-green-700'
+                        currentQuestion.question.difficulty === 'hard' ? 'bg-error/20 text-error' :
+                        currentQuestion.question.difficulty === 'medium' ? 'bg-warning/20 text-warning' :
+                        'bg-success/20 text-success'
                       }`}>
                         {currentQuestion.question.difficulty === 'hard' ? '어려움' :
                          currentQuestion.question.difficulty === 'medium' ? '중급' : '쉬움'}
@@ -382,7 +383,7 @@ export default function TakeExamPage() {
                     onClick={() => toggleBookmark(currentQuestion.question.id)}
                     className={`p-2 rounded-lg transition-colors ${
                       bookmarkedQuestions.has(currentQuestion.question.id)
-                        ? "bg-yellow-100 text-yellow-600"
+                        ? "bg-warning/20 text-warning"
                         : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                     }`}
                     aria-label="북마크 토글"
@@ -437,15 +438,15 @@ export default function TakeExamPage() {
               </div>
             ) : (
               currentRegularQuestion ? (
-                <div className="bg-white border-2 border-blue-200 rounded-lg p-6">
+                <div className="bg-white border-2 border-theme-primary/20 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="text-sm text-gray-500">문제 {currentRegularQuestion.questionNumber}</div>
                       {currentRegularQuestion.difficulty && (
                         <span className={`px-2 py-1 text-xs rounded ${
-                          currentRegularQuestion.difficulty === 'hard' ? 'bg-red-100 text-red-700' :
-                          currentRegularQuestion.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-green-100 text-green-700'
+                          currentRegularQuestion.difficulty === 'hard' ? 'bg-error/20 text-error' :
+                          currentRegularQuestion.difficulty === 'medium' ? 'bg-warning/20 text-warning' :
+                          'bg-success/20 text-success'
                         }`}>
                           {currentRegularQuestion.difficulty === 'hard' ? '어려움' :
                            currentRegularQuestion.difficulty === 'medium' ? '중급' : '쉬움'}
@@ -456,7 +457,7 @@ export default function TakeExamPage() {
                       onClick={() => toggleBookmark(currentRegularQuestion.id)}
                       className={`p-2 rounded-lg transition-colors ${
                         bookmarkedQuestions.has(currentRegularQuestion.id)
-                          ? "bg-yellow-100 text-yellow-600"
+                          ? "bg-warning/20 text-warning"
                           : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                       }`}
                       aria-label="북마크 토글"
@@ -526,13 +527,13 @@ export default function TakeExamPage() {
 
           <div className="flex justify-between">
             {!isAdaptive && (
-            <button
+            <Button
                 onClick={handlePrevQuestion}
                 disabled={currentQuestionNumber === (sectionQuestions[0]?.questionNumber || 1)}
-                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="outline"
             >
               {t("common.previous")}
-            </button>
+            </Button>
             )}
             {isAdaptive && <div />}
             <button
@@ -542,7 +543,7 @@ export default function TakeExamPage() {
                   ? !currentQuestion 
                   : currentQuestionNumber === (sectionQuestions[sectionQuestions.length - 1]?.questionNumber || currentTotal)
               }
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-button-primary text-button-text rounded-lg hover:bg-button-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isAdaptive ? t("exam.nextQuestion") : t("common.next")}
             </button>
@@ -553,7 +554,7 @@ export default function TakeExamPage() {
             <button
               onClick={handleSubmit}
               disabled={submitMutation.isPending}
-              className="w-full bg-red-600 text-white px-6 py-3 rounded-md font-medium hover:bg-red-700 disabled:opacity-50"
+              className="w-full bg-error text-white px-6 py-3 rounded-md font-medium hover:bg-error disabled:opacity-50"
             >
               {submitMutation.isPending ? t("exam.submitting") : t("exam.submitExam")}
             </button>
@@ -588,17 +589,17 @@ export default function TakeExamPage() {
                     onClick={() => goToQuestion(num)}
                     className={`p-2 rounded text-sm font-medium transition-all ${
                       isCurrent
-                        ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                        ? "bg-button-primary text-button-text ring-2 ring-theme-primary/30"
                         : hasAnswer
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        ? "bg-success/20 text-success hover:bg-success/30"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    } ${isBookmarked ? "ring-2 ring-yellow-400" : ""}`}
+                    } ${isBookmarked ? "ring-2 ring-warning/40" : ""}`}
                     title={`문제 ${num}${isBookmarked ? " (북마크됨)" : ""}${hasAnswer ? " (답변 완료)" : ""}`}
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span>{num}</span>
                       {isBookmarked && (
-                        <svg className="w-3 h-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-3 h-3 text-warning" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                         </svg>
                       )}

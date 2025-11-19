@@ -171,14 +171,14 @@ function ExamsPageContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* 카테고리/서브카테고리 선택 섹션 */}
           {categoriesData && categoriesData.length > 0 && (
-            <div className="mb-6 bg-white rounded-lg shadow p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("exam.categorySelect")}</h2>
+            <div className="mb-6 bg-surface rounded-lg shadow p-4">
+              <h2 className="text-lg font-semibold text-text-primary mb-4">{t("exam.categorySelect")}</h2>
               
               
               {/* 중분류 (Subcategory) 선택 - 카테고리가 선택된 경우 표시 */}
               {categoryId && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t("exam.subcategory")}</label>
+                  <label className="block text-sm font-medium text-text-primary mb-2">{t("exam.subcategory")}</label>
                   {subcategoriesData && subcategoriesData.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       <button
@@ -186,7 +186,7 @@ function ExamsPageContent() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           !subcategoryId
                             ? "bg-theme-secondary text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            : "bg-surface-hover text-text-primary hover:bg-surface-hover"
                         }`}
                       >
                         {t("exam.all")}
@@ -198,7 +198,7 @@ function ExamsPageContent() {
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                             subcategoryId === subcategory.id
                               ? "bg-theme-secondary text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              : "bg-surface-hover text-text-primary hover:bg-surface-hover"
                           }`}
                         >
                           {subcategory.icon && <span>{subcategory.icon}</span>}
@@ -207,8 +207,8 @@ function ExamsPageContent() {
                       ))}
                     </div>
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-sm text-gray-600">
+                    <div className="px-4 py-3 bg-surface-hover rounded-lg border border-border">
+                      <p className="text-sm text-text-secondary">
                         이 카테고리에는 중분류가 없습니다. 카테고리 내 모든 시험을 확인할 수 있습니다.
                       </p>
                     </div>
@@ -218,8 +218,8 @@ function ExamsPageContent() {
 
               {/* 선택된 카테고리 정보 표시 */}
               {(categoryId || subcategoryId) && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="mt-4 pt-4 border-t border-border">
+                  <div className="flex items-center gap-2 text-sm text-text-secondary">
                     <span>현재 선택:</span>
                     {selectedCategory && (
                       <span className="flex items-center gap-1 px-2 py-1 bg-theme-primary-light text-theme-primary rounded">
@@ -247,7 +247,7 @@ function ExamsPageContent() {
           {/* 필터 섹션 */}
           <div className="mb-6 bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">필터</h2>
+              <h2 className="text-lg font-semibold text-text-primary">필터</h2>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
@@ -259,7 +259,7 @@ function ExamsPageContent() {
             {showFilters && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">검색</label>
+                  <label className="block text-sm font-medium text-text-primary mb-1">검색</label>
                   <input
                     type="text"
                     value={filters.search}
@@ -269,7 +269,7 @@ function ExamsPageContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">시험 유형</label>
+                  <label className="block text-sm font-medium text-text-primary mb-1">시험 유형</label>
                   <select
                     value={filters.examType}
                     onChange={(e) => setFilters({ ...filters, examType: e.target.value })}
@@ -282,7 +282,7 @@ function ExamsPageContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">최소 시간 (분)</label>
+                  <label className="block text-sm font-medium text-text-primary mb-1">최소 시간 (분)</label>
                   <input
                     type="number"
                     value={filters.minTime}
@@ -292,7 +292,7 @@ function ExamsPageContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">최대 시간 (분)</label>
+                  <label className="block text-sm font-medium text-text-primary mb-1">최대 시간 (분)</label>
                   <input
                     type="number"
                     value={filters.maxTime}
@@ -302,7 +302,7 @@ function ExamsPageContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">적응형 시험</label>
+                  <label className="block text-sm font-medium text-text-primary mb-1">적응형 시험</label>
                   <select
                     value={filters.isAdaptive}
                     onChange={(e) => setFilters({ ...filters, isAdaptive: e.target.value as any })}
@@ -336,7 +336,7 @@ function ExamsPageContent() {
           <div className="mb-8 text-center">
             <Link
               href="/exams/recommended"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-theme-secondary via-theme-accent to-theme-primary text-white rounded-xl font-semibold hover:shadow-lg transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { adminAPI } from "@/lib/api";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from "recharts";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { chartColors } from "@/lib/chart-colors";
 
 export default function TrendChartWidget() {
   const { data: examResults, isLoading } = useQuery({
@@ -82,52 +83,52 @@ export default function TrendChartWidget() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       {/* 일별 응시 수 트렌드 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">일별 응시 수 (최근 30일)</h3>
+      <div className="bg-surface rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">일별 응시 수 (최근 30일)</h3>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={dailyAttempts}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border()} />
             <XAxis
               dataKey="date"
               tick={{ fontSize: 10 }}
-              stroke="#6b7280"
+              stroke={chartColors.textMuted()}
               angle={-45}
               textAnchor="end"
               height={80}
             />
-            <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
+            <YAxis tick={{ fontSize: 12 }} stroke={chartColors.textMuted()} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e5e7eb",
+                backgroundColor: "var(--color-surface, #ffffff)",
+                border: `1px solid ${chartColors.border()}`,
                 borderRadius: "8px",
               }}
             />
-            <Bar dataKey="attempts" fill="#3b82f6" name="응시 수" />
+            <Bar dataKey="attempts" fill={chartColors.info()} name="응시 수" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* 일별 평균 점수 트렌드 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">일별 평균 점수 (최근 7일)</h3>
+      <div className="bg-surface rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">일별 평균 점수 (최근 7일)</h3>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={dailyScores}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.border()} />
             <XAxis
               dataKey="date"
               tick={{ fontSize: 12 }}
-              stroke="#6b7280"
+              stroke={chartColors.textMuted()}
             />
             <YAxis
               tick={{ fontSize: 12 }}
-              stroke="#6b7280"
+              stroke={chartColors.textMuted()}
               domain={[0, 100]}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e5e7eb",
+                backgroundColor: "var(--color-surface, #ffffff)",
+                border: `1px solid ${chartColors.border()}`,
                 borderRadius: "8px",
               }}
               formatter={(value: any) => [`${value}%`, "평균 점수"]}
@@ -137,14 +138,14 @@ export default function TrendChartWidget() {
               type="monotone"
               dataKey="avgScore"
               name="평균 점수"
-              stroke="#10b981"
+              stroke={chartColors.success()}
               strokeWidth={2}
-              dot={{ r: 4, fill: "#10b981" }}
+              dot={{ r: 4, fill: chartColors.success() }}
               activeDot={{ r: 6 }}
             />
           </LineChart>
         </ResponsiveContainer>
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4 text-sm text-text-secondary">
           총 {dailyScores.reduce((sum, d) => sum + d.count, 0)}개의 완료된 시험이 있습니다.
         </div>
       </div>

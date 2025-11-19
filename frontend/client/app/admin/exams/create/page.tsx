@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { apiClient, examAPI, adminAPI, categoryAPI, ExamTemplate, QuestionPool, Category, Subcategory } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import AutocompleteSelect from "@/components/admin/AutocompleteSelect";
@@ -305,9 +306,9 @@ export default function CreateExamPage() {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold mb-2 transition-all ${
                       index < currentStepIndex
-                        ? "bg-green-500 text-white"
+                        ? "bg-success text-white"
                         : index === currentStepIndex
-                        ? "bg-blue-600 text-white ring-4 ring-blue-200"
+                        ? "bg-button-primary text-button-text ring-4 ring-theme-primary-light"
                         : "bg-gray-200 text-gray-600"
                     }`}
                   >
@@ -848,14 +849,13 @@ export default function CreateExamPage() {
             )}
             <div className="flex-1" />
             {currentStepIndex < steps.length - 1 ? (
-              <button
+              <Button
                 type="button"
                 onClick={handleNext}
                 disabled={!canGoNext()}
-                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 다음 →
-              </button>
+              </Button>
             ) : (
               <>
                 <Link
@@ -864,13 +864,13 @@ export default function CreateExamPage() {
                 >
                   취소
                 </Link>
-                <button
+                <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  isLoading={isSubmitting}
                 >
-                  {isSubmitting ? "생성 중..." : "시험 생성"}
-                </button>
+                  시험 생성
+                </Button>
               </>
             )}
           </div>

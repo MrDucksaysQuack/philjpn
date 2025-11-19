@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import {
   adminAPI,
   apiClient,
@@ -353,15 +354,15 @@ export default function AdminLicenseKeysPage() {
             >
               📊 배치 관리
             </Link>
-            <button
+            <Button
               onClick={() => {
                 setIsCreating(!isCreating);
                 if (!isCreating) setCreateMode("single");
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              size="sm"
             >
               {isCreating ? "취소" : "+ 새 키 생성"}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -401,7 +402,7 @@ export default function AdminLicenseKeysPage() {
                   onClick={() => setCreateMode("single")}
                   className={`px-4 py-2 rounded-md text-sm ${
                     createMode === "single"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-button-primary text-button-text"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -411,7 +412,7 @@ export default function AdminLicenseKeysPage() {
                   onClick={() => setCreateMode("batch")}
                   className={`px-4 py-2 rounded-md text-sm ${
                     createMode === "batch"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-button-primary text-button-text"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -529,13 +530,14 @@ export default function AdminLicenseKeysPage() {
                   />
                 </div>
               </div>
-              <button
+              <Button
                 onClick={handleCreate}
                 disabled={createMutation.isPending}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                isLoading={createMutation.isPending}
+                fullWidth
               >
-                {createMutation.isPending ? "생성 중..." : "키 생성"}
-              </button>
+                키 생성
+              </Button>
             </div>
             )}
 

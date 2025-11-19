@@ -100,7 +100,7 @@ export default function AudioPlayer({ src, playLimit = 2, className = "", autoPl
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
               : isPlaying
               ? "bg-red-500 text-white hover:bg-red-600"
-              : "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-button-primary text-button-text hover:opacity-90"
           }`}
           aria-label={isPlaying ? "일시정지" : "재생"}
         >

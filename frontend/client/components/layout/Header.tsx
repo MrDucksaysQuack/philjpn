@@ -119,7 +119,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white/95 backdrop-blur-sm shadow-md border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-surface/95 backdrop-blur-sm shadow-md border-b border-border-light sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
@@ -152,7 +152,7 @@ export default function Header() {
                   <Link
                     key={category.id}
                     href={`/exams?categoryId=${category.id}`}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 flex items-center gap-2"
                     aria-label={`${category.name} 카테고리로 이동`}
                   >
                     {category.icon && <span>{category.icon}</span>}
@@ -162,7 +162,7 @@ export default function Header() {
               ) : (
                 <Link
                   href="/exams"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
                   aria-label="시험 목록 페이지로 이동"
                 >
                   시험 목록
@@ -173,7 +173,7 @@ export default function Header() {
             {/* 모바일 햄버거 메뉴 버튼 */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-theme-primary"
+              className="md:hidden p-2 rounded-lg text-text-primary hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-theme-primary"
               aria-label="메뉴 열기"
               aria-expanded={isMobileMenuOpen}
               type="button"
@@ -204,9 +204,9 @@ export default function Header() {
                     <div className="w-8 h-8 bg-theme-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">
                       {user.name.charAt(0)}
                     </div>
-                    <span className="text-sm font-medium text-gray-700">{user.name}님</span>
+                    <span className="text-sm font-medium text-text-primary">{user.name}님</span>
                     <svg
-                      className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${
+                      className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${
                         isMenuOpen ? "transform rotate-180" : ""
                       }`}
                       fill="none"
@@ -219,10 +219,10 @@ export default function Header() {
 
                   {/* 드롭다운 메뉴 */}
                   {isMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 animate-fade-in">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <div className="text-sm font-semibold text-gray-900">{user.name}님</div>
-                        <div className="text-xs text-gray-500 mt-1">{user.email}</div>
+                    <div className="absolute right-0 mt-2 w-56 bg-surface rounded-xl shadow-lg border border-border py-2 z-50 animate-fade-in">
+                      <div className="px-4 py-3 border-b border-border-light">
+                        <div className="text-sm font-semibold text-text-primary">{user.name}님</div>
+                        <div className="text-xs text-text-muted mt-1">{user.email}</div>
                       </div>
                       
                       <div className="py-2">
@@ -233,8 +233,8 @@ export default function Header() {
                             onClick={() => setIsMenuOpen(false)}
                             className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
                               item.isPrimary
-                                ? "text-blue-600 font-semibold bg-blue-50 hover:bg-blue-100"
-                                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                ? "text-theme-primary font-semibold bg-theme-primary-light hover:bg-theme-primary-light"
+                                : "text-text-primary hover:bg-surface-hover hover:text-text-primary"
                             }`}
                             aria-label={`${item.label} 페이지로 이동`}
                           >
@@ -248,19 +248,19 @@ export default function Header() {
                             setShowOnboarding(true);
                             setIsMenuOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-hover hover:text-text-primary transition-colors text-left"
                         >
                           <span className="text-base">📚</span>
                           <span>가이드 다시 보기</span>
                         </button>
                       </div>
 
-                      <div className="border-t border-gray-100 pt-2">
+                      <div className="border-t border-border-light pt-2">
                         {user.role === "admin" && (
                           <Link
                             href="/admin"
                             onClick={() => setIsMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-purple-600 hover:bg-purple-50 transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-theme-secondary hover:bg-theme-secondary-light transition-colors"
                             aria-label="관리자 페이지로 이동"
                           >
                             <span className="text-base">⚙️</span>
@@ -269,7 +269,7 @@ export default function Header() {
                         )}
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error/10 transition-colors text-left"
                           aria-label="로그아웃"
                           type="button"
                         >
@@ -292,7 +292,7 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-text-primary hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 rounded-lg"
                   aria-label="로그인 페이지로 이동"
                 >
                   로그인
@@ -311,7 +311,7 @@ export default function Header() {
             <div className="relative" ref={localeMenuRef}>
               <button
                 onClick={() => setIsLocaleMenuOpen(!isLocaleMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2"
                 aria-label="언어 선택"
                 aria-expanded={isLocaleMenuOpen}
               >
@@ -325,7 +325,7 @@ export default function Header() {
               </button>
               
               {isLocaleMenuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <div className="absolute right-0 mt-2 w-40 bg-surface rounded-lg shadow-lg border border-border py-1 z-50">
                   {(["ko", "en", "ja"] as Locale[]).map((loc) => (
                     <button
                       key={loc}
@@ -333,7 +333,7 @@ export default function Header() {
                       className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                         locale === loc
                           ? "bg-theme-primary-light text-theme-primary font-semibold"
-                          : "text-gray-700 hover:bg-gray-50"
+                          : "text-text-primary hover:bg-surface-hover"
                       }`}
                     >
                       {localeLabels[loc]}
@@ -349,12 +349,12 @@ export default function Header() {
       {/* 모바일 메뉴 */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50" ref={mobileMenuRef}>
-          <div className="bg-white w-80 h-full shadow-xl overflow-y-auto">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">메뉴</h2>
+          <div className="bg-surface w-80 h-full shadow-xl overflow-y-auto">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-text-primary">메뉴</h2>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-lg text-gray-700 hover:bg-gray-100"
+                className="p-2 rounded-lg text-text-primary hover:bg-surface-hover"
                 aria-label="메뉴 닫기"
                 type="button"
               >
@@ -367,15 +367,15 @@ export default function Header() {
             <div className="p-4">
               {/* 카테고리 메뉴 (모든 사용자에게 표시) */}
               {Array.isArray(categories) && categories.length > 0 && (
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">시험 카테고리</h3>
+                <div className="mb-4 pb-4 border-b border-border">
+                  <h3 className="text-sm font-semibold text-text-primary mb-2">시험 카테고리</h3>
                   <div className="space-y-1">
                     {categories.map((category: Category) => (
                       <Link
                         key={category.id}
                         href={`/exams?categoryId=${category.id}`}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-text-primary hover:bg-surface-hover transition-colors"
                       >
                         {category.icon && <span className="text-lg">{category.icon}</span>}
                         <span>{category.name}</span>
@@ -384,7 +384,7 @@ export default function Header() {
                     <Link
                       href="/exams"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-text-primary hover:bg-surface-hover transition-colors"
                     >
                       <span className="text-lg">📋</span>
                       <span>전체 시험 목록</span>
@@ -396,14 +396,14 @@ export default function Header() {
               {user ? (
                 <>
                   {/* 사용자 정보 */}
-                  <div className="mb-4 pb-4 border-b border-gray-200">
+                  <div className="mb-4 pb-4 border-b border-border">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 bg-theme-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">{user.name}님</div>
-                        <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="font-semibold text-text-primary">{user.name}님</div>
+                        <div className="text-xs text-text-muted">{user.email}</div>
                       </div>
                     </div>
                   </div>
@@ -417,8 +417,8 @@ export default function Header() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors ${
                           item.isPrimary
-                            ? "text-blue-600 font-semibold bg-blue-50"
-                            : "text-gray-700 hover:bg-gray-50"
+                            ? "text-theme-primary font-semibold bg-theme-primary-light"
+                            : "text-text-primary hover:bg-surface-hover"
                         }`}
                       >
                         <span className="text-lg">{item.icon}</span>
@@ -431,7 +431,7 @@ export default function Header() {
                         setShowOnboarding(true);
                         setIsMobileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-text-primary hover:bg-surface-hover transition-colors text-left"
                     >
                       <span className="text-lg">📚</span>
                       <span>가이드 다시 보기</span>
@@ -440,11 +440,11 @@ export default function Header() {
 
                   {/* 관리자 메뉴 */}
                   {user.role === "admin" && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-4 pt-4 border-t border-border">
                       <Link
                         href="/admin"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-purple-600 bg-purple-50 hover:bg-purple-100 transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-theme-secondary bg-theme-secondary-light hover:bg-theme-secondary-light transition-colors"
                       >
                         <span className="text-lg">⚙️</span>
                         <span>관리자</span>
@@ -453,13 +453,13 @@ export default function Header() {
                   )}
 
                   {/* 로그아웃 */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="mt-4 pt-4 border-t border-border">
                     <button
                       onClick={() => {
                         handleLogout();
                         setIsMobileMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-error hover:bg-error/10 transition-colors"
                       type="button"
                     >
                       <span className="text-lg">🚪</span>
@@ -479,7 +479,7 @@ export default function Header() {
                   <Link
                     href="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                    className="block w-full text-center px-4 py-3 border border-border text-text-primary rounded-lg font-semibold hover:bg-surface-hover transition-colors"
                   >
                     회원가입
                   </Link>

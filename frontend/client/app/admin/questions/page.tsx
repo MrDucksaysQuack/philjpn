@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, questionAPI, examAPI, Question, CreateQuestionDto } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -144,24 +145,25 @@ export default function AdminQuestionsPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
             {t("admin.questionManagement.title")}
           </h1>
           <div className="flex gap-2 flex-wrap">
             {selectedQuestionIds.size > 0 && (
-              <button
+              <Button
                 onClick={() => setShowDifficultyUpdateModal(true)}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 text-sm"
+                variant="secondary"
+                size="sm"
               >
                 {t("admin.questionManagement.autoUpdateDifficulty")} ({selectedQuestionIds.size})
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={() => setShowSectionSelectModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              size="sm"
             >
               + {t("admin.questionManagement.createNew")}
-            </button>
+            </Button>
             <Link
               href="/admin"
               className="text-blue-600 hover:text-blue-700 px-4 py-2 rounded-md border border-blue-600"
@@ -206,7 +208,7 @@ export default function AdminQuestionsPage() {
 
         {/* 문제 목록 */}
         {questions.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+          <div className="bg-surface rounded-lg shadow p-8 text-center text-text-muted">
             {search || difficultyFilter || examFilter
               ? t("admin.questionManagement.noResults")
               : t("admin.questionManagement.noQuestions")}
@@ -216,7 +218,7 @@ export default function AdminQuestionsPage() {
             {questions.map((question: any) => (
               <div
                 key={question.id}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+                className="bg-surface rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -245,15 +247,15 @@ export default function AdminQuestionsPage() {
                           ? t("admin.questionManagement.questionType.fillBlank")
                           : t("admin.questionManagement.questionType.subjective")}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-text-muted">
                         {question.points}{t("admin.questionManagement.points")}
                       </span>
                     </div>
-                    <p className="text-gray-900 mb-2 line-clamp-2">
+                    <p className="text-text-primary mb-2 line-clamp-2">
                       {question.content}
                     </p>
                     {question.section && (
-                      <div className="text-sm text-gray-500 mb-2">
+                      <div className="text-sm text-text-muted mb-2">
                         <Link
                           href={`/admin/exams/${question.section.examId}`}
                           className="text-blue-600 hover:text-blue-700"
@@ -269,11 +271,11 @@ export default function AdminQuestionsPage() {
                         </Link>
                       </div>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                    <div className="flex items-center gap-4 text-xs text-text-muted mt-2">
                       {question.usageCount !== undefined && (
                         <span className="flex items-center gap-1">
                           <span className="font-medium">사용 횟수:</span>
-                          <span className="text-blue-600 font-semibold">{question.usageCount}</span>
+                          <span className="text-link font-semibold">{question.usageCount}</span>
                         </span>
                       )}
                       {question.lastUsedAt && (
@@ -294,7 +296,7 @@ export default function AdminQuestionsPage() {
                         {question.tags.map((tag: string) => (
                           <span
                             key={tag}
-                            className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded"
+                            className="px-2 py-0.5 text-xs bg-surface-hover text-text-primary rounded"
                           >
                             {tag}
                           </span>
@@ -356,29 +358,29 @@ export default function AdminQuestionsPage() {
         )}
 
         {/* 통계 */}
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
+        <div className="mt-8 bg-surface rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">문제 통계</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <div className="text-sm text-gray-500">전체 문제</div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-sm text-text-muted">전체 문제</div>
+              <div className="text-2xl font-bold text-text-primary">
                 {questions.length}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">객관식</div>
+              <div className="text-sm text-text-muted">객관식</div>
               <div className="text-2xl font-bold text-blue-600">
                 {questions.filter((q: any) => q.questionType === "multiple_choice").length}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">빈칸 채우기</div>
+              <div className="text-sm text-text-muted">빈칸 채우기</div>
               <div className="text-2xl font-bold text-green-600">
                 {questions.filter((q: any) => q.questionType === "fill_blank").length}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">주관식</div>
+              <div className="text-sm text-text-muted">주관식</div>
               <div className="text-2xl font-bold text-purple-600">
                 {questions.filter((q: any) => q.questionType === "essay").length}
               </div>
@@ -482,9 +484,9 @@ export default function AdminQuestionsPage() {
         {/* 난이도 자동 업데이트 모달 */}
         {showDifficultyUpdateModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="bg-surface rounded-lg p-6 max-w-md w-full">
               <h2 className="text-xl font-bold mb-4">난이도 자동 업데이트</h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-text-secondary mb-4">
                 선택한 {selectedQuestionIds.size}개의 문제의 난이도를 통계 기반으로 자동 업데이트합니다.
               </p>
               <div className="flex gap-2 justify-end">
@@ -497,17 +499,17 @@ export default function AdminQuestionsPage() {
                 >
                   취소
                 </button>
-                <button
+                <Button
                   onClick={async () => {
                     // TODO: 난이도 자동 업데이트 기능 구현
                     toast.info("난이도 자동 업데이트 기능은 준비 중입니다.");
                     setShowDifficultyUpdateModal(false);
                     setSelectedQuestionIds(new Set());
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                  size="sm"
                 >
                   업데이트
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -549,9 +551,9 @@ function QuestionStatisticsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">문제 통계</h2>
+      <div className="bg-surface rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-surface border-b border-border p-6 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-text-primary">문제 통계</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -582,14 +584,14 @@ function QuestionStatisticsModal({
                   </div>
                 </div>
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="text-sm text-red-700 font-medium mb-1">오답</div>
-                  <div className="text-2xl font-bold text-red-900">
+                  <div className="text-sm text-error font-medium mb-1">오답</div>
+                  <div className="text-2xl font-bold text-error">
                     {statistics.incorrectCount}
                   </div>
                 </div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm text-gray-700 font-medium mb-1">미답변</div>
-                  <div className="text-2xl font-bold text-gray-900">
+                <div className="bg-surface-hover border border-border rounded-lg p-4">
+                  <div className="text-sm text-text-primary font-medium mb-1">미답변</div>
+                  <div className="text-2xl font-bold text-text-primary">
                     {statistics.unansweredCount}
                   </div>
                 </div>
@@ -636,7 +638,7 @@ function QuestionStatisticsModal({
               {statistics.commonMistakes &&
                 Object.keys(statistics.commonMistakes).length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    <h3 className="text-lg font-semibold text-text-primary mb-3">
                       주요 오답 패턴
                     </h3>
                     <div className="space-y-2">
@@ -645,10 +647,10 @@ function QuestionStatisticsModal({
                         .map(([answer, count]) => (
                           <div
                             key={answer}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                            className="flex items-center justify-between p-3 bg-surface-hover rounded-lg border border-border"
                           >
-                            <span className="text-gray-900 font-medium">{answer}</span>
-                            <span className="text-red-600 font-semibold">{count as number}회</span>
+                            <span className="text-text-primary font-medium">{answer}</span>
+                            <span className="text-error font-semibold">{count as number}회</span>
                           </div>
                         ))}
                     </div>
@@ -657,7 +659,7 @@ function QuestionStatisticsModal({
 
               {/* 마지막 계산 일시 */}
               {statistics.lastCalculatedAt && (
-                <div className="text-sm text-gray-500 text-center">
+                <div className="text-sm text-text-muted text-center">
                   마지막 계산:{" "}
                   {new Date(statistics.lastCalculatedAt).toLocaleString("ko-KR")}
                 </div>
@@ -670,20 +672,20 @@ function QuestionStatisticsModal({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-between">
+        <div className="sticky bottom-0 bg-surface border-t border-border p-6 flex justify-between">
           <button
             onClick={() => recalculateMutation.mutate()}
             disabled={recalculateMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-button-primary text-button-text rounded-md hover:bg-button-primary disabled:opacity-50"
           >
             {recalculateMutation.isPending ? "재계산 중..." : "통계 재계산"}
           </button>
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -849,12 +851,11 @@ function QuestionPreviewModal({
           )}
         </div>
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -939,13 +940,12 @@ function SectionSelectModal({
           >
             취소
           </button>
-          <button
+          <Button
             onClick={onConfirm}
             disabled={!selectedSectionId}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             확인
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -1325,10 +1325,10 @@ function QuestionModal({
             >
               취소
             </button>
-            <button
+            <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              isLoading={createMutation.isPending}
             >
               {createMutation.isPending
                 ? question
@@ -1337,7 +1337,7 @@ function QuestionModal({
                 : question
                 ? "수정"
                 : "생성"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -1519,12 +1519,12 @@ function QuestionUsageModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>

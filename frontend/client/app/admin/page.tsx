@@ -295,7 +295,7 @@ export default function AdminDashboardPage() {
       blue: "border-blue-200 bg-blue-50 hover:bg-blue-100",
       green: "border-green-200 bg-green-50 hover:bg-green-100",
       purple: "border-purple-200 bg-purple-50 hover:bg-purple-100",
-      gray: "border-gray-200 bg-gray-50 hover:bg-gray-100",
+      gray: "border-border bg-surface-hover hover:bg-surface-hover",
     };
     return colors[color] || colors.gray;
   };
@@ -303,7 +303,7 @@ export default function AdminDashboardPage() {
   const getPriorityBadge = (priority: string) => {
     if (priority === "high") {
       return (
-        <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 rounded-full">
+        <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-error/20 text-error rounded-full">
           자주 사용
         </span>
       );
@@ -322,35 +322,35 @@ export default function AdminDashboardPage() {
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-text-primary mb-2">
             관리자 대시보드
           </h1>
-          <p className="text-gray-600">
+          <p className="text-text-secondary">
             플랫폼 관리 및 모니터링을 위한 통합 대시보드
           </p>
         </div>
 
         {/* 빠른 액션 섹션 */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">빠른 액션</h2>
+          <h2 className="text-lg font-semibold text-text-primary mb-4">빠른 액션</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link
               href="/admin/exams/create"
-              className="group relative bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-6 hover:shadow-lg hover:border-blue-400 transition-all duration-200 transform hover:-translate-y-1"
+              className="group relative bg-gradient-to-br from-info/10 to-info/20 rounded-xl border-2 border-info/20 p-6 hover:shadow-lg hover:border-info/40 transition-all duration-200 transform hover:-translate-y-1"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="text-4xl">➕</div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-lg font-bold text-text-primary group-hover:text-link transition-colors">
                       새 시험 생성
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">템플릿 또는 직접 생성</p>
+                    <p className="text-sm text-text-secondary mt-1">템플릿 또는 직접 생성</p>
                   </div>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <svg
-                    className="w-5 h-5 text-blue-600"
+                    className="w-5 h-5 text-link"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -368,21 +368,21 @@ export default function AdminDashboardPage() {
 
             <Link
               href="/admin/questions"
-              className="group relative bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-6 hover:shadow-lg hover:border-green-400 transition-all duration-200 transform hover:-translate-y-1"
+              className="group relative bg-gradient-to-br from-success/10 to-success/20 rounded-xl border-2 border-success/20 p-6 hover:shadow-lg hover:border-success/40 transition-all duration-200 transform hover:-translate-y-1"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="text-4xl">❓</div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                    <h3 className="text-lg font-bold text-text-primary group-hover:text-success transition-colors">
                       새 문제 추가
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">문제 은행에 문제 추가</p>
+                    <p className="text-sm text-text-secondary mt-1">문제 은행에 문제 추가</p>
                   </div>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <svg
-                    className="w-5 h-5 text-green-600"
+                    className="w-5 h-5 text-success"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -400,21 +400,21 @@ export default function AdminDashboardPage() {
 
             <Link
               href="/admin/license-keys"
-              className="group relative bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 p-6 hover:shadow-lg hover:border-purple-400 transition-all duration-200 transform hover:-translate-y-1"
+              className="group relative bg-gradient-to-br from-theme-secondary/10 to-theme-secondary/20 rounded-xl border-2 border-theme-secondary/20 p-6 hover:shadow-lg hover:border-theme-secondary/40 transition-all duration-200 transform hover:-translate-y-1"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="text-4xl">🔑</div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    <h3 className="text-lg font-bold text-text-primary group-hover:text-theme-secondary transition-colors">
                       라이선스 키 발급
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">새 라이선스 키 생성</p>
+                    <p className="text-sm text-text-secondary mt-1">새 라이선스 키 생성</p>
                   </div>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <svg
-                    className="w-5 h-5 text-purple-600"
+                    className="w-5 h-5 text-theme-secondary"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -436,27 +436,27 @@ export default function AdminDashboardPage() {
         <div id="overview-section" className="scroll-mt-24">
           {dashboard && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-              <div className="text-sm text-gray-500 mb-2">전체 사용자</div>
-              <div className="text-3xl font-bold text-gray-900">
+            <div className="bg-surface rounded-lg shadow p-6 border-l-4 border-info">
+              <div className="text-sm text-text-muted mb-2">전체 사용자</div>
+              <div className="text-3xl font-bold text-text-primary">
                 {dashboard.summary.totalUsers}
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-              <div className="text-sm text-gray-500 mb-2">활성 사용자</div>
-              <div className="text-3xl font-bold text-blue-600">
+            <div className="bg-surface rounded-lg shadow p-6 border-l-4 border-success">
+              <div className="text-sm text-text-muted mb-2">활성 사용자</div>
+              <div className="text-3xl font-bold text-info">
                 {dashboard.summary.activeUsers}
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-              <div className="text-sm text-gray-500 mb-2">전체 시험</div>
-              <div className="text-3xl font-bold text-green-600">
+            <div className="bg-surface rounded-lg shadow p-6 border-l-4 border-theme-secondary">
+              <div className="text-sm text-text-muted mb-2">전체 시험</div>
+              <div className="text-3xl font-bold text-success">
                 {dashboard.summary.totalExams}
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-              <div className="text-sm text-gray-500 mb-2">전체 응시</div>
-              <div className="text-3xl font-bold text-purple-600">
+            <div className="bg-surface rounded-lg shadow p-6 border-l-4 border-warning">
+              <div className="text-sm text-text-muted mb-2">전체 응시</div>
+              <div className="text-3xl font-bold text-theme-secondary">
                 {dashboard.summary.totalAttempts}
               </div>
             </div>
@@ -465,29 +465,29 @@ export default function AdminDashboardPage() {
 
         {/* 시험 통계 */}
         {examStats && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-surface rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">시험 통계</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
-                <div className="text-sm text-gray-500">활성 시험</div>
+                <div className="text-sm text-text-muted">활성 시험</div>
                 <div className="text-lg font-semibold">
                   {examStats.activeExams}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">전체 응시</div>
+                <div className="text-sm text-text-muted">전체 응시</div>
                 <div className="text-lg font-semibold">
                   {examStats.totalAttempts}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">평균 점수</div>
+                <div className="text-sm text-text-muted">평균 점수</div>
                 <div className="text-lg font-semibold">
                   {examStats.averageScore}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">완료율</div>
+                <div className="text-sm text-text-muted">완료율</div>
                 <div className="text-lg font-semibold">
                   {examStats.completionRate.toFixed(1)}%
                 </div>
@@ -498,29 +498,29 @@ export default function AdminDashboardPage() {
 
         {/* 라이선스 키 통계 */}
         {keyStats && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-surface rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">라이선스 키 통계</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <div className="text-sm text-gray-500">전체 키</div>
+                <div className="text-sm text-text-muted">전체 키</div>
                 <div className="text-lg font-semibold">
                   {keyStats.totalKeys}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">활성 키</div>
+                <div className="text-sm text-text-muted">활성 키</div>
                 <div className="text-lg font-semibold">
                   {keyStats.activeKeys}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">총 사용</div>
+                <div className="text-sm text-text-muted">총 사용</div>
                 <div className="text-lg font-semibold">
                   {keyStats.totalUsage}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">만료 예정</div>
+                <div className="text-sm text-text-muted">만료 예정</div>
                 <div className="text-lg font-semibold text-orange-600">
                   {keyStats.expiringSoon}
                 </div>
@@ -537,7 +537,7 @@ export default function AdminDashboardPage() {
         {favoriteMenus.length > 0 && (
           <div className="mt-12 mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
                 <span>⭐</span>
                 <span>즐겨찾기</span>
               </h2>
@@ -548,13 +548,13 @@ export default function AdminDashboardPage() {
                   key={item.href}
                   href={item.href}
                   onClick={() => addRecentMenu(item.href, item.title, item.icon)}
-                  className="group relative bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border-2 border-yellow-200 p-5 hover:shadow-lg hover:border-yellow-400 transition-all duration-200 transform hover:-translate-y-1"
+                  className="group relative bg-gradient-to-br from-warning/10 to-warning/20 rounded-lg border-2 border-warning/20 p-5 hover:shadow-lg hover:border-warning/40 transition-all duration-200 transform hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="text-3xl">{item.icon}</div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors flex items-center">
+                        <h3 className="text-lg font-semibold text-text-primary group-hover:text-warning transition-colors flex items-center">
                           {item.title}
                           <button
                             onClick={(e) => {
@@ -562,7 +562,7 @@ export default function AdminDashboardPage() {
                               e.stopPropagation();
                               toggleFavorite(item.href);
                             }}
-                            className="ml-2 text-yellow-500 hover:text-yellow-700"
+                            className="ml-2 text-warning hover:text-warning"
                             title="즐겨찾기 제거"
                           >
                             ⭐
@@ -571,7 +571,7 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 ml-11">{item.description}</p>
+                  <p className="text-sm text-text-secondary ml-11">{item.description}</p>
                 </Link>
               ))}
             </div>
@@ -582,13 +582,13 @@ export default function AdminDashboardPage() {
         {recentMenus.length > 0 && (
           <div className="mt-8 mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
                 <span>🕒</span>
                 <span>최근 사용</span>
               </h2>
               <button
                 onClick={clearRecentMenus}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-text-muted hover:text-text-primary"
               >
                 모두 지우기
               </button>
@@ -599,13 +599,13 @@ export default function AdminDashboardPage() {
                   key={menu.href}
                   href={menu.href}
                   onClick={() => addRecentMenu(menu.href, menu.title, menu.icon)}
-                  className="group relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 p-5 hover:shadow-lg hover:border-gray-400 transition-all duration-200 transform hover:-translate-y-1"
+                  className="group relative bg-gradient-to-br from-surface to-surface-hover rounded-lg border-2 border-border p-5 hover:shadow-lg hover:border-border-dark transition-all duration-200 transform hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="text-3xl">{menu.icon}</div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-600 transition-colors">
+                        <h3 className="text-lg font-semibold text-text-primary group-hover:text-text-secondary transition-colors">
                           {menu.title}
                         </h3>
                       </div>
@@ -677,17 +677,17 @@ export default function AdminDashboardPage() {
                   .map((activity: { user?: { name: string }; exam?: { title: string }; timestamp: string }, idx: number) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                      className="flex justify-between items-center py-2 border-b border-border-light last:border-0"
                     >
                       <div>
                         <span className="font-medium">
                           {activity.user?.name || "Unknown"}
                         </span>
-                        <span className="text-gray-600 ml-2">
+                        <span className="text-text-secondary ml-2">
                           - {activity.exam?.title || "Unknown"}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-text-muted">
                         {new Date(activity.timestamp).toLocaleString("ko-KR")}
                       </div>
                     </div>

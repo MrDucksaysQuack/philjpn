@@ -381,7 +381,7 @@ export default function BatchManagementPage() {
                                 </div>
                                 <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
                                   <div
-                                    className="bg-blue-600 h-6 rounded-full flex items-center justify-end pr-2"
+                                    className="bg-button-primary h-6 rounded-full flex items-center justify-end pr-2"
                                     style={{
                                       width: `${
                                         Math.max(

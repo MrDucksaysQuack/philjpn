@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { examAPI, questionAPI, Exam, Question } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -160,7 +161,7 @@ export default function ExamPreviewPage() {
             </div>
             <Link
               href={`/admin/exams/${examId}`}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-button-primary text-button-text rounded-md hover:opacity-90 inline-flex items-center justify-center"
             >
               시험 수정
             </Link>
@@ -176,7 +177,7 @@ export default function ExamPreviewPage() {
                     onClick={() => handleSectionChange(index)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       currentSectionIndex === index
-                        ? "bg-blue-600 text-white"
+                        ? "bg-button-primary text-button-text"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
@@ -348,16 +349,15 @@ export default function ExamPreviewPage() {
                 <div className="text-sm text-gray-500">
                   {getCurrentQuestionNumber()} / {getTotalQuestions()}
                 </div>
-                <button
+                <Button
                   onClick={handleNextQuestion}
                   disabled={
                     currentSectionIndex === sections.length - 1 &&
                     currentQuestionIndex === questions.length - 1
                   }
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   다음 문제 →
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}

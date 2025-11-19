@@ -67,16 +67,16 @@ export default function AdminExamResultsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-theme-primary/5 to-theme-secondary/5">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-theme-primary via-theme-secondary to-theme-accent overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
                 시험 결과 모니터링
               </h1>
-              <p className="text-xl text-violet-100 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 max-w-2xl mx-auto">
                 전체 시험 결과를 조회하고 분석하세요
               </p>
             </div>
@@ -89,7 +89,7 @@ export default function AdminExamResultsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-white border-2 border-gray-200 rounded-xl font-medium text-gray-700 hover:border-purple-300 focus:outline-none focus:border-purple-500 transition-all shadow-md"
+              className="px-4 py-2 bg-white border-2 border-gray-200 rounded-xl font-medium text-gray-700 hover:border-theme-secondary/30 focus:outline-none focus:border-theme-secondary transition-all shadow-md"
             >
               <option value="">전체 상태</option>
               <option value="completed">완료</option>
@@ -107,7 +107,7 @@ export default function AdminExamResultsPage() {
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <div className="w-16 h-16 border-4 border-theme-primary border-t-transparent rounded-full animate-spin mb-4"></div>
               <p className="text-gray-600 font-medium">결과를 불러오는 중...</p>
             </div>
           ) : error ? (
@@ -126,7 +126,7 @@ export default function AdminExamResultsPage() {
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gradient-to-r from-violet-50 to-purple-50">
+                    <thead className="bg-gradient-to-r from-theme-primary/10 to-theme-secondary/10">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           사용자
@@ -187,12 +187,12 @@ export default function AdminExamResultsPage() {
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                                 result.status === "completed"
-                                  ? "bg-green-100 text-green-700 border border-green-200"
+                                  ? "bg-success/20 text-success border border-success/20"
                                   : result.status === "in_progress"
-                                    ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                                    ? "bg-warning/20 text-warning border border-warning/20"
                                     : result.status === "abandoned"
-                                      ? "bg-red-100 text-red-700 border border-red-200"
-                                      : "bg-blue-100 text-blue-700 border border-blue-200"
+                                      ? "bg-error/20 text-error border border-error/20"
+                                      : "bg-info/20 text-info border border-info/20"
                               }`}
                             >
                               {result.status === "completed"
@@ -215,7 +215,7 @@ export default function AdminExamResultsPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <Link
                               href={`/results/${result.id}`}
-                              className="text-violet-600 hover:text-violet-900 font-semibold"
+                              className="text-theme-primary hover:text-theme-primary font-semibold"
                             >
                               상세보기
                             </Link>
@@ -233,7 +233,7 @@ export default function AdminExamResultsPage() {
                   <button
                     onClick={() => setPage(Math.max(1, page - 1))}
                     disabled={page === 1}
-                    className="px-4 py-2 bg-white border-2 border-gray-200 rounded-xl font-medium hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-4 py-2 bg-white border-2 border-gray-200 rounded-xl font-medium hover:border-theme-secondary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     이전
                   </button>
@@ -243,7 +243,7 @@ export default function AdminExamResultsPage() {
                   <button
                     onClick={() => setPage(Math.min(data.meta.totalPages, page + 1))}
                     disabled={page === data.meta.totalPages}
-                    className="px-4 py-2 bg-white border-2 border-gray-200 rounded-xl font-medium hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-4 py-2 bg-white border-2 border-gray-200 rounded-xl font-medium hover:border-theme-secondary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     다음
                   </button>
@@ -252,8 +252,8 @@ export default function AdminExamResultsPage() {
 
               {data?.data.length === 0 && (
                 <div className="text-center py-20">
-                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl mb-6 shadow-lg">
-                    <svg className="w-12 h-12 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-theme-primary/20 to-theme-secondary/20 rounded-2xl mb-6 shadow-lg">
+                    <svg className="w-12 h-12 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>

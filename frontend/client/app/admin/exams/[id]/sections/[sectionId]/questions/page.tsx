@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { questionAPI, CreateQuestionDto, Question } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -137,12 +138,12 @@ export default function QuestionsPage() {
                         )}
                       </div>
                       <div className="flex gap-2 ml-4">
-                        <button
+                        <Button
                           onClick={() => setEditingQuestion(question)}
-                          className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          size="sm"
                         >
                           수정
-                        </button>
+                        </Button>
                         <button
                           onClick={() => {
                             if (confirm("정말 삭제하시겠습니까?")) {

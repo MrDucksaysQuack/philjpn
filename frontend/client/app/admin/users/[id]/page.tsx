@@ -8,6 +8,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, apiClient, User } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 
@@ -227,7 +228,7 @@ export default function EditUserPage() {
 
           {/* 통계 카드 */}
           {userData._count && (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-md p-6 sm:p-8">
+            <div className="bg-gradient-to-r from-info/10 to-theme-secondary/10 rounded-lg shadow-md p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 활동 통계
               </h2>
@@ -339,13 +340,15 @@ export default function EditUserPage() {
             </div>
 
             <div className="mt-8 flex gap-4">
-              <button
+              <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                isLoading={isSubmitting}
+                fullWidth
+                className="flex-1"
               >
-                {isSubmitting ? "수정 중..." : "정보 수정"}
-              </button>
+                정보 수정
+              </Button>
               <Link
                 href="/admin/users"
                 className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"

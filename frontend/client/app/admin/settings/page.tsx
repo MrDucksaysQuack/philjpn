@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, SiteSettings, UpdateSiteSettingsDto, ColorAnalysisResult, SiteSettingsVersion } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -14,13 +15,15 @@ import { getIconComponent } from "@/components/about/iconMapper";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
 import { toast } from "@/components/common/Toast";
 import SettingsPreview from "@/components/admin/SettingsPreview";
+import ColorPicker from "@/components/admin/ColorPicker";
+import { ColorHarmonyService, ColorTheme, ColorImportance, COLOR_IMPORTANCE_MAP } from "@/lib/color-harmony";
 
 export default function SiteSettingsPage() {
   const { locale } = useLocaleStore();
   const { t } = useTranslation(locale);
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "content" | "preview" | "versions">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "content" | "preview" | "versions" | "colorTheme">("basic");
   const [contentLocale, setContentLocale] = useState<"ko" | "en" | "ja">("ko");
   const [previewType, setPreviewType] = useState<"home" | "about">("home");
   const [isSaving, setIsSaving] = useState(false);
@@ -113,6 +116,7 @@ export default function SiteSettingsPage() {
           en: { team: {}, company: {}, service: {}, contact: {} },
           ja: { team: {}, company: {}, service: {}, contact: {} },
         },
+        colorTheme: settings.colorTheme || undefined,
       });
       // 초기 로드 완료 표시
       isInitialLoad.current = false;
@@ -383,14 +387,14 @@ export default function SiteSettingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* 탭 네비게이션 */}
           <div className="mb-8">
-            <div className="border-b border-gray-200">
+            <div className="border-b border-border">
               <nav className="flex space-x-8" aria-label="Tabs">
                 <button
                   onClick={() => setActiveTab("basic")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "basic"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.basic")}
@@ -400,7 +404,7 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === "company"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.company")}
@@ -410,7 +414,7 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === "team"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.team")}
@@ -420,7 +424,7 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === "service"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.service")}
@@ -430,7 +434,7 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === "contact"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.contact")}
@@ -440,7 +444,7 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === "content"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.content")}
@@ -450,7 +454,7 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "preview"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.preview")}
@@ -460,10 +464,20 @@ export default function SiteSettingsPage() {
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === "versions"
                       ? "border-theme-primary text-theme-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
                   {t("admin.siteSettings.tabs.versions")}
+                </button>
+                <button
+                  onClick={() => setActiveTab("colorTheme")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                    activeTab === "colorTheme"
+                      ? "border-theme-primary text-theme-primary"
+                      : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
+                  }`}
+                >
+                  🎨 {t("admin.siteSettings.tabs.colorTheme")}
                 </button>
               </nav>
             </div>
@@ -549,11 +563,11 @@ export default function SiteSettingsPage() {
           <form onSubmit={handleSubmit}>
             {/* 기본 정보 탭 */}
             {activeTab === "basic" && (
-              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">기본 정보</h2>
+              <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light space-y-6">
+                <h2 className="text-2xl font-bold text-text-primary mb-6">기본 정보</h2>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
                     회사명
                   </label>
                   <input
@@ -562,13 +576,13 @@ export default function SiteSettingsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, companyName: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                    className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                     placeholder="회사명을 입력하세요"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
                     로고
                   </label>
                   <div className="space-y-3">
@@ -587,11 +601,11 @@ export default function SiteSettingsPage() {
                           }}
                           disabled={uploadingLogo}
                         />
-                        <div className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-theme-primary transition-colors text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                        <div className="px-4 py-2 border-2 border-dashed border-border rounded-lg hover:border-theme-primary transition-colors text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                           {uploadingLogo ? (
                             <span className="text-theme-primary">업로드 중...</span>
                           ) : (
-                            <span className="text-gray-600">📁 파일 선택 (JPG, PNG, SVG, ICO 등)</span>
+                            <span className="text-text-secondary">📁 파일 선택 (JPG, PNG, SVG, ICO 등)</span>
                           )}
                         </div>
                       </label>
@@ -606,7 +620,7 @@ export default function SiteSettingsPage() {
                     </div>
                     
                     {/* URL 직접 입력 (또는) */}
-                    <div className="text-center text-xs text-gray-500">또는</div>
+                    <div className="text-center text-xs text-text-muted">또는</div>
                     
                     {/* URL 입력 필드 */}
                     <input
@@ -615,15 +629,15 @@ export default function SiteSettingsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, logoUrl: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       placeholder="https://example.com/logo.png (URL 직접 입력)"
                       disabled={uploadingLogo}
                     />
                     
                     {/* 미리보기 */}
                     {formData.logoUrl && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="text-xs text-gray-600 mb-2">{t("admin.siteSettings.preview")}:</div>
+                      <div className="mt-2 p-3 bg-surface-hover rounded-lg border border-border">
+                        <div className="text-xs text-text-secondary mb-2">{t("admin.siteSettings.preview")}:</div>
                         <img
                           src={formData.logoUrl}
                           alt={t("admin.siteSettings.logoPreview")}
@@ -638,7 +652,7 @@ export default function SiteSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
                     파비콘
                   </label>
                   <div className="space-y-3">
@@ -666,7 +680,7 @@ export default function SiteSettingsPage() {
                     </label>
                     
                     {/* URL 직접 입력 (또는) */}
-                    <div className="text-center text-xs text-gray-500">또는</div>
+                    <div className="text-center text-xs text-text-muted">또는</div>
                     
                     {/* URL 입력 필드 */}
                     <input
@@ -675,15 +689,15 @@ export default function SiteSettingsPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, faviconUrl: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       placeholder="https://example.com/favicon.ico (URL 직접 입력)"
                       disabled={uploadingFavicon}
                     />
                     
                     {/* 미리보기 */}
                     {formData.faviconUrl && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="text-xs text-gray-600 mb-2">{t("admin.siteSettings.preview")}:</div>
+                      <div className="mt-2 p-3 bg-surface-hover rounded-lg border border-border">
+                        <div className="text-xs text-text-secondary mb-2">{t("admin.siteSettings.preview")}:</div>
                         <img
                           src={formData.faviconUrl}
                           alt={t("admin.siteSettings.faviconPreview")}
@@ -699,7 +713,7 @@ export default function SiteSettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-text-primary mb-2">
                       Primary 색상
                     </label>
                     <div className="flex gap-2">
@@ -725,7 +739,7 @@ export default function SiteSettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-text-primary mb-2">
                       Secondary 색상
                     </label>
                     <div className="flex gap-2">
@@ -751,7 +765,7 @@ export default function SiteSettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-text-primary mb-2">
                       Accent 색상
                     </label>
                     <div className="flex gap-2">
@@ -795,7 +809,7 @@ export default function SiteSettingsPage() {
 
                 {/* 회사 소개 텍스트 */}
                 <div className="border-b border-gray-200 pb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
                     회사 소개 내용 (마크다운 지원)
                   </label>
                   <MarkdownEditor
@@ -1031,7 +1045,7 @@ export default function SiteSettingsPage() {
 
                 {/* 팀 소개 텍스트 */}
                 <div className="border-b border-gray-200 pb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
                     팀 소개 내용 (마크다운 지원)
                   </label>
                   <MarkdownEditor
@@ -1322,7 +1336,7 @@ export default function SiteSettingsPage() {
 
                 {/* 서비스 소개 텍스트 */}
                 <div className="border-b border-gray-200 pb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-text-primary mb-2">
                     서비스 소개 내용 (마크다운 지원)
                   </label>
                   <MarkdownEditor
@@ -1574,7 +1588,7 @@ export default function SiteSettingsPage() {
                   <p className="text-sm text-gray-600 mb-4">연락처 페이지에 표시되는 기본 연락처 정보입니다.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-text-primary mb-2">
                         이메일
                       </label>
                       <input
@@ -1589,12 +1603,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="contact@example.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-text-primary mb-2">
                         전화번호
                       </label>
                       <input
@@ -1609,12 +1623,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="02-1234-5678"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-text-primary mb-2">
                         주소
                       </label>
                       <input
@@ -1629,7 +1643,7 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="서울시 강남구..."
                       />
                     </div>
@@ -1641,7 +1655,7 @@ export default function SiteSettingsPage() {
                   <p className="text-sm text-gray-600 mb-4">연락처 페이지에 표시되는 소셜 미디어 링크입니다.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">웹사이트</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">웹사이트</label>
                       <input
                         type="url"
                         value={formData.contactInfo?.socialMedia?.website || ""}
@@ -1657,12 +1671,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="https://example.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Facebook</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Facebook</label>
                       <input
                         type="url"
                         value={formData.contactInfo?.socialMedia?.facebook || ""}
@@ -1678,12 +1692,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="https://facebook.com/..."
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Twitter</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Twitter</label>
                       <input
                         type="url"
                         value={formData.contactInfo?.socialMedia?.twitter || ""}
@@ -1699,12 +1713,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="https://twitter.com/..."
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Instagram</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Instagram</label>
                       <input
                         type="url"
                         value={formData.contactInfo?.socialMedia?.instagram || ""}
@@ -1720,12 +1734,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="https://instagram.com/..."
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">LinkedIn</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">LinkedIn</label>
                       <input
                         type="url"
                         value={formData.contactInfo?.socialMedia?.linkedin || ""}
@@ -1741,7 +1755,7 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="https://linkedin.com/..."
                       />
                     </div>
@@ -1762,7 +1776,7 @@ export default function SiteSettingsPage() {
 
                 {/* 언어 선택 */}
                 <div className="border-b border-gray-200 pb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">편집할 언어 선택</label>
+                  <label className="block text-sm font-semibold text-text-primary mb-2">편집할 언어 선택</label>
                   <div className="flex gap-2">
                     {(["ko", "en", "ja"] as const).map((loc) => (
                       <button
@@ -1786,7 +1800,7 @@ export default function SiteSettingsPage() {
                   <h3 className="text-xl font-bold text-gray-900">메인 페이지 (Home)</h3>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                    <label className="block text-sm font-semibold text-text-primary mb-2">Hero 제목</label>
                     <input
                       type="text"
                       value={formData.homeContent?.[contentLocale]?.hero?.title || ""}
@@ -1805,13 +1819,13 @@ export default function SiteSettingsPage() {
                           },
                         })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       placeholder="온라인 시험 플랫폼"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                    <label className="block text-sm font-semibold text-text-primary mb-2">Hero 부제목</label>
                     <input
                       type="text"
                       value={formData.homeContent?.[contentLocale]?.hero?.subtitle || ""}
@@ -1830,13 +1844,13 @@ export default function SiteSettingsPage() {
                           },
                         })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       placeholder="언제 어디서나 편리하게 시험을 응시하고 학습하세요"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">기능 섹션 제목</label>
+                    <label className="block text-sm font-semibold text-text-primary mb-2">기능 섹션 제목</label>
                     <input
                       type="text"
                       value={formData.homeContent?.[contentLocale]?.featuresSectionTitle || ""}
@@ -1852,13 +1866,13 @@ export default function SiteSettingsPage() {
                           },
                         })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       placeholder="주요 기능"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">기능 섹션 부제목</label>
+                    <label className="block text-sm font-semibold text-text-primary mb-2">기능 섹션 부제목</label>
                     <input
                       type="text"
                       value={formData.homeContent?.[contentLocale]?.featuresSectionSubtitle || ""}
@@ -1874,7 +1888,7 @@ export default function SiteSettingsPage() {
                           },
                         })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                       placeholder="체계적이고 효율적인 학습 환경을 제공합니다"
                     />
                   </div>
@@ -1888,7 +1902,7 @@ export default function SiteSettingsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 space-y-4">
                     <h4 className="font-semibold text-gray-800">팀 소개 (Team)</h4>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.team?.hero?.title || ""}
@@ -1910,12 +1924,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="우리 팀을 소개합니다"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 부제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.team?.hero?.subtitle || ""}
@@ -1937,7 +1951,7 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="열정과 전문성을 갖춘 팀으로 최고의 서비스를 제공합니다"
                       />
                     </div>
@@ -1947,7 +1961,7 @@ export default function SiteSettingsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 space-y-4">
                     <h4 className="font-semibold text-gray-800">회사 소개 (Company)</h4>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 부제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.company?.hero?.subtitle || ""}
@@ -1969,7 +1983,7 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="혁신적인 교육 플랫폼으로 학습의 미래를 만들어갑니다"
                       />
                     </div>
@@ -1979,7 +1993,7 @@ export default function SiteSettingsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 space-y-4">
                     <h4 className="font-semibold text-gray-800">서비스 소개 (Service)</h4>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.service?.hero?.title || ""}
@@ -2001,12 +2015,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="혁신적인 시험 플랫폼"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 부제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.service?.hero?.subtitle || ""}
@@ -2028,7 +2042,7 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="AI 기반 개인 맞춤형 학습으로 목표를 달성하세요"
                       />
                     </div>
@@ -2038,7 +2052,7 @@ export default function SiteSettingsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 space-y-4">
                     <h4 className="font-semibold text-gray-800">연락처 (Contact)</h4>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.contact?.hero?.title || ""}
@@ -2060,12 +2074,12 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="언제든지 연락주세요"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Hero 부제목</label>
+                      <label className="block text-sm font-semibold text-text-primary mb-2">Hero 부제목</label>
                       <input
                         type="text"
                         value={formData.aboutContent?.[contentLocale]?.contact?.hero?.subtitle || ""}
@@ -2087,7 +2101,7 @@ export default function SiteSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+                        className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
                         placeholder="궁금한 점이나 문의사항이 있으시면 언제든지 연락해주세요"
                       />
                     </div>
@@ -2108,7 +2122,7 @@ export default function SiteSettingsPage() {
                       onClick={() => setContentLocale("ko")}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         contentLocale === "ko"
-                          ? "bg-blue-600 text-white"
+                          ? "bg-button-primary text-button-text"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
                     >
@@ -2118,7 +2132,7 @@ export default function SiteSettingsPage() {
                       onClick={() => setContentLocale("en")}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         contentLocale === "en"
-                          ? "bg-blue-600 text-white"
+                          ? "bg-button-primary text-button-text"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
                     >
@@ -2128,7 +2142,7 @@ export default function SiteSettingsPage() {
                       onClick={() => setContentLocale("ja")}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         contentLocale === "ja"
-                          ? "bg-blue-600 text-white"
+                          ? "bg-button-primary text-button-text"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
                     >
@@ -2159,6 +2173,18 @@ export default function SiteSettingsPage() {
               </div>
             )}
 
+            {/* 색상 테마 탭 */}
+            {activeTab === "colorTheme" && (
+              <ColorThemeTab
+                formData={formData}
+                setFormData={setFormData}
+                t={t}
+              />
+            )}
+
+            {/* 버전 히스토리 탭 */}
+            {activeTab === "versions" && <VersionHistoryTab />}
+
             {/* 저장 버튼 */}
             <div className="mt-8 flex justify-between items-center">
               <div className="text-sm text-gray-500">
@@ -2184,6 +2210,323 @@ export default function SiteSettingsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+// 색상 테마 탭 컴포넌트
+function ColorThemeTab({
+  formData,
+  setFormData,
+  t,
+}: {
+  formData: UpdateSiteSettingsDto;
+  setFormData: React.Dispatch<React.SetStateAction<UpdateSiteSettingsDto>>;
+  t: (key: string) => string;
+}) {
+  const [colorTheme, setColorTheme] = useState<Partial<ColorTheme>>(
+    (formData.colorTheme as Partial<ColorTheme>) || {}
+  );
+
+  // CRITICAL 색상들
+  const criticalColors = {
+    primary: colorTheme.primary || formData.primaryColor || "#667eea",
+    background: colorTheme.background || "#fafafa",
+    textPrimary: colorTheme.textPrimary || "#171717",
+  };
+
+  // 색상 변경 핸들러
+  const handleColorChange = (key: keyof ColorTheme, value: string) => {
+    const newTheme = { ...colorTheme, [key]: value };
+    setColorTheme(newTheme);
+    
+    // CRITICAL 색상 변경 시 자동 생성
+    if (key === "primary" || key === "background" || key === "textPrimary") {
+      const newCritical = {
+        primary: newTheme.primary || criticalColors.primary,
+        background: newTheme.background || criticalColors.background,
+        textPrimary: newTheme.textPrimary || criticalColors.textPrimary,
+      };
+      
+      // 자동 색상 생성
+      const autoGenerated = ColorHarmonyService.generateThemeFromCritical(newCritical);
+      const mergedTheme = { ...autoGenerated, ...newTheme };
+      setColorTheme(mergedTheme);
+      setFormData({ ...formData, colorTheme: mergedTheme });
+    } else {
+      setFormData({ ...formData, colorTheme: newTheme });
+    }
+  };
+
+  // 조화 색상 제안 가져오기
+  const getHarmonySuggestions = (baseColor: string) => {
+    return [
+      ...ColorHarmonyService.generateHarmoniousColors(baseColor, "analogous"),
+      ...ColorHarmonyService.generateHarmoniousColors(baseColor, "complementary"),
+    ].slice(0, 4);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">색상 테마 관리</h2>
+        <p className="text-gray-600">
+          중요도가 높은 색상부터 설정하면 나머지 색상이 자동으로 생성됩니다.
+        </p>
+      </div>
+
+      {/* CRITICAL 색상 섹션 */}
+      <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-red-900 mb-4">
+          ⚠️ 최우선 색상 (CRITICAL)
+        </h3>
+        <p className="text-sm text-red-700 mb-4">
+          이 색상들을 먼저 설정하면 나머지 색상이 자동으로 생성됩니다.
+        </p>
+        <div className="space-y-4">
+          <ColorPicker
+            label="Primary (메인 브랜드 색상)"
+            value={colorTheme.primary || criticalColors.primary}
+            onChange={(value) => handleColorChange("primary", value)}
+            importance={ColorImportance.CRITICAL}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Background (메인 배경)"
+            value={colorTheme.background || criticalColors.background}
+            onChange={(value) => handleColorChange("background", value)}
+            importance={ColorImportance.CRITICAL}
+            criticalColors={criticalColors}
+            validateAgainst={colorTheme.textPrimary || criticalColors.textPrimary}
+          />
+          <ColorPicker
+            label="Text Primary (주요 텍스트)"
+            value={colorTheme.textPrimary || criticalColors.textPrimary}
+            onChange={(value) => handleColorChange("textPrimary", value)}
+            importance={ColorImportance.CRITICAL}
+            criticalColors={criticalColors}
+            validateAgainst={colorTheme.background || criticalColors.background}
+          />
+        </div>
+      </div>
+
+      {/* HIGH 중요도 색상 */}
+      <div className="mb-8 p-6 bg-orange-50 border border-orange-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-orange-900 mb-4">
+          높은 중요도 색상 (HIGH)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ColorPicker
+            label="Secondary"
+            value={colorTheme.secondary || ""}
+            onChange={(value) => handleColorChange("secondary", value)}
+            importance={ColorImportance.HIGH}
+            criticalColors={criticalColors}
+            suggestions={getHarmonySuggestions(criticalColors.primary)}
+          />
+          <ColorPicker
+            label="Surface"
+            value={colorTheme.surface || ""}
+            onChange={(value) => handleColorChange("surface", value)}
+            importance={ColorImportance.HIGH}
+            criticalColors={criticalColors}
+            validateAgainst={colorTheme.textPrimary || criticalColors.textPrimary}
+          />
+          <ColorPicker
+            label="Text Secondary"
+            value={colorTheme.textSecondary || ""}
+            onChange={(value) => handleColorChange("textSecondary", value)}
+            importance={ColorImportance.HIGH}
+            criticalColors={criticalColors}
+            validateAgainst={colorTheme.background || criticalColors.background}
+          />
+          <ColorPicker
+            label="Button Primary"
+            value={colorTheme.buttonPrimary || ""}
+            onChange={(value) => handleColorChange("buttonPrimary", value)}
+            importance={ColorImportance.HIGH}
+            criticalColors={criticalColors}
+          />
+        </div>
+      </div>
+
+      {/* MEDIUM 중요도 색상 */}
+      <div className="mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-yellow-900 mb-4">
+          중간 중요도 색상 (MEDIUM)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ColorPicker
+            label="Accent"
+            value={colorTheme.accent || ""}
+            onChange={(value) => handleColorChange("accent", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+            suggestions={ColorHarmonyService.generateHarmoniousColors(criticalColors.primary, "complementary")}
+          />
+          <ColorPicker
+            label="Link"
+            value={colorTheme.link || ""}
+            onChange={(value) => handleColorChange("link", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+            validateAgainst={colorTheme.background || criticalColors.background}
+          />
+          <ColorPicker
+            label="Border"
+            value={colorTheme.border || ""}
+            onChange={(value) => handleColorChange("border", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Success"
+            value={colorTheme.success || "#10b981"}
+            onChange={(value) => handleColorChange("success", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Error"
+            value={colorTheme.error || "#ef4444"}
+            onChange={(value) => handleColorChange("error", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Warning"
+            value={colorTheme.warning || "#f59e0b"}
+            onChange={(value) => handleColorChange("warning", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Info"
+            value={colorTheme.info || "#3b82f6"}
+            onChange={(value) => handleColorChange("info", value)}
+            importance={ColorImportance.MEDIUM}
+            criticalColors={criticalColors}
+          />
+        </div>
+      </div>
+
+      {/* LOW 중요도 색상 */}
+      <div className="mb-8 p-6 bg-gray-50 border border-gray-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          낮은 중요도 색상 (LOW)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ColorPicker
+            label="Surface Hover"
+            value={colorTheme.surfaceHover || ""}
+            onChange={(value) => handleColorChange("surfaceHover", value)}
+            importance={ColorImportance.LOW}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Text Muted"
+            value={colorTheme.textMuted || ""}
+            onChange={(value) => handleColorChange("textMuted", value)}
+            importance={ColorImportance.LOW}
+            criticalColors={criticalColors}
+            validateAgainst={colorTheme.background || criticalColors.background}
+          />
+          <ColorPicker
+            label="Border Light"
+            value={colorTheme.borderLight || ""}
+            onChange={(value) => handleColorChange("borderLight", value)}
+            importance={ColorImportance.LOW}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Border Dark"
+            value={colorTheme.borderDark || ""}
+            onChange={(value) => handleColorChange("borderDark", value)}
+            importance={ColorImportance.LOW}
+            criticalColors={criticalColors}
+          />
+          <ColorPicker
+            label="Link Hover"
+            value={colorTheme.linkHover || ""}
+            onChange={(value) => handleColorChange("linkHover", value)}
+            importance={ColorImportance.LOW}
+            criticalColors={criticalColors}
+          />
+        </div>
+      </div>
+
+      {/* 실시간 미리보기 */}
+      <div className="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">실시간 미리보기</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            className="p-4 rounded-lg border-2"
+            style={{
+              backgroundColor: colorTheme.surface || criticalColors.background,
+              borderColor: colorTheme.border || "#e5e7eb",
+            }}
+          >
+            <h4
+              className="text-lg font-bold mb-2"
+              style={{ color: colorTheme.textPrimary || criticalColors.textPrimary }}
+            >
+              제목 텍스트
+            </h4>
+            <p
+              className="text-sm mb-4"
+              style={{ color: colorTheme.textSecondary || "#6b7280" }}
+            >
+              보조 텍스트 색상입니다.
+            </p>
+            <button
+              className="px-4 py-2 rounded-lg text-white font-medium"
+              style={{ backgroundColor: colorTheme.buttonPrimary || criticalColors.primary }}
+            >
+              주요 버튼
+            </button>
+          </div>
+          <div
+            className="p-4 rounded-lg border-2"
+            style={{
+              backgroundColor: colorTheme.background || criticalColors.background,
+              borderColor: colorTheme.border || "#e5e7eb",
+            }}
+          >
+            <a
+              href="#"
+              className="text-sm font-medium underline"
+              style={{ color: colorTheme.link || criticalColors.primary }}
+            >
+              링크 색상
+            </a>
+            <div className="mt-4 space-y-2">
+              <div
+                className="px-3 py-1 rounded text-xs"
+                style={{ backgroundColor: colorTheme.success || "#10b981", color: "white" }}
+              >
+                Success
+              </div>
+              <div
+                className="px-3 py-1 rounded text-xs"
+                style={{ backgroundColor: colorTheme.error || "#ef4444", color: "white" }}
+              >
+                Error
+              </div>
+            </div>
+          </div>
+          <div
+            className="p-4 rounded-lg"
+            style={{ backgroundColor: colorTheme.primary || criticalColors.primary }}
+          >
+            <p
+              className="text-sm font-medium"
+              style={{ color: colorTheme.buttonText || "#ffffff" }}
+            >
+              Primary 배경 위 텍스트
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2270,12 +2613,12 @@ function VersionHistoryTab() {
     <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">버전 히스토리</h2>
-        <button
+        <Button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          size="sm"
         >
           + 새 버전 생성
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (
@@ -2283,12 +2626,12 @@ function VersionHistoryTab() {
       ) : versions.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <p className="mb-4">아직 생성된 버전이 없습니다.</p>
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            size="sm"
           >
             첫 버전 생성하기
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -2376,13 +2719,14 @@ function VersionHistoryTab() {
               >
                 취소
               </button>
-              <button
+              <Button
                 onClick={handleCreateVersion}
                 disabled={createVersionMutation.isPending}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                isLoading={createVersionMutation.isPending}
+                className="flex-1"
               >
-                {createVersionMutation.isPending ? "생성 중..." : "생성"}
-              </button>
+                생성
+              </Button>
             </div>
           </div>
         </div>

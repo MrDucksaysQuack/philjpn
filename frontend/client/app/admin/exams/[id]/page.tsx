@@ -8,6 +8,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { apiClient, Exam, examAPI, adminAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import AutocompleteSelect from "@/components/admin/AutocompleteSelect";
@@ -614,13 +615,14 @@ export default function EditExamPage() {
           </div>
 
           <div className="mt-8 flex gap-4">
-            <button
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              isLoading={isSubmitting}
+              className="flex-1"
             >
-              {isSubmitting ? "수정 중..." : "시험 수정"}
-            </button>
+              시험 수정
+            </Button>
             <Link
               href="/admin/exams"
               className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
@@ -905,12 +907,12 @@ function ExamValidationModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -1227,13 +1229,14 @@ function DifficultyBalanceModal({
                                   )}
                                 </div>
                                 {rec.action === 'move_question' && rec.questionId && rec.toSectionId && (
-                                  <button
+                                  <Button
                                     onClick={() => handleMoveQuestion(rec.questionId!, rec.toSectionId!)}
                                     disabled={moveQuestionMutation.isPending}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                                    isLoading={moveQuestionMutation.isPending}
+                                    size="sm"
                                   >
-                                    {moveQuestionMutation.isPending ? '이동 중...' : '이동하기'}
-                                  </button>
+                                    이동하기
+                                  </Button>
                                 )}
                               </div>
                             </div>
@@ -1257,12 +1260,12 @@ function DifficultyBalanceModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -1563,55 +1566,69 @@ function WorkflowModal({
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">작업</h3>
                 <div className="space-y-3">
                   {canSubmitForReview && (
-                    <button
+                    <Button
                       onClick={() => setActionType('submit')}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-left"
+                      fullWidth
+                      className="text-left"
                     >
                       검수 요청
-                    </button>
+                    </Button>
                   )}
                   {canApprove && (
-                    <button
+                    <Button
                       onClick={() => setActionType('approve')}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-left"
+                      variant="success"
+                      fullWidth
+                      className="text-left"
                     >
                       승인
-                    </button>
+                    </Button>
                   )}
                   {canReject && (
-                    <button
+                    <Button
                       onClick={() => setActionType('reject')}
-                      className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-left"
+                      variant="error"
+                      fullWidth
+                      className="text-left"
                     >
                       거부
-                    </button>
+                    </Button>
                   )}
                   {canPublish && (
-                    <button
+                    <Button
                       onClick={() => publishMutation.mutate()}
                       disabled={publishMutation.isPending}
-                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-left disabled:opacity-50"
+                      isLoading={publishMutation.isPending}
+                      variant="secondary"
+                      fullWidth
+                      className="text-left"
                     >
-                      {publishMutation.isPending ? '발행 중...' : '발행'}
-                    </button>
+                      발행
+                    </Button>
                   )}
                   {canArchive && (
-                    <button
+                    <Button
                       onClick={() => archiveMutation.mutate()}
                       disabled={archiveMutation.isPending}
-                      className="w-full px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-left disabled:opacity-50"
+                      isLoading={archiveMutation.isPending}
+                      variant="warning"
+                      fullWidth
+                      className="text-left"
                     >
-                      {archiveMutation.isPending ? '보관 중...' : '보관'}
-                    </button>
+                      보관
+                    </Button>
                   )}
                   {canReturnToDraft && (
-                    <button
+                    <Button
                       onClick={() => returnToDraftMutation.mutate()}
                       disabled={returnToDraftMutation.isPending}
-                      className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-left disabled:opacity-50"
+                      isLoading={returnToDraftMutation.isPending}
+                      variant="outline"
+                      fullWidth
+                      className="text-left"
                     >
-                      {returnToDraftMutation.isPending ? '복귀 중...' : '초안으로 복귀'}
-                    </button>
+                      초안으로 복귀
+                    </Button>
                   )}
                 </div>
               </div>
@@ -1628,13 +1645,13 @@ function WorkflowModal({
                     rows={3}
                   />
                   <div className="flex gap-2">
-                    <button
+                    <Button
                       onClick={() => submitForReviewMutation.mutate()}
                       disabled={submitForReviewMutation.isPending}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                      isLoading={submitForReviewMutation.isPending}
                     >
-                      {submitForReviewMutation.isPending ? '요청 중...' : '요청'}
-                    </button>
+                      요청
+                    </Button>
                     <button
                       onClick={() => {
                         setActionType(null);
@@ -1719,12 +1736,12 @@ function WorkflowModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -1841,12 +1858,12 @@ function VersionHistoryModal({
           <div className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">새 버전 생성</h3>
-              <button
+              <Button
                 onClick={() => setShowCreateVersionForm(!showCreateVersionForm)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                size="sm"
               >
                 {showCreateVersionForm ? '취소' : '버전 생성'}
-              </button>
+              </Button>
             </div>
             {showCreateVersionForm && (
               <div className="space-y-4 mt-4">
@@ -1874,7 +1891,7 @@ function VersionHistoryModal({
                     className="w-full px-4 py-2 border rounded-md"
                   />
                 </div>
-                <button
+                <Button
                   onClick={() => {
                     createVersionMutation.mutate({
                       versionLabel: newVersionLabel || undefined,
@@ -1885,10 +1902,11 @@ function VersionHistoryModal({
                     setShowCreateVersionForm(false);
                   }}
                   disabled={createVersionMutation.isPending}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                  isLoading={createVersionMutation.isPending}
+                  variant="success"
                 >
-                  {createVersionMutation.isPending ? '생성 중...' : '버전 생성'}
-                </button>
+                  버전 생성
+                </Button>
               </div>
             )}
           </div>
@@ -1982,13 +2000,14 @@ function VersionHistoryModal({
                 <div className="border border-gray-200 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">버전 비교</h3>
-                    <button
+                    <Button
                       onClick={handleCompare}
                       disabled={isComparing}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
+                      isLoading={isComparing}
+                      variant="secondary"
                     >
-                      {isComparing ? '비교 중...' : '비교하기'}
-                    </button>
+                      비교하기
+                    </Button>
                   </div>
                   {showComparison && comparisonResponse && (
                     <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
@@ -2028,12 +2047,12 @@ function VersionHistoryModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>

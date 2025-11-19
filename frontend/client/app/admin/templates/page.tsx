@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, ExamTemplate, CreateTemplateData, QuestionPool } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -164,12 +165,13 @@ export default function TemplatesPage() {
                     >
                       추적
                     </button>
-                    <button
+                    <Button
                       onClick={() => setPreviewTemplateId(template.id)}
-                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all"
+                      variant="secondary"
+                      className="flex-1"
                     >
                       미리보기
-                    </button>
+                    </Button>
                     <button
                       onClick={() => setSelectedTemplate(template.id)}
                       className="flex-1 px-4 py-2 bg-theme-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-all"
@@ -423,12 +425,11 @@ function TemplatePreviewModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -922,12 +923,12 @@ function TemplateUsageModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            variant="outline"
           >
             닫기
-          </button>
+          </Button>
         </div>
       </div>
     </div>

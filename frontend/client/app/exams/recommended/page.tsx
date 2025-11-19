@@ -58,14 +58,14 @@ export default function RecommendedExamsPage() {
       <Header />
       <div className="min-h-screen bg-theme-gradient-light">
         {/* 헤더 섹션 */}
-        <div className="relative bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-theme-secondary via-theme-accent to-theme-primary overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
                 개인 맞춤형 시험 추천
               </h1>
-              <p className="text-xl text-purple-100 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 max-w-2xl mx-auto">
                 당신의 학습 패턴과 약점을 분석하여 최적의 시험을 추천합니다
               </p>
             </div>
@@ -77,18 +77,18 @@ export default function RecommendedExamsPage() {
           {adaptivePath && (
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <div className="w-1 h-8 bg-gradient-to-b from-purple-600 to-pink-600 rounded-full"></div>
+                <div className="w-1 h-8 bg-gradient-to-b from-theme-secondary to-theme-accent rounded-full"></div>
                 학습 경로
               </h2>
               <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-                  <div className="text-sm font-semibold text-purple-700 mb-2">현재 수준</div>
-                  <div className="text-2xl font-bold text-purple-900 capitalize">{adaptivePath.currentLevel}</div>
+                <div className="flex-1 bg-gradient-to-r from-theme-secondary/10 to-theme-accent/10 rounded-xl p-6 border border-theme-secondary/20">
+                  <div className="text-sm font-semibold text-theme-secondary mb-2">현재 수준</div>
+                  <div className="text-2xl font-bold text-theme-secondary capitalize">{adaptivePath.currentLevel}</div>
                 </div>
                 <div className="text-2xl text-gray-400">→</div>
-                <div className="flex-1 bg-gradient-to-r from-pink-50 to-indigo-50 rounded-xl p-6 border border-pink-200">
-                  <div className="text-sm font-semibold text-pink-700 mb-2">다음 목표</div>
-                  <div className="text-2xl font-bold text-pink-900 capitalize">{adaptivePath.nextMilestone}</div>
+                <div className="flex-1 bg-gradient-to-r from-theme-accent/10 to-theme-primary/10 rounded-xl p-6 border border-theme-accent/20">
+                  <div className="text-sm font-semibold text-theme-accent mb-2">다음 목표</div>
+                  <div className="text-2xl font-bold text-theme-accent capitalize">{adaptivePath.nextMilestone}</div>
                 </div>
               </div>
               {adaptivePath?.recommendedSequence && adaptivePath.recommendedSequence.length > 0 && (
@@ -96,7 +96,7 @@ export default function RecommendedExamsPage() {
                   <div className="text-sm font-semibold text-gray-700 mb-3">추천 순서:</div>
                   {(adaptivePath.recommendedSequence || []).map((item: any, index: number) => (
                     <div key={item.examId} className="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-8 h-8 bg-gradient-to-br from-theme-secondary to-theme-accent rounded-full flex items-center justify-center text-white font-bold">
                         {item.order}
                       </div>
                       <div className="flex-1">
@@ -128,7 +128,7 @@ export default function RecommendedExamsPage() {
                       {/* 매칭 점수 바 */}
                       <div className="h-1 bg-gray-200">
                         <div
-                          className="h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-600"
+                          className="h-1 bg-gradient-to-r from-theme-secondary via-theme-accent to-theme-primary"
                           style={{ width: `${rec.matchScore * 100}%` }}
                         />
                       </div>
@@ -136,7 +136,7 @@ export default function RecommendedExamsPage() {
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-theme-secondary group-hover:to-theme-accent group-hover:bg-clip-text group-hover:text-transparent transition-all">
                               {rec.title}
                             </h3>
                             {rec.description && (
@@ -146,7 +146,7 @@ export default function RecommendedExamsPage() {
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-all">
+                            <div className="w-16 h-16 bg-gradient-to-br from-theme-secondary via-theme-accent to-theme-primary rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-all">
                               <span className="text-2xl font-bold text-white">
                                 {Math.round(rec.matchScore * 100)}%
                               </span>
@@ -155,8 +155,8 @@ export default function RecommendedExamsPage() {
                         </div>
 
                         {/* 추천 이유 */}
-                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 mb-4 border border-purple-200">
-                          <div className="text-sm font-semibold text-purple-700 mb-1">💡 추천 이유</div>
+                        <div className="bg-gradient-to-r from-theme-secondary/10 to-theme-accent/10 rounded-lg p-4 mb-4 border border-theme-secondary/20">
+                          <div className="text-sm font-semibold text-theme-secondary mb-1">💡 추천 이유</div>
                           <p className="text-sm text-gray-700">{rec.reason}</p>
                         </div>
 
@@ -178,7 +178,7 @@ export default function RecommendedExamsPage() {
                               {rec.learningGoals.map((goal: string, index: number) => (
                                 <span
                                   key={index}
-                                  className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium"
+                                  className="px-3 py-1 bg-theme-primary/20 text-theme-primary rounded-full text-xs font-medium"
                                 >
                                   {goal}
                                 </span>
@@ -189,16 +189,16 @@ export default function RecommendedExamsPage() {
 
                         {/* 도전도 */}
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border border-purple-200">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-theme-secondary/20 to-theme-accent/20 text-theme-secondary border border-theme-secondary/20">
                             {rec.examType}
                           </span>
                           <span
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
                               rec.challengeLevel === "high"
-                                ? "bg-red-100 text-red-700 border border-red-200"
+                                ? "bg-error/20 text-error border border-error/20"
                                 : rec.challengeLevel === "medium"
-                                ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                                : "bg-green-100 text-green-700 border border-green-200"
+                                ? "bg-warning/20 text-warning border border-warning/20"
+                                : "bg-success/20 text-success border border-success/20"
                             }`}
                           >
                             {rec.challengeLevel === "high" ? "🔥 도전" : rec.challengeLevel === "medium" ? "⚡ 적정" : "✅ 완화"}

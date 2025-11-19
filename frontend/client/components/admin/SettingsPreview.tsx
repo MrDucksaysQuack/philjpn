@@ -238,7 +238,7 @@ export default function SettingsPreview({
             onClick={() => setDeviceView("desktop")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               deviceView === "desktop"
-                ? "bg-blue-600 text-white"
+                ? "bg-button-primary text-button-text"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
@@ -248,7 +248,7 @@ export default function SettingsPreview({
             onClick={() => setDeviceView("mobile")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               deviceView === "mobile"
-                ? "bg-blue-600 text-white"
+                ? "bg-button-primary text-button-text"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >

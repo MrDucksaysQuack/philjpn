@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/common/Button";
 import { adminAPI, QuestionBank, Question } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -140,15 +141,15 @@ export default function AdminQuestionBanksPage() {
             >
               ← 대시보드
             </Link>
-            <button
+            <Button
               onClick={() => {
                 setEditingBank(null);
                 setShowModal(true);
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              size="sm"
             >
               + 새 문제 은행
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -461,13 +462,14 @@ function QuestionBankModal({
             >
               취소
             </button>
-            <button
+            <Button
               type="submit"
               disabled={isSaving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              isLoading={isSaving}
+              className="flex-1"
             >
-              {isSaving ? "저장 중..." : "저장"}
-            </button>
+              저장
+            </Button>
           </div>
         </form>
       </div>
