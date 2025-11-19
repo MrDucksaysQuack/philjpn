@@ -276,9 +276,6 @@ export class ExamValidatorService {
     try {
       const template = await this.prisma.examTemplate.findUnique({
         where: { id: templateId },
-        include: {
-          questionPools: true,
-        },
       });
 
       if (!template) {

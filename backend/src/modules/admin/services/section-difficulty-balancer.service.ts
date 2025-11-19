@@ -85,8 +85,14 @@ export class SectionDifficultyBalancerService {
     }
 
     const sections: SectionDifficultyAnalysis[] = exam.sections.map((section) => {
-      const distribution = this.calculateDifficultyDistribution(section.questions);
-      const averageDifficulty = this.calculateAverageDifficulty(section.questions);
+      const questionsWithTypedDifficulty = section.questions.map(q => ({
+        difficulty: q.difficulty as Difficulty | null,
+        statistics: q.statistics ? {
+          calculatedDifficulty: q.statistics.calculatedDifficulty ? Number(q.statistics.calculatedDifficulty) : null,
+        } : null,
+      }));
+      const distribution = this.calculateDifficultyDistribution(questionsWithTypedDifficulty);
+      const averageDifficulty = this.calculateAverageDifficulty(questionsWithTypedDifficulty);
       const difficultyScore = this.calculateDifficultyScore(distribution, averageDifficulty);
 
       return {

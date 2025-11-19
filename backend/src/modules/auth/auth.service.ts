@@ -284,5 +284,110 @@ export class AuthService {
   async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
+
+  /**
+   * 소셜 로그인 처리
+   */
+  async socialLogin(provider: 'google' | 'facebook', profile: any) {
+    const { providerId, email, name, picture, accessToken: socialAccessToken } = profile;
+
+    if (!email) {
+      throw new BadRequestException('이메일 정보를 가져올 수 없습니다.');
+    }
+
+    // 기존 사용자 확인 (이메일 또는 provider + providerId로)
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { provider, providerId },
+        ],
+      },
+    });
+
+    if (user) {
+      // 기존 사용자 업데이트 (소셜 로그인 정보 연결)
+      if (!user.provider || user.provider !== provider) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            provider,
+            providerId,
+            providerData: profile as any,
+            profileImage: picture || user.profileImage,
+            isEmailVerified: true, // 소셜 이메일은 검증됨
+            lastLoginAt: new Date(),
+          },
+        });
+      } else {
+        // 마지막 로그인 시간만 업데이트
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lastLoginAt: new Date(),
+            providerData: profile as any,
+            profileImage: picture || user.profileImage,
+          },
+        });
+      }
+    } else {
+      // 새 사용자 생성
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name: name || email.split('@')[0],
+          password: '', // 소셜 로그인은 비밀번호 없음
+          provider,
+          providerId,
+          providerData: profile as any,
+          profileImage: picture,
+          isEmailVerified: true, // 소셜 이메일은 검증됨
+          role: 'user',
+          isActive: true,
+          lastLoginAt: new Date(),
+        },
+      });
+    }
+
+    // 계정 활성화 확인
+    if (!user.isActive) {
+      throw new UnauthorizedException('비활성화된 계정입니다.');
+    }
+
+    // JWT 토큰 생성
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const jwtSecret = this.configService.get<string>('app.jwtSecret') || 
+                      this.configService.get<string>('JWT_SECRET');
+    
+    if (!jwtSecret || jwtSecret === 'default-secret') {
+      throw new BadRequestException({
+        message: '서버 설정 오류가 발생했습니다.',
+        code: 'JWT_SECRET_MISSING',
+      });
+    }
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d' as any,
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        profileImage: user.profileImage,
+      },
+    };
+  }
 }
 

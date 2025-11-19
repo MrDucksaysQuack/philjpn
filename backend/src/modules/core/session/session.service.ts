@@ -433,19 +433,28 @@ export class SessionService {
     });
 
     // 배지 자동 부여를 위한 이벤트 발행
-    this.eventEmitter.emit(
-      'exam.completed',
-      new ExamCompletedEvent(
-        userId,
-        session.examResultId,
-        examResult.examId,
-        gradedResult.totalScore,
-        gradedResult.maxScore,
-        gradedResult.percentage,
-        exam?.categoryId,
-        gradedResult.timeSpent,
-      ),
-    );
+    if (
+      gradedResult.totalScore !== null && 
+      gradedResult.totalScore !== undefined && 
+      gradedResult.maxScore !== null && 
+      gradedResult.maxScore !== undefined &&
+      gradedResult.percentage !== null &&
+      gradedResult.percentage !== undefined
+    ) {
+      this.eventEmitter.emit(
+        'exam.completed',
+        new ExamCompletedEvent(
+          userId,
+          session.examResultId,
+          examResult.examId,
+          gradedResult.totalScore,
+          Number(gradedResult.maxScore),
+          Number(gradedResult.percentage),
+          exam?.categoryId,
+          gradedResult.timeSpent,
+        ),
+      );
+    }
 
     return {
       examResultId: session.examResultId,

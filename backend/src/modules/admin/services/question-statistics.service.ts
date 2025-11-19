@@ -85,7 +85,7 @@ export class QuestionStatisticsService {
         correctRate: correctRate
           ? new Prisma.Decimal(correctRate.toFixed(2))
           : null,
-        commonMistakes: Object.keys(commonMistakes).length > 0 ? commonMistakes : null,
+        commonMistakes: Object.keys(commonMistakes).length > 0 ? commonMistakes : Prisma.JsonNull,
         lastCalculatedAt: new Date(),
       },
       create: {
@@ -101,7 +101,7 @@ export class QuestionStatisticsService {
         correctRate: correctRate
           ? new Prisma.Decimal(correctRate.toFixed(2))
           : null,
-        commonMistakes: Object.keys(commonMistakes).length > 0 ? commonMistakes : null,
+        commonMistakes: Object.keys(commonMistakes).length > 0 ? commonMistakes : Prisma.JsonNull,
         lastCalculatedAt: new Date(),
       },
     };

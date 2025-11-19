@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, UseGuards, HttpCode, HttpStatus, BadRequestException, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, HttpCode, HttpStatus, BadRequestException, Req, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -75,6 +76,60 @@ export class AuthController {
   @ApiResponse({ status: 401, description: '인증 필요' })
   async getMe(@CurrentUser() user: any) {
     return this.authService.getCurrentUser(user.id);
+  }
+
+  // Google 소셜 로그인
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google 소셜 로그인 시작' })
+  async googleAuth() {
+    // Passport가 리다이렉트 처리
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google 소셜 로그인 콜백' })
+  async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    try {
+      const result = await this.authService.socialLogin('google', req.user);
+      
+      // 프론트엔드로 리다이렉트 (토큰 포함)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/auth/callback?token=${result.accessToken}&refreshToken=${result.refreshToken}`;
+      
+      res.redirect(redirectUrl);
+    } catch (error: any) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const errorMessage = encodeURIComponent(error.message || '소셜 로그인에 실패했습니다.');
+      res.redirect(`${frontendUrl}/login?error=${errorMessage}`);
+    }
+  }
+
+  // Facebook 소셜 로그인
+  @Get('facebook')
+  @UseGuards(AuthGuard('facebook'))
+  @ApiOperation({ summary: 'Facebook 소셜 로그인 시작' })
+  async facebookAuth() {
+    // Passport가 리다이렉트 처리
+  }
+
+  @Get('facebook/callback')
+  @UseGuards(AuthGuard('facebook'))
+  @ApiOperation({ summary: 'Facebook 소셜 로그인 콜백' })
+  async facebookAuthCallback(@Req() req: Request, @Res() res: Response) {
+    try {
+      const result = await this.authService.socialLogin('facebook', req.user);
+      
+      // 프론트엔드로 리다이렉트 (토큰 포함)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/auth/callback?token=${result.accessToken}&refreshToken=${result.refreshToken}`;
+      
+      res.redirect(redirectUrl);
+    } catch (error: any) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const errorMessage = encodeURIComponent(error.message || '소셜 로그인에 실패했습니다.');
+      res.redirect(`${frontendUrl}/login?error=${errorMessage}`);
+    }
   }
 }
 

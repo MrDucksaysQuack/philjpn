@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../../common/utils/prisma.service';
-import { PermissionService, Permission } from '../../../modules/auth/services/permission.service';
-import { UserRole } from '../../../common/types';
+import { PrismaService } from '../../../../common/utils/prisma.service';
+import { PermissionService, Permission } from '../../../auth/services/permission.service';
+import { UserRole } from '../../../../common/types';
 
 export enum ExamWorkflowStatus {
   DRAFT = 'draft',

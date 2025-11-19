@@ -58,7 +58,7 @@ async function main() {
     const categories = await prisma.category.findMany({
       where: {
         OR: [
-          { slug: null },
+          { slug: { equals: null } as any },
           { slug: '' },
         ],
       },
@@ -104,7 +104,7 @@ async function main() {
     const remaining = await prisma.category.count({
       where: {
         OR: [
-          { slug: null },
+          { slug: { equals: null } as any },
           { slug: '' },
         ],
       },

@@ -168,6 +168,9 @@ export class SiteSettingsService {
     if (data.aboutContent !== undefined) {
       updateData.aboutContent = data.aboutContent as any;
     }
+    if (data.colorTheme !== undefined) {
+      updateData.colorTheme = data.colorTheme as any;
+    }
 
     let updatedSettings;
     if (existing) {

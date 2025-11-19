@@ -42,9 +42,17 @@ model User {
   changedContentVersions      ContentVersion[]      @relation("ContentVersionChanger")
   createdSiteSettingsVersions SiteSettingsVersion[] @relation("SiteSettingsVersionCreator")
 
+  // 소셜 로그인 필드
+  provider     String? // 'local', 'google', 'facebook'
+  providerId   String? // 소셜 제공자의 사용자 ID
+  providerData Json? // 소셜 제공자에서 받은 추가 데이터
+
+  @@unique([provider, providerId])
   @@index([email])
   @@index([role])
   @@index([createdAt])
+  @@index([provider])
+  @@index([providerId])
   @@map("users")
 }
 
@@ -587,6 +595,7 @@ model SiteSettings {
   secondaryColor  String?               @db.VarChar(7)
   accentColor     String?               @db.VarChar(7)
   colorScheme     Json?
+  colorTheme      Json? // 고급 색상 테마 (ColorTheme 인터페이스 구조)
   aboutCompany    String?
   aboutTeam       String?
   contactInfo     Json?

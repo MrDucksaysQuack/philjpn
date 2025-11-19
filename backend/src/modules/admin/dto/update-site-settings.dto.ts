@@ -128,6 +128,38 @@ export class UpdateSiteSettingsDto {
   @Matches(/^#[0-9A-Fa-f]{6}$/, { message: '올바른 HEX 색상 코드 형식이 아닙니다' })
   accentColor?: string;
 
+  @ApiPropertyOptional({ 
+    description: '고급 색상 테마 (JSON) - 모든 색상을 포함한 완전한 테마 설정',
+    example: {
+      primary: '#667eea',
+      secondary: '#764ba2',
+      accent: '#4facfe',
+      success: '#10b981',
+      error: '#ef4444',
+      warning: '#f59e0b',
+      info: '#3b82f6',
+      background: '#fafafa',
+      backgroundSecondary: '#ffffff',
+      surface: '#ffffff',
+      surfaceHover: '#f9fafb',
+      textPrimary: '#171717',
+      textSecondary: '#6b7280',
+      textMuted: '#9ca3af',
+      textInverse: '#ffffff',
+      border: '#e5e7eb',
+      borderLight: '#f3f4f6',
+      borderDark: '#d1d5db',
+      link: '#3b82f6',
+      linkHover: '#2563eb',
+      buttonPrimary: '#667eea',
+      buttonSecondary: '#764ba2',
+      buttonText: '#ffffff',
+    }
+  })
+  @IsOptional()
+  @IsObject()
+  colorTheme?: any;
+
   @ApiPropertyOptional({ description: '회사 소개 (마크다운 지원)' })
   @IsOptional()
   @IsString()
