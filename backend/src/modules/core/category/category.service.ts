@@ -258,7 +258,6 @@ export class CategoryService {
       const categories = await this.prisma.category.findMany({
         where: { 
           isActive: true,
-          slug: { not: null }, // slug가 null이 아닌 카테고리만 조회
         },
         include: {
           subcategories: {
@@ -276,7 +275,8 @@ export class CategoryService {
         orderBy: { order: 'asc' },
       });
       
-      return categories;
+      // slug가 null이 아닌 카테고리만 필터링 (데이터베이스에 null이 있을 수 있음)
+      return categories.filter(category => category.slug !== null && category.slug !== '');
     } catch (error) {
       console.error('Error fetching public categories:', error);
       // 에러 발생 시 빈 배열 반환 (애플리케이션이 크래시되지 않도록)
