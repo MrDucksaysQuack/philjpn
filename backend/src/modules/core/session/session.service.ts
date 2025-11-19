@@ -451,7 +451,7 @@ export class SessionService {
           Number(gradedResult.maxScore),
           Number(gradedResult.percentage),
           exam?.categoryId ?? undefined,
-          gradedResult.timeSpent,
+          gradedResult.timeSpent ?? undefined,
         ),
       );
     }
