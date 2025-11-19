@@ -13,6 +13,33 @@ import { TokenBlacklistService } from './services/token-blacklist.service';
 import { PermissionService } from './services/permission.service';
 import { CommonModule } from '../../common/utils/common.module';
 
+// 환경 변수 기반으로 조건부 providers 생성
+function getOAuthProviders(): any[] {
+  const providers: any[] = [];
+  
+  // 환경 변수 확인 (process.env 직접 사용)
+  const hasGoogleConfig = !!(
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET
+  );
+  
+  const hasFacebookConfig = !!(
+    process.env.FACEBOOK_APP_ID &&
+    process.env.FACEBOOK_APP_SECRET
+  );
+
+  // 환경 변수가 있을 때만 Strategy 추가
+  if (hasGoogleConfig) {
+    providers.push(GoogleStrategy);
+  }
+  
+  if (hasFacebookConfig) {
+    providers.push(FacebookStrategy);
+  }
+
+  return providers;
+}
+
 @Module({
   imports: [
     CommonModule,
@@ -36,8 +63,7 @@ import { CommonModule } from '../../common/utils/common.module';
   providers: [
     AuthService,
     JwtStrategy,
-    GoogleStrategy,
-    FacebookStrategy,
+    ...getOAuthProviders(), // 조건부 OAuth providers
     JwtAuthGuard,
     RolesGuard,
     TokenBlacklistService,

@@ -54,7 +54,7 @@ import { loggerConfig } from './common/config/logger.config';
     }),
     CommonModule,
     PrismaModule,
-    AuthModule, // Phase 3: 인증
+    AuthModule.forRoot(), // Phase 3: 인증
     LicenseModule, // Phase 4: License Key System
     ReportModule, // Phase 5: 리포트 & 학습 피드백
     WordBookModule, // Phase 5: 단어장
