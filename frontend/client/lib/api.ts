@@ -1085,6 +1085,31 @@ export interface SiteSettings {
   secondaryColor?: string | null;
   accentColor?: string | null;
   colorScheme?: any;
+  colorTheme?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    success?: string;
+    error?: string;
+    warning?: string;
+    info?: string;
+    background?: string;
+    backgroundSecondary?: string;
+    surface?: string;
+    surfaceHover?: string;
+    textPrimary?: string;
+    textSecondary?: string;
+    textMuted?: string;
+    textInverse?: string;
+    border?: string;
+    borderLight?: string;
+    borderDark?: string;
+    link?: string;
+    linkHover?: string;
+    buttonPrimary?: string;
+    buttonSecondary?: string;
+    buttonText?: string;
+  } | null;
   aboutCompany?: string | null;
   aboutTeam?: string | null;
   contactInfo?: ContactInfo | null;
@@ -1278,6 +1303,31 @@ export interface UpdateSiteSettingsDto {
       featuresSectionTitle?: string;
       featuresSectionSubtitle?: string;
     };
+  };
+  colorTheme?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    success?: string;
+    error?: string;
+    warning?: string;
+    info?: string;
+    background?: string;
+    backgroundSecondary?: string;
+    surface?: string;
+    surfaceHover?: string;
+    textPrimary?: string;
+    textSecondary?: string;
+    textMuted?: string;
+    textInverse?: string;
+    border?: string;
+    borderLight?: string;
+    borderDark?: string;
+    link?: string;
+    linkHover?: string;
+    buttonPrimary?: string;
+    buttonSecondary?: string;
+    buttonText?: string;
   };
   aboutContent?: {
     ko?: {
