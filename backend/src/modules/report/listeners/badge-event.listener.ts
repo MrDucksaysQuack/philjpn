@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { BadgeService } from '../services/badge.service';
 import { ExamCompletedEvent } from '../events/exam-completed.event';
@@ -10,7 +10,6 @@ export class BadgeEventListener {
 
   constructor(
     private readonly badgeService: BadgeService,
-    @Inject(forwardRef(() => BadgeNotificationGateway))
     private readonly badgeNotificationGateway: BadgeNotificationGateway,
   ) {}
 
