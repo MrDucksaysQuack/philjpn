@@ -676,7 +676,6 @@ model Category {
   icon          String?       @db.VarChar(50) // 아이콘 이름 또는 이모지
   order         Int           @default(0) // 정렬 순서
   isActive      Boolean       @default(true)
-  deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   subcategories Subcategory[]
