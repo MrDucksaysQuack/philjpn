@@ -7,11 +7,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
 import { adminAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 
 export default function AdminUsersPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
@@ -54,16 +58,16 @@ export default function AdminUsersPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">사용자 관리</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("admin.userManagement.title")}</h1>
           <Link href="/admin" className="text-blue-600 hover:text-blue-700">
-            ← 대시보드로
+            {t("admin.userManagement.backToDashboard")}
           </Link>
         </div>
 
         <div className="mb-4">
           <input
             type="text"
-            placeholder="이름/이메일 검색"
+            placeholder={t("admin.userManagement.searchPlaceholder")}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -74,7 +78,7 @@ export default function AdminUsersPage() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-8">로딩 중...</div>
+          <div className="text-center py-8">{t("admin.userManagement.loading")}</div>
         ) : (
           <>
             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -82,22 +86,22 @@ export default function AdminUsersPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      이름
+                      {t("admin.userManagement.name")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      이메일
+                      {t("admin.userManagement.email")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      역할
+                      {t("admin.userManagement.role")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      상태
+                      {t("admin.userManagement.status")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      마지막 로그인
+                      {t("admin.userManagement.lastLogin")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      작업
+                      {t("admin.userManagement.actions")}
                     </th>
                   </tr>
                 </thead>
@@ -129,7 +133,7 @@ export default function AdminUsersPage() {
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {user.isActive ? "활성" : "비활성"}
+                          {user.isActive ? t("admin.userManagement.active") : t("admin.userManagement.inactive")}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -144,7 +148,7 @@ export default function AdminUsersPage() {
                           href={`/admin/users/${user.id}`}
                           className="text-blue-600 hover:text-blue-700 mr-3"
                         >
-                          상세
+                          {t("admin.userManagement.detail")}
                         </Link>
                         <button
                           onClick={() => {

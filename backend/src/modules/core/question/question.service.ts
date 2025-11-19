@@ -83,12 +83,14 @@ export class QuestionService {
 
     const { options, ...questionData } = createQuestionDto;
 
-    // 문제 생성
+    // 문제 생성 (시험에 포함되므로 usageCount 증가)
     const question = await this.prisma.question.create({
       data: {
         ...questionData,
         sectionId,
         options: options ? (options as any) : null,
+        usageCount: 1, // 새로 생성된 문제는 시험에 포함되므로 1로 시작
+        lastUsedAt: new Date(),
       },
     });
 

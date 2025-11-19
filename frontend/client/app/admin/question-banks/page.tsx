@@ -57,6 +57,10 @@ export default function AdminQuestionBanksPage() {
       name: string;
       description?: string;
       category?: string;
+      subcategory?: string;
+      level?: string;
+      source?: string;
+      sourceYear?: number;
     }) => {
       if (editingBank) {
         return await adminAPI.updateQuestionBank(editingBank.id, data);
@@ -190,11 +194,28 @@ export default function AdminQuestionBanksPage() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">
                       {bank.name}
                     </h3>
-                    {bank.category && (
-                      <span className="inline-block text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mb-2">
-                        {bank.category}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {bank.category && (
+                        <span className="inline-block text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {bank.category}
+                        </span>
+                      )}
+                      {bank.subcategory && (
+                        <span className="inline-block text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                          {bank.subcategory}
+                        </span>
+                      )}
+                      {bank.level && (
+                        <span className="inline-block text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                          {bank.level}
+                        </span>
+                      )}
+                      {bank.source && (
+                        <span className="inline-block text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                          {bank.source}{bank.sourceYear ? ` (${bank.sourceYear})` : ''}
+                        </span>
+                      )}
+                    </div>
                     {bank.description && (
                       <p className="text-sm text-gray-600 mt-2">{bank.description}</p>
                     )}
@@ -285,6 +306,10 @@ function QuestionBankModal({
     name: string;
     description?: string;
     category?: string;
+    subcategory?: string;
+    level?: string;
+    source?: string;
+    sourceYear?: number;
   }) => void;
   isSaving: boolean;
 }) {
@@ -292,6 +317,10 @@ function QuestionBankModal({
     name: bank?.name || "",
     description: bank?.description || "",
     category: bank?.category || "",
+    subcategory: bank?.subcategory || "",
+    level: bank?.level || "",
+    source: bank?.source || "",
+    sourceYear: bank?.sourceYear?.toString() || "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -304,6 +333,10 @@ function QuestionBankModal({
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       category: formData.category.trim() || undefined,
+      subcategory: formData.subcategory.trim() || undefined,
+      level: formData.level.trim() || undefined,
+      source: formData.source.trim() || undefined,
+      sourceYear: formData.sourceYear ? parseInt(formData.sourceYear, 10) : undefined,
     });
   };
 
@@ -358,6 +391,67 @@ function QuestionBankModal({
                 </datalist>
               )}
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                서브 카테고리
+              </label>
+              <input
+                type="text"
+                value={formData.subcategory}
+                onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="예: 문법, 어휘, 독해"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                레벨
+              </label>
+              <input
+                type="text"
+                value={formData.level}
+                onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="예: N5, N4, 초급, 중급, 고급"
+                list="levels"
+              />
+              <datalist id="levels">
+                <option value="N5" />
+                <option value="N4" />
+                <option value="N3" />
+                <option value="N2" />
+                <option value="N1" />
+                <option value="초급" />
+                <option value="중급" />
+                <option value="고급" />
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                출처 (교재명)
+              </label>
+              <input
+                type="text"
+                value={formData.source}
+                onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="예: JFT-Basic 공식 문제집"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                출처 연도
+              </label>
+              <input
+                type="number"
+                value={formData.sourceYear}
+                onChange={(e) => setFormData({ ...formData, sourceYear: e.target.value })}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="예: 2024"
+                min="1900"
+                max="2100"
+              />
+            </div>
           </div>
           <div className="flex gap-2 mt-6">
             <button
@@ -391,6 +485,8 @@ function QuestionManagementModal({
 }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set());
+  const [showMoveModal, setShowMoveModal] = useState(false);
 
   // 문제 은행 상세 조회 (문제 포함)
   const { data: bankDetailResponse, isLoading } = useQuery({
@@ -498,15 +594,38 @@ function QuestionManagementModal({
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-semibold text-gray-900">
                   현재 문제 ({bankQuestions.length}개)
+                  {selectedQuestions.size > 0 && (
+                    <span className="ml-2 text-sm text-blue-600">
+                      ({selectedQuestions.size}개 선택됨)
+                    </span>
+                  )}
                 </h3>
-                {bankQuestions.length > 0 && (
-                  <button
-                    onClick={handleRemoveAll}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    전체 제거
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {selectedQuestions.size > 0 && (
+                    <>
+                      <button
+                        onClick={() => setShowMoveModal(true)}
+                        className="text-sm text-green-600 hover:text-green-700 px-3 py-1 border border-green-600 rounded hover:bg-green-50"
+                      >
+                        선택한 문제 이동 ({selectedQuestions.size})
+                      </button>
+                      <button
+                        onClick={() => setSelectedQuestions(new Set())}
+                        className="text-sm text-gray-600 hover:text-gray-700"
+                      >
+                        선택 해제
+                      </button>
+                    </>
+                  )}
+                  {bankQuestions.length > 0 && (
+                    <button
+                      onClick={handleRemoveAll}
+                      className="text-sm text-red-600 hover:text-red-700"
+                    >
+                      전체 제거
+                    </button>
+                  )}
+                </div>
               </div>
               {bankQuestions.length === 0 ? (
                 <p className="text-sm text-gray-500 py-4">등록된 문제가 없습니다.</p>
@@ -515,32 +634,64 @@ function QuestionManagementModal({
                   {bankQuestions.map((question: any) => (
                     <div
                       key={question.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded border"
+                      className={`flex items-center justify-between p-3 rounded border ${
+                        selectedQuestions.has(question.id)
+                          ? "bg-blue-50 border-blue-300"
+                          : "bg-gray-50"
+                      }`}
                     >
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {question.content.substring(0, 100)}
-                          {question.content.length > 100 ? "..." : ""}
-                        </p>
-                        <div className="flex gap-2 mt-1">
-                          {question.difficulty && (
-                            <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
-                              {question.difficulty}
-                            </span>
-                          )}
-                          {question.tags && question.tags.length > 0 && (
-                            <span className="text-xs text-gray-500">
-                              {question.tags.slice(0, 3).join(", ")}
-                            </span>
-                          )}
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedQuestions.has(question.id)}
+                          onChange={(e) => {
+                            const newSelected = new Set(selectedQuestions);
+                            if (e.target.checked) {
+                              newSelected.add(question.id);
+                            } else {
+                              newSelected.delete(question.id);
+                            }
+                            setSelectedQuestions(newSelected);
+                          }}
+                          className="cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {question.content.substring(0, 100)}
+                            {question.content.length > 100 ? "..." : ""}
+                          </p>
+                          <div className="flex gap-2 mt-1">
+                            {question.difficulty && (
+                              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
+                                {question.difficulty}
+                              </span>
+                            )}
+                            {question.tags && question.tags.length > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {question.tags.slice(0, 3).join(", ")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeQuestionMutation.mutate(question.id)}
-                        className="text-red-600 hover:text-red-700 text-sm px-3 py-1"
-                      >
-                        제거
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedQuestions(new Set([question.id]));
+                            setShowMoveModal(true);
+                          }}
+                          className="text-green-600 hover:text-green-700 text-sm px-3 py-1"
+                          title="다른 문제 은행으로 이동"
+                        >
+                          이동
+                        </button>
+                        <button
+                          onClick={() => removeQuestionMutation.mutate(question.id)}
+                          className="text-red-600 hover:text-red-700 text-sm px-3 py-1"
+                        >
+                          제거
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -598,6 +749,153 @@ function QuestionManagementModal({
             </div>
           </div>
         )}
+
+        {/* 문제 이동 모달 */}
+        {showMoveModal && (
+          <QuestionMoveModal
+            sourceBank={bank}
+            selectedQuestionIds={Array.from(selectedQuestions)}
+            onClose={() => {
+              setShowMoveModal(false);
+              setSelectedQuestions(new Set());
+            }}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["admin-question-bank", bank.id] });
+              queryClient.invalidateQueries({ queryKey: ["admin-question-banks"] });
+              setShowMoveModal(false);
+              setSelectedQuestions(new Set());
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// 문제 이동 모달 컴포넌트
+function QuestionMoveModal({
+  sourceBank,
+  selectedQuestionIds,
+  onClose,
+  onSuccess,
+}: {
+  sourceBank: QuestionBank;
+  selectedQuestionIds: string[];
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [targetBankId, setTargetBankId] = useState<string>("");
+
+  // 문제 은행 목록 가져오기
+  const { data: banksResponse } = useQuery({
+    queryKey: ["admin-question-banks"],
+    queryFn: async () => {
+      const response = await adminAPI.getQuestionBanks({});
+      return response.data;
+    },
+  });
+
+  const banks = banksResponse?.data || [];
+  const availableBanks = banks.filter((b) => b.id !== sourceBank.id);
+
+  // 문제 이동 Mutation
+  const moveMutation = useMutation({
+    mutationFn: async (targetBankId: string) => {
+      if (selectedQuestionIds.length === 1) {
+        await adminAPI.moveQuestion({
+          questionId: selectedQuestionIds[0],
+          targetBankId,
+          sourceBankId: sourceBank.id,
+        });
+      } else {
+        await adminAPI.moveQuestions({
+          questionIds: selectedQuestionIds,
+          targetBankId,
+          sourceBankId: sourceBank.id,
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success(
+        selectedQuestionIds.length === 1
+          ? "문제가 이동되었습니다."
+          : `${selectedQuestionIds.length}개의 문제가 이동되었습니다.`,
+      );
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "오류가 발생했습니다.");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetBankId) {
+      toast.error("대상 문제 은행을 선택해주세요.");
+      return;
+    }
+    moveMutation.mutate(targetBankId);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">문제 이동</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                소스 문제 은행
+              </label>
+              <div className="p-3 bg-gray-50 rounded border">
+                <p className="text-sm font-medium text-gray-900">{sourceBank.name}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedQuestionIds.length}개의 문제를 이동합니다.
+                </p>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                대상 문제 은행 *
+              </label>
+              <select
+                value={targetBankId}
+                onChange={(e) => setTargetBankId(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              >
+                <option value="">선택하세요</option>
+                {availableBanks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>
+                    {bank.name} ({bank._count?.questions || 0}개 문제)
+                  </option>
+                ))}
+              </select>
+              {availableBanks.length === 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  이동할 수 있는 다른 문제 은행이 없습니다.
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={moveMutation.isPending || !targetBankId || availableBanks.length === 0}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {moveMutation.isPending ? "이동 중..." : "이동"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

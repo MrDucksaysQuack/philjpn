@@ -9,6 +9,21 @@
 -- ============================================
 
 -- ============================================
+-- 0. Badges (배지) 샘플 데이터
+-- ============================================
+-- UserBadge INSERT 전에 Badge 데이터가 필요하므로 먼저 추가
+INSERT INTO "badges" ("id", "badgeType", "name", "description", "icon", "rarity", "condition", "isActive", "createdAt", "updatedAt")
+VALUES 
+    (gen_random_uuid()::text, 'exam_completed', '첫 시험 완료', '첫 번째 시험을 완료했습니다.', '🎯', 'common', '{"examCount": 1}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid()::text, 'exam_completed', '시험 마스터', '10개의 시험을 완료했습니다.', '🏆', 'rare', '{"examCount": 10}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid()::text, 'perfect_score', '만점 달성', '시험에서 만점을 받았습니다.', '💯', 'epic', '{}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid()::text, 'streak_days', '7일 연속 학습', '7일 연속으로 시험을 완료했습니다.', '🔥', 'rare', '{"streakDays": 7}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid()::text, 'streak_days', '30일 연속 학습', '30일 연속으로 시험을 완료했습니다.', '🌟', 'legendary', '{"streakDays": 30}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid()::text, 'word_master', '단어장 마스터', '100개의 단어를 학습했습니다.', '📚', 'rare', '{"wordCount": 100}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (gen_random_uuid()::text, 'improvement', '성적 향상', '최근 시험에서 20% 이상 성적이 향상되었습니다.', '📈', 'epic', '{"improvementRate": 20}'::jsonb, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT DO NOTHING;
+
+-- ============================================
 -- 11. QuestionBanks (문제 은행) 샘플 데이터
 -- ============================================
 INSERT INTO "question_banks" (

@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore, useLocaleStore, type Locale } from "@/lib/store";
 import { useRouter } from "next/navigation";
-import { siteSettingsAPI, categoryAPI, type Category } from "@/lib/api";
+import { siteSettingsAPI, categoryAPI, type Category, type SiteSettings } from "@/lib/api";
 import AboutUsDropdown from "./AboutUsDropdown";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import BadgeNotification from "@/components/common/BadgeNotification";
+import SettingsSync from "@/components/common/SettingsSync";
 
 export default function Header() {
   const { user, clearAuth } = useAuthStore();
@@ -24,7 +26,7 @@ export default function Header() {
   const localeMenuRef = useRef<HTMLDivElement>(null);
 
   // 사이트 설정 가져오기 (회사명, 로고)
-  const { data: settingsResponse } = useQuery({
+  const { data: settingsResponse } = useQuery<{ data: SiteSettings }>({
     queryKey: ["site-settings"],
     queryFn: async () => {
       const response = await siteSettingsAPI.getPublicSettings();
@@ -34,7 +36,7 @@ export default function Header() {
   });
 
   // 카테고리 목록 가져오기 (헤더용)
-  const { data: categoriesResponse } = useQuery({
+  const { data: categoriesResponse } = useQuery<{ data: Category[] }>({
     queryKey: ["categories-public"],
     queryFn: async () => {
       const response = await categoryAPI.getPublicCategories();
@@ -43,12 +45,11 @@ export default function Header() {
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
-  const data = (settingsResponse as any)?.data || settingsResponse;
-  const settings = data as any;
+  const settings = settingsResponse?.data;
   const companyName = settings?.companyName || "Exam Platform";
   const logoUrl = settings?.logoUrl;
   const [logoError, setLogoError] = useState(false);
-  const categories = (categoriesResponse as any)?.data || categoriesResponse || [];
+  const categories = categoriesResponse?.data || [];
 
   // logoUrl이 변경되면 에러 상태 리셋
   useEffect(() => {
@@ -495,6 +496,12 @@ export default function Header() {
         onClose={() => setShowOnboarding(false)}
         onComplete={() => setShowOnboarding(false)}
       />
+
+      {/* 배지 알림 */}
+      <BadgeNotification />
+
+      {/* 설정 실시간 동기화 */}
+      <SettingsSync />
     </header>
   );
 }

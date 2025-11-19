@@ -238,6 +238,26 @@ function QuestionPoolModal({
   onSuccess: () => void;
 }) {
   const queryClient = useQueryClient();
+  const [isAutoSelect, setIsAutoSelect] = useState(pool?.isAutoSelect || false);
+  const [autoSelectRules, setAutoSelectRules] = useState(
+    pool?.autoSelectRules || {
+      minDifficulty: undefined,
+      maxDifficulty: undefined,
+      tags: [],
+      excludeTags: [],
+      maxCount: 30,
+      minCount: 0,
+      questionBankId: undefined,
+    }
+  );
+  const [preCheckResult, setPreCheckResult] = useState<{
+    availableCount: number;
+    requiredCount: number;
+    isValid: boolean;
+    message: string;
+  } | null>(null);
+  const [isPreChecking, setIsPreChecking] = useState(false);
+
   const [formData, setFormData] = useState({
     name: pool?.name || "",
     description: pool?.description || "",
@@ -246,14 +266,26 @@ function QuestionPoolModal({
     questionIds: pool?.questionIds || [],
   });
 
+  const preCheckMutation = useMutation({
+    mutationFn: async (rules: typeof autoSelectRules) => {
+      const response = await adminAPI.preCheckPoolRules(rules);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setPreCheckResult(data.data);
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const payload = {
+      const payload: any = {
         name: data.name,
         description: data.description || undefined,
         tags: Array.isArray(data.tags) ? data.tags : [],
         difficulty: data.difficulty || undefined,
         questionIds: Array.isArray(data.questionIds) ? data.questionIds : [],
+        isAutoSelect,
+        autoSelectRules: isAutoSelect ? autoSelectRules : undefined,
       };
       if (pool) {
         await adminAPI.updateQuestionPool(pool.id, payload);
@@ -266,6 +298,13 @@ function QuestionPoolModal({
       onSuccess();
     },
   });
+
+  const handlePreCheck = () => {
+    setIsPreChecking(true);
+    preCheckMutation.mutate(autoSelectRules, {
+      onSettled: () => setIsPreChecking(false),
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -352,21 +391,170 @@ function QuestionPoolModal({
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              문제 선택
-            </label>
-            <QuestionSelector
-              selectedIds={formData.questionIds}
-              onChange={(ids) => setFormData({ ...formData, questionIds: ids })}
-              filters={{
-                tags: formData.tags.length > 0 ? formData.tags : undefined,
-                difficulty: (formData.difficulty === "easy" || formData.difficulty === "medium" || formData.difficulty === "hard") ? formData.difficulty : undefined,
-              }}
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              💡 태그와 난이도 필터를 설정하면 문제 선택 시 자동으로 필터링됩니다.
+          {/* 자동 선택 옵션 */}
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                type="checkbox"
+                id="isAutoSelect"
+                checked={isAutoSelect}
+                onChange={(e) => {
+                  setIsAutoSelect(e.target.checked);
+                  if (!e.target.checked) {
+                    setPreCheckResult(null);
+                  }
+                }}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="isAutoSelect" className="text-sm font-semibold text-gray-700">
+                규칙 기반 자동 문제 선택
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              활성화하면 규칙에 따라 자동으로 문제가 선택됩니다.
             </p>
+
+            {isAutoSelect && (
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      최소 난이도
+                    </label>
+                    <select
+                      value={autoSelectRules.minDifficulty || ""}
+                      onChange={(e) =>
+                        setAutoSelectRules({
+                          ...autoSelectRules,
+                          minDifficulty: (e.target.value || undefined) as "easy" | "medium" | "hard" | undefined,
+                        })
+                      }
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    >
+                      <option value="">선택 안함</option>
+                      <option value="easy">쉬움</option>
+                      <option value="medium">중급</option>
+                      <option value="hard">어려움</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      최대 난이도
+                    </label>
+                    <select
+                      value={autoSelectRules.maxDifficulty || ""}
+                      onChange={(e) =>
+                        setAutoSelectRules({
+                          ...autoSelectRules,
+                          maxDifficulty: (e.target.value || undefined) as "easy" | "medium" | "hard" | undefined,
+                        })
+                      }
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    >
+                      <option value="">선택 안함</option>
+                      <option value="easy">쉬움</option>
+                      <option value="medium">중급</option>
+                      <option value="hard">어려움</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    포함 태그
+                  </label>
+                  <TagInput
+                    tags={autoSelectRules.tags || []}
+                    onChange={(tags) =>
+                      setAutoSelectRules({ ...autoSelectRules, tags })
+                    }
+                    suggestions={["문법", "어휘", "독해", "작문", "청해"]}
+                    placeholder="태그를 입력하고 Enter를 누르세요"
+                    className="text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      최대 문제 수
+                    </label>
+                    <input
+                      type="number"
+                      value={autoSelectRules.maxCount || ""}
+                      onChange={(e) =>
+                        setAutoSelectRules({
+                          ...autoSelectRules,
+                          maxCount: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                        })
+                      }
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      placeholder="예: 30"
+                      min={1}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      최소 문제 수
+                    </label>
+                    <input
+                      type="number"
+                      value={autoSelectRules.minCount || ""}
+                      onChange={(e) =>
+                        setAutoSelectRules({
+                          ...autoSelectRules,
+                          minCount: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                        })
+                      }
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      placeholder="예: 10"
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePreCheck}
+                    disabled={isPreChecking}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm disabled:opacity-50"
+                  >
+                    {isPreChecking ? "확인 중..." : "규칙 검증"}
+                  </button>
+                  {preCheckResult && (
+                    <div
+                      className={`flex-1 px-4 py-2 rounded-md text-sm ${
+                        preCheckResult.isValid
+                          ? "bg-green-50 text-green-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {preCheckResult.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!isAutoSelect && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  문제 선택
+                </label>
+                <QuestionSelector
+                  selectedIds={formData.questionIds}
+                  onChange={(ids) => setFormData({ ...formData, questionIds: ids })}
+                  filters={{
+                    tags: formData.tags.length > 0 ? formData.tags : undefined,
+                    difficulty: (formData.difficulty === "easy" || formData.difficulty === "medium" || formData.difficulty === "hard") ? formData.difficulty : undefined,
+                  }}
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 태그와 난이도 필터를 설정하면 문제 선택 시 자동으로 필터링됩니다.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">

@@ -6,17 +6,8 @@ import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import { badgeAPI, Badge, UserBadge } from "@/lib/api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Link from "next/link";
-
-const BADGE_TYPE_LABELS = {
-  exam_completed: '시험 완료',
-  perfect_score: '만점 달성',
-  streak_days: '연속 학습',
-  word_master: '단어장 마스터',
-  improvement: '성적 향상',
-  category_master: '카테고리 마스터',
-  speed_demon: '빠른 완료',
-  consistency: '꾸준함',
-};
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 
 const RARITY_COLORS = {
   common: {
@@ -45,14 +36,9 @@ const RARITY_COLORS = {
   },
 };
 
-const RARITY_LABELS = {
-  common: '일반',
-  rare: '희귀',
-  epic: '영웅',
-  legendary: '전설',
-};
-
 export default function BadgesPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const { user, isLoading: authLoading } = useRequireAuth();
 
   // 전체 배지 목록
@@ -94,7 +80,7 @@ export default function BadgesPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="로딩 중..." />
+            <LoadingSpinner message={t("badges.loading")} />
           </div>
         </div>
       </>
@@ -116,11 +102,11 @@ export default function BadgesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* 헤더 */}
           <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">배지 갤러리</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">{t("badges.title")}</h1>
             <div className="flex items-center gap-6">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">배지 수집 진행률</span>
+                  <span className="text-sm font-medium text-gray-700">{t("badges.collectionProgress")}</span>
                   <span className="text-sm font-semibold text-gray-900">
                     {earnedCount} / {totalCount} ({progressPercentage}%)
                   </span>
@@ -137,7 +123,7 @@ export default function BadgesPage() {
                 className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
               >
                 <span>👤</span>
-                <span>내 프로필</span>
+                <span>{t("badges.myProfile")}</span>
               </Link>
             </div>
           </div>
@@ -146,14 +132,14 @@ export default function BadgesPage() {
           {allBadges.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
               <div className="text-6xl mb-4">🏆</div>
-              <p className="text-gray-600 text-lg">배지가 없습니다.</p>
+              <p className="text-gray-600 text-lg">{t("badges.noBadges")}</p>
             </div>
           ) : (
             <div className="space-y-8">
               {Object.entries(badgesByType).map(([badgeType, badges]) => (
                 <div key={badgeType} className="bg-white rounded-2xl shadow-lg p-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    {BADGE_TYPE_LABELS[badgeType as keyof typeof BADGE_TYPE_LABELS] || badgeType}
+                    {t(`badges.types.${badgeType}` as any) || badgeType}
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {badges.map((badge) => {
@@ -176,7 +162,7 @@ export default function BadgesPage() {
                           {!isEarned && (
                             <div className="absolute top-2 right-2">
                               <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
-                                미획득
+                                {t("badges.notEarned")}
                               </span>
                             </div>
                           )}
@@ -192,17 +178,17 @@ export default function BadgesPage() {
                             <span className={`text-xs px-2 py-1 rounded border ${
                               isEarned ? rarityColor.badge : 'bg-gray-200 text-gray-600 border-gray-300'
                             }`}>
-                              {RARITY_LABELS[badge.rarity]}
+                              {t(`badges.rarity.${badge.rarity}`)}
                             </span>
                           </div>
                           {isEarned && userBadge && (
                             <p className="text-xs opacity-70 mt-3">
-                              {new Date(userBadge.earnedAt).toLocaleDateString("ko-KR")} 획득
+                              {new Date(userBadge.earnedAt).toLocaleDateString(locale === 'ko' ? "ko-KR" : locale === 'ja' ? "ja-JP" : "en-US")} {t("profile.earnedOn")}
                             </p>
                           )}
                           {!isEarned && (
                             <p className="text-xs text-gray-400 mt-3">
-                              아직 획득하지 않음
+                              {t("badges.notEarnedYet")}
                             </p>
                           )}
                         </div>

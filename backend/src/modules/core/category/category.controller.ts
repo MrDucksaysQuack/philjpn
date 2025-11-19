@@ -37,6 +37,16 @@ export class CategoryController {
     };
   }
 
+  // Public API - Slug로 카테고리 조회
+  @Get('slug/:slug')
+  @ApiOperation({ summary: 'Slug로 카테고리 조회 (공개)' })
+  @ApiResponse({ status: 200, description: '카테고리 조회 성공' })
+  async getCategoryBySlug(@Param('slug') slug: string) {
+    return {
+      data: await this.categoryService.findCategoryBySlug(slug),
+    };
+  }
+
   // Admin API - Category CRUD
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -155,6 +165,31 @@ export class CategoryController {
   async deleteSubcategory(@Param('id') id: string) {
     return {
       data: await this.categoryService.deleteSubcategory(id),
+    };
+  }
+
+  // 순서 업데이트 API
+  @Patch('reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '카테고리 순서 일괄 업데이트 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '순서 업데이트 성공' })
+  async updateCategoryOrders(@Body() body: { orders: { id: string; order: number }[] }) {
+    return {
+      data: await this.categoryService.updateCategoryOrders(body.orders),
+    };
+  }
+
+  @Patch('subcategories/reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '서브카테고리 순서 일괄 업데이트 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '순서 업데이트 성공' })
+  async updateSubcategoryOrders(@Body() body: { orders: { id: string; order: number }[] }) {
+    return {
+      data: await this.categoryService.updateSubcategoryOrders(body.orders),
     };
   }
 }

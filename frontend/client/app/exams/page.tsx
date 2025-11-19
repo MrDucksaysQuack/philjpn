@@ -4,12 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
 import { examAPI, Exam, categoryAPI, type Category, type Subcategory } from "@/lib/api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import LoadingSkeleton from "@/components/common/LoadingSkeleton";
 
 function ExamsPageContent() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryId = searchParams.get("categoryId") || undefined;
@@ -135,7 +139,7 @@ function ExamsPageContent() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="시험 목록을 불러오는 중..." />
+            <LoadingSpinner message={t("exam.loadingList")} />
             <div className="mt-8">
               <LoadingSkeleton type="card" count={3} />
             </div>
@@ -155,10 +159,10 @@ function ExamsPageContent() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
-                시험 목록
+                {t("exam.list")}
               </h1>
               <p className="text-xl text-theme-primary-light max-w-2xl mx-auto">
-                다양한 시험을 선택하여 실전 연습을 시작하세요
+                {t("exam.listSubtitle")}
               </p>
             </div>
           </div>
@@ -168,43 +172,13 @@ function ExamsPageContent() {
           {/* 카테고리/서브카테고리 선택 섹션 */}
           {categoriesData && categoriesData.length > 0 && (
             <div className="mb-6 bg-white rounded-lg shadow p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">카테고리 선택</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("exam.categorySelect")}</h2>
               
-              {/* 대분류 (Category) 선택 */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">대분류</label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleCategorySelect(null)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      !categoryId
-                        ? "bg-theme-primary text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    전체
-                  </button>
-                  {categoriesData.map((category: Category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => handleCategorySelect(category.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                        categoryId === category.id
-                          ? "bg-theme-primary text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {category.icon && <span>{category.icon}</span>}
-                      <span>{category.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+              
               {/* 중분류 (Subcategory) 선택 - 카테고리가 선택된 경우 표시 */}
               {categoryId && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">중분류</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t("exam.subcategory")}</label>
                   {subcategoriesData && subcategoriesData.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       <button
@@ -215,7 +189,7 @@ function ExamsPageContent() {
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                       >
-                        전체
+                        {t("exam.all")}
                       </button>
                       {subcategoriesData.map((subcategory: Subcategory) => (
                         <button

@@ -94,6 +94,15 @@ export class CreateExamDto {
   @IsBoolean()
   isPublic?: boolean;
 
+  @ApiPropertyOptional({ 
+    enum: ['draft', 'published', 'archived'], 
+    default: 'draft',
+    description: '시험 상태 (draft: 초안, published: 발행됨, archived: 보관됨)' 
+  })
+  @IsOptional()
+  @IsEnum(['draft', 'published', 'archived'])
+  status?: 'draft' | 'published' | 'archived';
+
   @ApiPropertyOptional({ type: ExamConfigDto, description: '시험 설정' })
   @IsOptional()
   @ValidateNested()

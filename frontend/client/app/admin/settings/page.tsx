@@ -1,25 +1,35 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
-import { adminAPI, SiteSettings, UpdateSiteSettingsDto, ColorAnalysisResult } from "@/lib/api";
+import { adminAPI, SiteSettings, UpdateSiteSettingsDto, ColorAnalysisResult, SiteSettingsVersion } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Link from "next/link";
 import IconPicker from "@/components/admin/IconPicker";
 import { getIconComponent } from "@/components/about/iconMapper";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
+import { toast } from "@/components/common/Toast";
+import SettingsPreview from "@/components/admin/SettingsPreview";
 
 export default function SiteSettingsPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "content" | "preview">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "content" | "preview" | "versions">("basic");
   const [contentLocale, setContentLocale] = useState<"ko" | "en" | "ja">("ko");
+  const [previewType, setPreviewType] = useState<"home" | "about">("home");
   const [isSaving, setIsSaving] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const isInitialLoad = useRef(true);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: settingsResponse, isLoading } = useQuery({
     queryKey: ["admin-site-settings"],
@@ -104,8 +114,57 @@ export default function SiteSettingsPage() {
           ja: { team: {}, company: {}, service: {}, contact: {} },
         },
       });
+      // 초기 로드 완료 표시
+      isInitialLoad.current = false;
     }
   }, [settings]);
+
+  // 데이터 정리 함수
+  const cleanFormData = useCallback((data: UpdateSiteSettingsDto): UpdateSiteSettingsDto => {
+    let cleanedContactInfo: UpdateSiteSettingsDto['contactInfo'] = data.contactInfo ? {
+      email: data.contactInfo.email?.trim() || undefined,
+      phone: data.contactInfo.phone?.trim() || undefined,
+      address: data.contactInfo.address?.trim() || undefined,
+      socialMedia: data.contactInfo.socialMedia ? {
+        website: data.contactInfo.socialMedia.website?.trim() || undefined,
+        facebook: data.contactInfo.socialMedia.facebook?.trim() || undefined,
+        twitter: data.contactInfo.socialMedia.twitter?.trim() || undefined,
+        instagram: data.contactInfo.socialMedia.instagram?.trim() || undefined,
+        linkedin: data.contactInfo.socialMedia.linkedin?.trim() || undefined,
+      } : undefined,
+    } : undefined;
+    
+    if (cleanedContactInfo?.socialMedia) {
+      const hasAnySocialMedia = Object.values(cleanedContactInfo.socialMedia).some(v => v !== undefined);
+      if (!hasAnySocialMedia) {
+        cleanedContactInfo.socialMedia = undefined;
+      }
+    }
+    
+    if (cleanedContactInfo) {
+      const hasAnyContactInfo = 
+        cleanedContactInfo.email !== undefined ||
+        cleanedContactInfo.phone !== undefined ||
+        cleanedContactInfo.address !== undefined ||
+        cleanedContactInfo.socialMedia !== undefined;
+      if (!hasAnyContactInfo) {
+        cleanedContactInfo = undefined;
+      }
+    }
+    
+    return {
+      ...data,
+      logoUrl: data.logoUrl?.trim() || undefined,
+      faviconUrl: data.faviconUrl?.trim() || undefined,
+      primaryColor: data.primaryColor?.trim() || undefined,
+      secondaryColor: data.secondaryColor?.trim() || undefined,
+      accentColor: data.accentColor?.trim() || undefined,
+      aboutCompany: data.aboutCompany?.trim() || undefined,
+      aboutTeam: data.aboutTeam?.trim() || undefined,
+      serviceInfo: data.serviceInfo?.trim() || undefined,
+      contactInfo: cleanedContactInfo,
+    };
+  }, []);
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateSiteSettingsDto) => {
@@ -115,9 +174,14 @@ export default function SiteSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-site-settings"] });
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
-      alert("사이트 설정이 저장되었습니다.");
+      setSavingStatus("saved");
+      // 2초 후 idle로 변경
+      setTimeout(() => {
+        setSavingStatus("idle");
+      }, 2000);
     },
     onError: (error: any) => {
+      setSavingStatus("error");
       // ✅ 상세한 검증 에러 메시지 표시
       if (error.response?.data?.errors) {
         const errorMessages = error.response.data.errors
@@ -126,15 +190,58 @@ export default function SiteSettingsPage() {
             return `${err.property}: ${constraints}`;
           })
           .join('\n');
-        alert(`저장 중 오류가 발생했습니다:\n\n${errorMessages}`);
+        toast.error(`${t("admin.siteSettings.saveError")}:\n\n${errorMessages}`);
       } else {
-        alert(`저장 중 오류가 발생했습니다: ${error.response?.data?.message || error.message}`);
+        toast.error(`${t("admin.siteSettings.saveError")}: ${error.response?.data?.message || error.message}`);
       }
+      // 3초 후 idle로 변경
+      setTimeout(() => {
+        setSavingStatus("idle");
+      }, 3000);
     },
     onSettled: () => {
       setIsSaving(false);
     },
   });
+
+  // 자동 저장 함수
+  const autoSave = useCallback(() => {
+    // 초기 로드 중이거나 이미 저장 중이면 스킵
+    if (isInitialLoad.current || isSaving) {
+      return;
+    }
+
+    setSavingStatus("saving");
+    setIsSaving(true);
+    
+    const cleanedData = cleanFormData(formData);
+    updateMutation.mutate(cleanedData);
+  }, [formData, isSaving, cleanFormData, updateMutation]);
+
+  // formData 변경 감지 및 자동 저장 (Debounce 3초)
+  useEffect(() => {
+    // 초기 로드 중이면 스킵
+    if (isInitialLoad.current) {
+      return;
+    }
+
+    // 기존 타이머 취소
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // 3초 후 자동 저장
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      autoSave();
+    }, 3000);
+
+    // cleanup
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [formData, autoSave]);
 
   const analyzeColorsMutation = useMutation({
     mutationFn: async (logoUrl: string) => {
@@ -213,55 +320,14 @@ export default function SiteSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // 자동 저장 타이머 취소
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
     setIsSaving(true);
+    setSavingStatus("saving");
     
-    // 빈 문자열을 undefined로 변환 (DTO 검증 통과를 위해)
-    let cleanedContactInfo: UpdateSiteSettingsDto['contactInfo'] = formData.contactInfo ? {
-      email: formData.contactInfo.email?.trim() || undefined,
-      phone: formData.contactInfo.phone?.trim() || undefined,
-      address: formData.contactInfo.address?.trim() || undefined,
-      socialMedia: formData.contactInfo.socialMedia ? {
-        website: formData.contactInfo.socialMedia.website?.trim() || undefined,
-        facebook: formData.contactInfo.socialMedia.facebook?.trim() || undefined,
-        twitter: formData.contactInfo.socialMedia.twitter?.trim() || undefined,
-        instagram: formData.contactInfo.socialMedia.instagram?.trim() || undefined,
-        linkedin: formData.contactInfo.socialMedia.linkedin?.trim() || undefined,
-      } : undefined,
-    } : undefined;
-    
-    // socialMedia가 모든 필드가 undefined인 경우 undefined로 설정
-    if (cleanedContactInfo?.socialMedia) {
-      const hasAnySocialMedia = Object.values(cleanedContactInfo.socialMedia).some(v => v !== undefined);
-      if (!hasAnySocialMedia) {
-        cleanedContactInfo.socialMedia = undefined;
-      }
-    }
-    
-    // contactInfo가 모든 필드가 undefined인 경우 undefined로 설정
-    if (cleanedContactInfo) {
-      const hasAnyContactInfo = 
-        cleanedContactInfo.email !== undefined ||
-        cleanedContactInfo.phone !== undefined ||
-        cleanedContactInfo.address !== undefined ||
-        cleanedContactInfo.socialMedia !== undefined;
-      if (!hasAnyContactInfo) {
-        cleanedContactInfo = undefined;
-      }
-    }
-    
-    const cleanedData: UpdateSiteSettingsDto = {
-      ...formData,
-      logoUrl: formData.logoUrl?.trim() || undefined,
-      faviconUrl: formData.faviconUrl?.trim() || undefined,
-      primaryColor: formData.primaryColor?.trim() || undefined,
-      secondaryColor: formData.secondaryColor?.trim() || undefined,
-      accentColor: formData.accentColor?.trim() || undefined,
-      aboutCompany: formData.aboutCompany?.trim() || undefined,
-      aboutTeam: formData.aboutTeam?.trim() || undefined,
-      serviceInfo: formData.serviceInfo?.trim() || undefined,
-      contactInfo: cleanedContactInfo,
-    };
-    
+    const cleanedData = cleanFormData(formData);
     updateMutation.mutate(cleanedData);
   };
 
@@ -288,7 +354,7 @@ export default function SiteSettingsPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="사이트 설정을 불러오는 중..." />
+            <LoadingSpinner message={t("admin.siteSettings.loading")} />
           </div>
         </div>
       </>
@@ -305,10 +371,10 @@ export default function SiteSettingsPage() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">
-                사이트 설정
+                {t("admin.siteSettings.title")}
               </h1>
               <p className="text-xl text-theme-primary-light max-w-2xl mx-auto">
-                회사 정보, 로고, 색상 테마 및 콘텐츠를 관리합니다
+                {t("admin.siteSettings.subtitle")}
               </p>
             </div>
           </div>
@@ -327,7 +393,7 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  기본 정보
+                  {t("admin.siteSettings.tabs.basic")}
                 </button>
                 <button
                   onClick={() => setActiveTab("company")}
@@ -337,7 +403,7 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  회사 소개
+                  {t("admin.siteSettings.tabs.company")}
                 </button>
                 <button
                   onClick={() => setActiveTab("team")}
@@ -347,7 +413,7 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  팀 소개
+                  {t("admin.siteSettings.tabs.team")}
                 </button>
                 <button
                   onClick={() => setActiveTab("service")}
@@ -357,7 +423,7 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  서비스 소개
+                  {t("admin.siteSettings.tabs.service")}
                 </button>
                 <button
                   onClick={() => setActiveTab("contact")}
@@ -367,7 +433,7 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  연락처
+                  {t("admin.siteSettings.tabs.contact")}
                 </button>
                 <button
                   onClick={() => setActiveTab("content")}
@@ -377,7 +443,7 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  언어별 콘텐츠
+                  {t("admin.siteSettings.tabs.content")}
                 </button>
                 <button
                   onClick={() => setActiveTab("preview")}
@@ -387,11 +453,98 @@ export default function SiteSettingsPage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  미리보기
+                  {t("admin.siteSettings.tabs.preview")}
+                </button>
+                <button
+                  onClick={() => setActiveTab("versions")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "versions"
+                      ? "border-theme-primary text-theme-primary"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {t("admin.siteSettings.tabs.versions")}
                 </button>
               </nav>
             </div>
           </div>
+
+          {/* 저장 상태 표시 */}
+          {savingStatus !== "idle" && (
+            <div className="mb-4 flex items-center justify-end">
+              <div
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
+                  savingStatus === "saving"
+                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                    : savingStatus === "saved"
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {savingStatus === "saving" && (
+                  <>
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>{t("admin.siteSettings.saving")}</span>
+                  </>
+                )}
+                {savingStatus === "saved" && (
+                  <>
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span>{t("admin.siteSettings.saved")}</span>
+                  </>
+                )}
+                {savingStatus === "error" && (
+                  <>
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    <span>{t("admin.siteSettings.saveFailed")}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             {/* 기본 정보 탭 */}
@@ -448,7 +601,7 @@ export default function SiteSettingsPage() {
                         disabled={!formData.logoUrl || isAnalyzing || uploadingLogo}
                         className="px-4 py-2 bg-theme-gradient-secondary text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
                       >
-                        {isAnalyzing ? "분석 중..." : "🎨 색상 분석"}
+                        {isAnalyzing ? t("admin.siteSettings.analyzing") : t("admin.siteSettings.colorAnalysis")}
                       </button>
                     </div>
                     
@@ -470,10 +623,10 @@ export default function SiteSettingsPage() {
                     {/* 미리보기 */}
                     {formData.logoUrl && (
                       <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="text-xs text-gray-600 mb-2">미리보기:</div>
+                        <div className="text-xs text-gray-600 mb-2">{t("admin.siteSettings.preview")}:</div>
                         <img
                           src={formData.logoUrl}
-                          alt="로고 미리보기"
+                          alt={t("admin.siteSettings.logoPreview")}
                           className="h-20 object-contain mx-auto"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = "none";
@@ -530,10 +683,10 @@ export default function SiteSettingsPage() {
                     {/* 미리보기 */}
                     {formData.faviconUrl && (
                       <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="text-xs text-gray-600 mb-2">미리보기:</div>
+                        <div className="text-xs text-gray-600 mb-2">{t("admin.siteSettings.preview")}:</div>
                         <img
                           src={formData.faviconUrl}
-                          alt="파비콘 미리보기"
+                          alt={t("admin.siteSettings.faviconPreview")}
                           className="h-16 w-16 object-contain mx-auto"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = "none";
@@ -1947,54 +2100,71 @@ export default function SiteSettingsPage() {
             {activeTab === "preview" && (
               <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">미리보기</h2>
-                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                  <p className="text-gray-600 mb-4">
-                    미리보기 기능은 Phase 4에서 구현 예정입니다.
-                  </p>
-                  <div className="space-y-2">
-                    <p className="font-semibold">회사명: {formData.companyName || "(미설정)"}</p>
-                    {formData.logoUrl && (
-                      <div>
-                        <p className="font-semibold mb-2">로고:</p>
-                        <img src={formData.logoUrl} alt="로고" className="h-16" />
-                      </div>
-                    )}
-                    <div className="flex gap-4 mt-4">
-                      {formData.primaryColor && (
-                        <div>
-                          <p className="font-semibold mb-2">Primary:</p>
-                          <div
-                            className="w-20 h-20 rounded-lg border border-gray-300"
-                            style={{ backgroundColor: formData.primaryColor }}
-                          />
-                        </div>
-                      )}
-                      {formData.secondaryColor && (
-                        <div>
-                          <p className="font-semibold mb-2">Secondary:</p>
-                          <div
-                            className="w-20 h-20 rounded-lg border border-gray-300"
-                            style={{ backgroundColor: formData.secondaryColor }}
-                          />
-                        </div>
-                      )}
-                      {formData.accentColor && (
-                        <div>
-                          <p className="font-semibold mb-2">Accent:</p>
-                          <div
-                            className="w-20 h-20 rounded-lg border border-gray-300"
-                            style={{ backgroundColor: formData.accentColor }}
-                          />
-                        </div>
-                      )}
-                    </div>
+                
+                {/* 미리보기 타입 및 언어 선택 */}
+                <div className="mb-6 flex flex-wrap gap-4 items-center">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setContentLocale("ko")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        contentLocale === "ko"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      한국어
+                    </button>
+                    <button
+                      onClick={() => setContentLocale("en")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        contentLocale === "en"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      onClick={() => setContentLocale("ja")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        contentLocale === "ja"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      日本語
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm flex items-center">
+                      페이지 선택:
+                    </span>
+                    <select
+                      value={previewType}
+                      onChange={(e) => setPreviewType(e.target.value as "home" | "about")}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                    >
+                      <option value="home">홈 페이지</option>
+                      <option value="about">About 페이지</option>
+                    </select>
                   </div>
                 </div>
+
+                {/* 미리보기 컴포넌트 */}
+                <SettingsPreview
+                  formData={formData}
+                  previewLocale={contentLocale}
+                  previewType={previewType}
+                />
               </div>
             )}
 
             {/* 저장 버튼 */}
-            <div className="mt-8 flex justify-end gap-4">
+            <div className="mt-8 flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                💡 변경 사항은 3초 후 자동으로 저장됩니다
+              </div>
+              <div className="flex gap-4">
               <Link
                 href="/admin"
                 className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
@@ -2006,13 +2176,218 @@ export default function SiteSettingsPage() {
                 disabled={isSaving}
                 className="px-6 py-2 bg-theme-gradient-primary text-white rounded-lg hover:opacity-90 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? "저장 중..." : "저장"}
+                  {isSaving ? "저장 중..." : "지금 저장"}
               </button>
+              </div>
             </div>
           </form>
         </div>
       </div>
     </>
+  );
+}
+
+// 버전 히스토리 탭 컴포넌트
+function VersionHistoryTab() {
+  const queryClient = useQueryClient();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createLabel, setCreateLabel] = useState("");
+  const [createDescription, setCreateDescription] = useState("");
+  const [rollbackingVersionId, setRollbackingVersionId] = useState<string | null>(null);
+
+  // 버전 목록 조회
+  const { data: versionsResponse, isLoading } = useQuery({
+    queryKey: ["site-settings-versions"],
+    queryFn: async () => {
+      const response = await adminAPI.getSiteSettingsVersions();
+      return response.data;
+    },
+  });
+
+  const versions = versionsResponse?.data || [];
+
+  // 버전 생성 Mutation
+  const createVersionMutation = useMutation({
+    mutationFn: async (data: { label?: string; description?: string }) => {
+      return await adminAPI.createSiteSettingsVersion(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-settings-versions"] });
+      setShowCreateModal(false);
+      setCreateLabel("");
+      setCreateDescription("");
+      toast.success("버전이 생성되었습니다.");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "버전 생성에 실패했습니다.");
+    },
+  });
+
+  // 롤백 Mutation
+  const rollbackMutation = useMutation({
+    mutationFn: async (versionId: string) => {
+      return await adminAPI.rollbackSiteSettingsVersion(versionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["site-settings-versions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-site-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["site-settings"] });
+      setRollbackingVersionId(null);
+      toast.success("버전으로 롤백되었습니다.");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "롤백에 실패했습니다.");
+      setRollbackingVersionId(null);
+    },
+  });
+
+  const handleCreateVersion = () => {
+    createVersionMutation.mutate({
+      label: createLabel || undefined,
+      description: createDescription || undefined,
+    });
+  };
+
+  const handleRollback = (versionId: string, version: number) => {
+    if (typeof window !== "undefined" && confirm(`버전 ${version}으로 롤백하시겠습니까? 현재 설정은 자동으로 백업됩니다.`)) {
+      setRollbackingVersionId(versionId);
+      rollbackMutation.mutate(versionId);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">버전 히스토리</h2>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          + 새 버전 생성
+        </button>
+      </div>
+
+      {isLoading ? (
+        <LoadingSpinner message="버전 목록을 불러오는 중..." />
+      ) : versions.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <p className="mb-4">아직 생성된 버전이 없습니다.</p>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            첫 버전 생성하기
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {versions.map((version: SiteSettingsVersion) => (
+            <div
+              key={version.id}
+              className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-lg font-bold text-gray-900">
+                      v{version.version}
+                    </span>
+                    {version.label && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                        {version.label}
+                      </span>
+                    )}
+                  </div>
+                  {version.description && (
+                    <p className="text-gray-600 mb-2">{version.description}</p>
+                  )}
+                  <div className="text-sm text-gray-500">
+                    <p>
+                      생성일: {formatDate(version.createdAt)}
+                      {version.creator && ` • ${version.creator.name || version.creator.email}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleRollback(version.id, version.version)}
+                    disabled={rollbackingVersionId === version.id || rollbackMutation.isPending}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {rollbackingVersionId === version.id ? "롤백 중..." : "롤백"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 버전 생성 모달 */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">새 버전 생성</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  라벨 (선택 사항)
+                </label>
+                <input
+                  type="text"
+                  value={createLabel}
+                  onChange={(e) => setCreateLabel(e.target.value)}
+                  placeholder="예: 2024년 1월 업데이트"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  설명 (선택 사항)
+                </label>
+                <textarea
+                  value={createDescription}
+                  onChange={(e) => setCreateDescription(e.target.value)}
+                  placeholder="변경 사유를 입력하세요"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setCreateLabel("");
+                  setCreateDescription("");
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleCreateVersion}
+                disabled={createVersionMutation.isPending}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {createVersionMutation.isPending ? "생성 중..." : "생성"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

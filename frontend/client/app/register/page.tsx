@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import { authAPI } from "@/lib/api";
 import Header from "@/components/layout/Header";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -27,7 +31,7 @@ export default function RegisterPage() {
       router.push("/login?registered=true");
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || "회원가입에 실패했습니다.");
+      setError(error.response?.data?.message || t("auth.errors.registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -56,15 +60,15 @@ export default function RegisterPage() {
                 </svg>
               </div>
               <h2 className="text-3xl font-extrabold text-gray-900">
-                회원가입
+                {t("auth.registerTitle")}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                이미 계정이 있으신가요?{" "}
+                {t("auth.hasAccount")}{" "}
                 <Link
                   href="/login"
                   className="font-medium text-theme-primary hover:opacity-80 transition-colors"
                 >
-                  로그인
+                  {t("auth.login")}
                 </Link>
               </p>
             </div>
@@ -80,7 +84,7 @@ export default function RegisterPage() {
                   htmlFor="name"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  이름
+                  {t("auth.name")}
                 </label>
                 <input
                   id="name"
@@ -88,7 +92,7 @@ export default function RegisterPage() {
                   type="text"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
-                  placeholder="이름을 입력하세요"
+                  placeholder={t("auth.namePlaceholder")}
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -100,7 +104,7 @@ export default function RegisterPage() {
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  이메일
+                  {t("auth.email")}
                 </label>
                 <input
                   id="email"
@@ -108,7 +112,7 @@ export default function RegisterPage() {
                   type="email"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
-                  placeholder="이메일을 입력하세요"
+                  placeholder={t("auth.emailPlaceholder")}
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -120,7 +124,7 @@ export default function RegisterPage() {
                   htmlFor="password"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  비밀번호
+                  {t("auth.password")}
                 </label>
                 <input
                   id="password"
@@ -128,7 +132,7 @@ export default function RegisterPage() {
                   type="password"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder={t("auth.passwordPlaceholder")}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -140,14 +144,14 @@ export default function RegisterPage() {
                   htmlFor="phone"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  전화번호 <span className="text-gray-400">(선택)</span>
+                  {t("auth.phone")} <span className="text-gray-400">({t("common.optional")})</span>
                 </label>
                 <input
                   id="phone"
                   name="phone"
                   type="tel"
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
-                  placeholder="전화번호를 입력하세요"
+                  placeholder={t("auth.phonePlaceholder")}
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
@@ -184,10 +188,10 @@ export default function RegisterPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    가입 중...
+                    {t("auth.registering")}
                   </span>
                 ) : (
-                  "회원가입"
+                  t("auth.register")
                 )}
               </button>
             </div>

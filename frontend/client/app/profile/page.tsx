@@ -7,6 +7,8 @@ import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import { badgeAPI, UserBadge } from "@/lib/api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Link from "next/link";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 
 const RARITY_COLORS = {
   common: 'bg-gray-200 text-gray-800 border-gray-300',
@@ -15,14 +17,9 @@ const RARITY_COLORS = {
   legendary: 'bg-yellow-200 text-yellow-800 border-yellow-300',
 };
 
-const RARITY_LABELS = {
-  common: '일반',
-  rare: '희귀',
-  epic: '영웅',
-  legendary: '전설',
-};
-
 export default function ProfilePage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const { user, isLoading: authLoading } = useRequireAuth();
   const [activeTab, setActiveTab] = useState<"badges" | "stats">("badges");
 
@@ -43,7 +40,7 @@ export default function ProfilePage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="로딩 중..." />
+            <LoadingSpinner message={t("profile.loading")} />
           </div>
         </div>
       </>
@@ -74,7 +71,7 @@ export default function ProfilePage() {
                     className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
                   >
                     <span>🏆</span>
-                    <span>배지 갤러리 보기</span>
+                    <span>{t("profile.viewBadgeGallery")}</span>
                   </Link>
                 </div>
               </div>
@@ -93,7 +90,7 @@ export default function ProfilePage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  내 배지 ({badges.length})
+                  {t("profile.myBadges")} ({badges.length})
                 </button>
                 <button
                   onClick={() => setActiveTab("stats")}
@@ -103,7 +100,7 @@ export default function ProfilePage() {
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  통계
+                  {t("profile.statistics")}
                 </button>
               </nav>
             </div>
@@ -112,21 +109,21 @@ export default function ProfilePage() {
           {/* 배지 탭 */}
           {activeTab === "badges" && (
             <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">획득한 배지</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("profile.earnedBadges")}</h2>
               {badgesLoading ? (
                 <div className="text-center py-12">
-                  <LoadingSpinner message="배지 로딩 중..." />
+                  <LoadingSpinner message={t("profile.loading")} />
                 </div>
               ) : badges.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🏆</div>
-                  <p className="text-gray-600 text-lg mb-2">아직 획득한 배지가 없습니다.</p>
-                  <p className="text-gray-500 text-sm mb-6">시험을 완료하고 배지를 획득해보세요!</p>
+                  <p className="text-gray-600 text-lg mb-2">{t("profile.noBadgesTitle")}</p>
+                  <p className="text-gray-500 text-sm mb-6">{t("profile.noBadgesSubtitle")}</p>
                   <Link
                     href="/exams"
                     className="inline-block bg-theme-gradient-primary text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all"
                   >
-                    시험 보러 가기 →
+                    {t("profile.goToExams")} →
                   </Link>
                 </div>
               ) : (
@@ -147,11 +144,11 @@ export default function ProfilePage() {
                         <span className={`text-xs px-2 py-1 rounded border ${
                           RARITY_COLORS[badge.rarity]
                         }`}>
-                          {RARITY_LABELS[badge.rarity]}
+                          {t(`badges.rarity.${badge.rarity}`)}
                         </span>
                       </div>
                       <p className="text-xs opacity-70 mt-3">
-                        {new Date(badge.earnedAt).toLocaleDateString("ko-KR")} 획득
+                        {new Date(badge.earnedAt).toLocaleDateString(locale === 'ko' ? "ko-KR" : locale === 'ja' ? "ja-JP" : "en-US")} {t("profile.earnedOn")}
                       </p>
                     </div>
                   ))}
@@ -163,36 +160,36 @@ export default function ProfilePage() {
           {/* 통계 탭 */}
           {activeTab === "stats" && (
             <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">학습 통계</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("profile.learningStats")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
                   <div className="text-3xl mb-2">📊</div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">통계</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{t("profile.statsTitle")}</div>
                   <Link
                     href="/statistics"
                     className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                   >
-                    자세히 보기 →
+                    {t("profile.viewDetails")} →
                   </Link>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
                   <div className="text-3xl mb-2">📈</div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">분석</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{t("profile.analysisTitle")}</div>
                   <Link
                     href="/analysis"
                     className="text-purple-600 hover:text-purple-700 text-sm font-medium"
                   >
-                    자세히 보기 →
+                    {t("profile.viewDetails")} →
                   </Link>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
                   <div className="text-3xl mb-2">📝</div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">결과</div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{t("profile.resultsTitle")}</div>
                   <Link
                     href="/results"
                     className="text-green-600 hover:text-green-700 text-sm font-medium"
                   >
-                    자세히 보기 →
+                    {t("profile.viewDetails")} →
                   </Link>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { WinstonModule } from 'nest-winston';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './common/utils/prisma.module';
@@ -28,6 +29,7 @@ import { loggerConfig } from './common/config/logger.config';
       isGlobal: true,
       load: [appConfig, databaseConfig],
     }),
+    EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     WinstonModule.forRoot(loggerConfig),
     ThrottlerModule.forRoot([

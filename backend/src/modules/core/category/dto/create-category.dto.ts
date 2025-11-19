@@ -27,5 +27,11 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'SEO-friendly URL slug (자동 생성됨)', example: 'japanese-exam' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  slug?: string;
 }
 

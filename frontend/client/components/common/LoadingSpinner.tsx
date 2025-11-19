@@ -1,5 +1,8 @@
 "use client";
 
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
+
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
   message?: string;
@@ -8,9 +11,12 @@ interface LoadingSpinnerProps {
 
 export default function LoadingSpinner({ 
   size = "md", 
-  message = "로딩 중...", 
+  message, 
   fullScreen = false 
 }: LoadingSpinnerProps) {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+  const displayMessage = message || t("common.loading");
   const sizeClasses = {
     sm: "w-8 h-8 border-2",
     md: "w-16 h-16 border-4",
@@ -26,8 +32,8 @@ export default function LoadingSpinner({
       >
         <span className="sr-only">로딩 중...</span>
       </div>
-      {message && (
-        <p className="text-gray-600 font-medium text-sm">{message}</p>
+      {displayMessage && (
+        <p className="text-gray-600 font-medium text-sm">{displayMessage}</p>
       )}
     </div>
   );

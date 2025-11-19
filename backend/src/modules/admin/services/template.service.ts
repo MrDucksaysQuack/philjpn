@@ -276,6 +276,7 @@ export class TemplateService {
         difficulty?: string | null;
         tags: string[];
         questionType: string;
+        questionBankId?: string | null;
       }> = [];
 
       // 우선순위 1: questionPoolId가 있으면 Pool에서 문제 선택
@@ -292,12 +293,17 @@ export class TemplateService {
               where: {
                 id: { in: pool.questionIds },
               },
-              include: {
-                section: {
-                  include: {
-                    exam: true,
-                  },
-                },
+              select: {
+                id: true,
+                content: true,
+                options: true,
+                correctAnswer: true,
+                explanation: true,
+                points: true,
+                difficulty: true,
+                tags: true,
+                questionType: true,
+                questionBankId: true,
               },
             });
           }
@@ -326,12 +332,17 @@ export class TemplateService {
 
         filteredQuestions = await this.prisma.question.findMany({
           where: whereClause,
-          include: {
-            section: {
-              include: {
-                exam: true,
-              },
-            },
+          select: {
+            id: true,
+            content: true,
+            options: true,
+            correctAnswer: true,
+            explanation: true,
+            points: true,
+            difficulty: true,
+            tags: true,
+            questionType: true,
+            questionBankId: true,
           },
         });
       }
@@ -367,19 +378,40 @@ export class TemplateService {
       // 문제 복제 및 생성
       let questionNumber = 1;
       for (const question of selectedQuestions) {
+        // 새 시험에 문제가 사용되므로 원본 문제의 usageCount 증가
+        if (question.id) {
+          await this.prisma.question.update({
+            where: { id: question.id },
+            data: {
+              usageCount: { increment: 1 },
+              lastUsedAt: new Date(),
+            } as any,
+          });
+        }
+
+        // 새 문제 생성 (복제)
+        const questionData: any = {
+          sectionId: section.id,
+          questionNumber: questionNumber++,
+          content: question.content,
+          options: question.options as Prisma.InputJsonValue,
+          correctAnswer: question.correctAnswer,
+          explanation: question.explanation,
+          points: question.points,
+          difficulty: question.difficulty as Difficulty | null | undefined,
+          tags: question.tags,
+          questionType: question.questionType as QuestionType,
+          usageCount: 1, // 새로 생성된 문제는 시험에 포함되므로 1로 시작
+          lastUsedAt: new Date(),
+        };
+
+        // questionBankId가 있으면 연결
+        if (question.questionBankId) {
+          questionData.questionBank = { connect: { id: question.questionBankId } };
+        }
+
         await this.prisma.question.create({
-          data: {
-            sectionId: section.id,
-            questionNumber: questionNumber++,
-            content: question.content,
-            options: question.options as Prisma.InputJsonValue,
-            correctAnswer: question.correctAnswer,
-            explanation: question.explanation,
-            points: question.points,
-            difficulty: question.difficulty as Difficulty | null | undefined,
-            tags: question.tags,
-            questionType: question.questionType as QuestionType,
-          },
+          data: questionData,
         });
       }
     }
@@ -406,6 +438,136 @@ export class TemplateService {
     });
 
     return updatedExam;
+  }
+
+  /**
+   * 템플릿 Preview - 실제로 시험을 생성하지 않고 미리보기
+   */
+  async previewTemplate(templateId: string, userId: string) {
+    const template = await this.getTemplate(templateId, userId);
+
+    // 템플릿 구조 가져오기
+    interface SectionDef {
+      type?: string;
+      description?: string;
+      questionPoolId?: string;
+      tags?: string[];
+      difficulty?: string;
+      questionCount?: number;
+    }
+    
+    const structure = template.structure as Prisma.JsonValue;
+    const sections: SectionDef[] = (structure && typeof structure === 'object' && 'sections' in structure) 
+      ? ((structure as { sections?: SectionDef[] }).sections || [])
+      : [];
+
+    const previewSections: Array<{
+      type: string;
+      description?: string;
+      questionCount: number;
+      availableQuestions: number;
+      selectedQuestions: Array<{
+        id: string;
+        content: string;
+        difficulty?: string | null;
+        tags: string[];
+        points: number;
+      }>;
+      questionPoolId?: string;
+      tags?: string[];
+      difficulty?: string;
+    }> = [];
+
+    // 각 섹션에 대해 Preview 생성
+    for (const sectionDef of sections) {
+      let availableQuestions: Array<{
+        id: string;
+        content: string;
+        difficulty?: string | null;
+        tags: string[];
+        points: number;
+      }> = [];
+
+      // 우선순위 1: questionPoolId가 있으면 Pool에서 문제 선택
+      if (sectionDef.questionPoolId) {
+        try {
+          const pool = await this.questionPoolService.getQuestionPool(
+            sectionDef.questionPoolId,
+            userId,
+          );
+          
+          if (pool.questionIds && pool.questionIds.length > 0) {
+            const questions = await this.prisma.question.findMany({
+              where: {
+                id: { in: pool.questionIds },
+              },
+              select: {
+                id: true,
+                content: true,
+                difficulty: true,
+                tags: true,
+                points: true,
+              },
+            });
+            availableQuestions = questions;
+          }
+        } catch (error) {
+          // Pool을 찾을 수 없으면 무시
+        }
+      } else {
+        // 우선순위 2: 태그와 난이도로 필터링
+        const where: Prisma.QuestionWhereInput = {};
+
+        if (sectionDef.tags && sectionDef.tags.length > 0) {
+          where.tags = { hasSome: sectionDef.tags };
+        }
+
+        if (sectionDef.difficulty) {
+          where.difficulty = sectionDef.difficulty as Difficulty;
+        }
+
+        const questions = await this.prisma.question.findMany({
+          where,
+          select: {
+            id: true,
+            content: true,
+            difficulty: true,
+            tags: true,
+            points: true,
+          },
+          take: 100, // Preview용으로 최대 100개만
+        });
+        availableQuestions = questions;
+      }
+
+      // 요청된 문제 개수만큼 선택 (랜덤 시드 없이 순서대로)
+      const questionCount = sectionDef.questionCount || 0;
+      const selectedQuestions = availableQuestions.slice(0, questionCount);
+
+      previewSections.push({
+        type: sectionDef.type || 'unknown',
+        description: sectionDef.description,
+        questionCount,
+        availableQuestions: availableQuestions.length,
+        selectedQuestions,
+        questionPoolId: sectionDef.questionPoolId,
+        tags: sectionDef.tags,
+        difficulty: sectionDef.difficulty,
+      });
+    }
+
+    return {
+      template: {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+      },
+      preview: {
+        totalSections: previewSections.length,
+        totalQuestions: previewSections.reduce((sum, s) => sum + s.questionCount, 0),
+        sections: previewSections,
+      },
+    };
   }
 }
 

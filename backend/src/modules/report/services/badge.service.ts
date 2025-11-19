@@ -251,6 +251,129 @@ export class BadgeService {
   }
 
   /**
+   * 배지 통계 조회 (관리자용)
+   */
+  async getBadgeStatistics() {
+    // 전체 배지 수
+    const totalBadges = await this.prisma.badge.count({
+      where: { isActive: true },
+    });
+
+    // 전체 사용자 수
+    const totalUsers = await this.prisma.user.count();
+
+    // 배지 획득 통계
+    const userBadges = await this.prisma.userBadge.findMany({
+      include: {
+        badge: true,
+      },
+    });
+
+    // 희귀도별 분포
+    const rarityDistribution = await this.prisma.badge.groupBy({
+      by: ['rarity'],
+      where: { isActive: true },
+      _count: true,
+    });
+
+    // 타입별 분포
+    const typeDistribution = await this.prisma.badge.groupBy({
+      by: ['badgeType'],
+      where: { isActive: true },
+      _count: true,
+    });
+
+    // 희귀도별 획득률
+    const rarityEarnedCount: Record<string, number> = {};
+    const rarityTotalCount: Record<string, number> = {};
+    
+    userBadges.forEach((ub) => {
+      const rarity = ub.badge.rarity;
+      rarityEarnedCount[rarity] = (rarityEarnedCount[rarity] || 0) + 1;
+    });
+
+    rarityDistribution.forEach((r) => {
+      rarityTotalCount[r.rarity] = r._count;
+    });
+
+    const rarityEarnedRate: Record<string, number> = {};
+    Object.keys(rarityTotalCount).forEach((rarity) => {
+      const earned = rarityEarnedCount[rarity] || 0;
+      const total = rarityTotalCount[rarity] || 0;
+      rarityEarnedRate[rarity] = total > 0 ? (earned / total) * 100 : 0;
+    });
+
+    // 타입별 획득률
+    const typeEarnedCount: Record<string, number> = {};
+    const typeTotalCount: Record<string, number> = {};
+    
+    userBadges.forEach((ub) => {
+      const type = ub.badge.badgeType;
+      typeEarnedCount[type] = (typeEarnedCount[type] || 0) + 1;
+    });
+
+    typeDistribution.forEach((t) => {
+      typeTotalCount[t.badgeType] = t._count;
+    });
+
+    const typeEarnedRate: Record<string, number> = {};
+    Object.keys(typeTotalCount).forEach((type) => {
+      const earned = typeEarnedCount[type] || 0;
+      const total = typeTotalCount[type] || 0;
+      typeEarnedRate[type] = total > 0 ? (earned / total) * 100 : 0;
+    });
+
+    // 최근 획득 추이 (최근 30일)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const recentEarned = await this.prisma.userBadge.findMany({
+      where: {
+        earnedAt: {
+          gte: thirtyDaysAgo,
+        },
+      },
+      orderBy: {
+        earnedAt: 'asc',
+      },
+    });
+
+    // 일별 획득 수
+    const dailyEarned: Record<string, number> = {};
+    recentEarned.forEach((ub) => {
+      const date = ub.earnedAt.toISOString().split('T')[0];
+      dailyEarned[date] = (dailyEarned[date] || 0) + 1;
+    });
+
+    // 전체 획득률
+    const totalEarned = userBadges.length;
+    const overallEarnedRate = totalUsers > 0 && totalBadges > 0
+      ? (totalEarned / (totalUsers * totalBadges)) * 100
+      : 0;
+
+    return {
+      totalBadges,
+      totalUsers,
+      totalEarned,
+      overallEarnedRate: Math.min(100, overallEarnedRate),
+      rarityDistribution: rarityDistribution.map((r) => ({
+        rarity: r.rarity,
+        count: r._count,
+        earnedRate: rarityEarnedRate[r.rarity] || 0,
+      })),
+      typeDistribution: typeDistribution.map((t) => ({
+        type: t.badgeType,
+        count: t._count,
+        earnedRate: typeEarnedRate[t.badgeType] || 0,
+      })),
+      dailyEarned: Object.entries(dailyEarned).map(([date, count]) => ({
+        date,
+        count,
+      })),
+    };
+  }
+
+  /**
    * 연속 학습 일수 계산
    */
   private async calculateStreakDays(userId: string): Promise<number> {
@@ -491,6 +614,26 @@ export class BadgeService {
   async deleteBadge(id: string) {
     return await this.prisma.badge.delete({
       where: { id },
+    });
+  }
+
+  /**
+   * ID 목록으로 배지 조회
+   */
+  async getBadgesByIds(badgeIds: string[]) {
+    return await this.prisma.badge.findMany({
+      where: {
+        id: {
+          in: badgeIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+        rarity: true,
+        badgeType: true,
+      },
     });
   }
 }

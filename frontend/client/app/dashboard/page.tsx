@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import QuickStats from "./components/QuickStats";
 import GoalProgressWidget from "./components/GoalProgressWidget";
@@ -18,6 +20,8 @@ import { useOnboarding } from "@/lib/hooks/useOnboarding";
 
 export default function DashboardPage() {
   const { user, isLoading } = useRequireAuth();
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const { showOnboarding, isChecking, completeOnboarding } = useOnboarding();
 
   if (isLoading) {
@@ -26,7 +30,7 @@ export default function DashboardPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="인증 확인 중..." />
+            <LoadingSpinner message={t("common.authenticating")} />
           </div>
         </div>
       </>
@@ -56,10 +60,10 @@ export default function DashboardPage() {
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in flex items-center justify-center gap-3">
                 <span className="text-5xl">📊</span>
-                나의 학습 대시보드
+                {t("dashboard.title")}
               </h1>
               <p className="text-xl text-theme-primary-light max-w-2xl mx-auto">
-                모든 학습 정보를 한눈에 확인하세요
+                {t("dashboard.subtitle")}
               </p>
             </div>
           </div>

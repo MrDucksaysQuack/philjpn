@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../common/utils/prisma.service';
+import { QuestionStatisticsService } from '../../admin/services/question-statistics.service';
 
 @Injectable()
 export class GradingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private questionStatisticsService: QuestionStatisticsService,
+  ) {}
 
   /**
    * 시험 채점
@@ -134,6 +138,9 @@ export class GradingService {
           pointsPossible,
         },
       });
+
+      // 문제 통계 업데이트 (비동기)
+      this.questionStatisticsService.updateStatisticsOnResult(question.id);
 
       // 통계 업데이트
       if (!userAnswer) {

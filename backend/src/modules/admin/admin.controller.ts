@@ -23,8 +23,12 @@ import { AdminService } from './services/admin.service';
 import { TemplateService } from './services/template.service';
 import { QuestionPoolService } from './services/question-pool.service';
 import { QuestionBankService } from './services/question-bank.service';
+import { QuestionStatisticsService } from './services/question-statistics.service';
+import { ContentLinkingService } from './services/content-linking.service';
+import { SectionDifficultyBalancerService } from './services/section-difficulty-balancer.service';
 import { SiteSettingsService } from './services/site-settings.service';
 import { ColorAnalysisService } from './services/color-analysis.service';
+import { ContentVersionService } from './services/content-version.service';
 import { FileUploadService } from '../../common/services/file-upload.service';
 import { BadgeService } from '../report/services/badge.service';
 import { AdminUserQueryDto } from './dto/user-query.dto';
@@ -52,10 +56,14 @@ export class AdminController {
     private readonly templateService: TemplateService,
     private readonly questionPoolService: QuestionPoolService,
     private readonly questionBankService: QuestionBankService,
+    private readonly questionStatisticsService: QuestionStatisticsService,
+    private readonly contentLinkingService: ContentLinkingService,
+    private readonly sectionDifficultyBalancerService: SectionDifficultyBalancerService,
     private readonly siteSettingsService: SiteSettingsService,
     private readonly colorAnalysisService: ColorAnalysisService,
     private readonly fileUploadService: FileUploadService,
     private readonly badgeService: BadgeService,
+    private readonly contentVersionService: ContentVersionService,
   ) {}
 
   // ==================== 사용자 관리 ====================
@@ -236,6 +244,23 @@ export class AdminController {
     return this.templateService.deleteTemplate(id, user.id);
   }
 
+  @Get('templates/:id/preview')
+  @ApiOperation({ summary: '템플릿 Preview (Admin Only)' })
+  @ApiResponse({ status: 200, description: '템플릿 Preview 성공' })
+  async previewTemplate(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    try {
+      const preview = await this.templateService.previewTemplate(id, user.id);
+      return { data: preview };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ previewTemplate 에러:', errorMessage);
+      throw error;
+    }
+  }
+
   @Post('exams/from-template')
   @ApiOperation({ summary: '템플릿으로부터 시험 생성 (Admin Only)' })
   @ApiResponse({ status: 201, description: '시험 생성 성공' })
@@ -260,6 +285,70 @@ export class AdminController {
       user.id,
       body,
     );
+  }
+
+  // ==================== 문제 통계 ====================
+
+  @Get('questions/:id/statistics')
+  @ApiOperation({ summary: '문제 통계 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 통계 조회 성공' })
+  @ApiResponse({ status: 404, description: '문제를 찾을 수 없음' })
+  async getQuestionStatistics(@Param('id') id: string) {
+    try {
+      const statistics = await this.questionStatisticsService.getStatistics(id);
+      return { data: statistics };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getQuestionStatistics 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('questions/:id/statistics/calculate')
+  @ApiOperation({ summary: '문제 통계 재계산 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '통계 재계산 성공' })
+  @HttpCode(HttpStatus.OK)
+  async calculateQuestionStatistics(@Param('id') id: string) {
+    try {
+      const statistics = await this.questionStatisticsService.calculateStatistics(id);
+      return { data: statistics };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ calculateQuestionStatistics 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('questions/:id/difficulty/auto-update')
+  @ApiOperation({ summary: '문제 난이도 자동 업데이트 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '난이도 자동 업데이트 성공' })
+  @HttpCode(HttpStatus.OK)
+  async updateQuestionDifficulty(@Param('id') id: string) {
+    try {
+      const result = await this.questionStatisticsService.updateQuestionDifficulty(id);
+      return { data: result };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ updateQuestionDifficulty 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('questions/difficulty/batch-update')
+  @ApiOperation({ summary: '문제 난이도 일괄 자동 업데이트 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '난이도 일괄 업데이트 성공' })
+  @HttpCode(HttpStatus.OK)
+  async updateQuestionDifficultiesBatch(@Body() body: { questionIds: string[] }) {
+    try {
+      const result = await this.questionStatisticsService.updateQuestionDifficultiesBatch(
+        body.questionIds,
+      );
+      return { data: result };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ updateQuestionDifficultiesBatch 에러:', errorMessage);
+      throw error;
+    }
   }
 
   // ==================== 문제 관리 ====================
@@ -289,8 +378,48 @@ export class AdminController {
   @ApiOperation({ summary: '문제 풀 생성 (Admin Only)' })
   @ApiResponse({ status: 201, description: '문제 풀 생성 성공' })
   @HttpCode(HttpStatus.CREATED)
-  createQuestionPool(@Body() dto: { name: string; description?: string; tags?: string[]; difficulty?: 'easy' | 'medium' | 'hard'; questionIds?: string[] }, @CurrentUser() user: { id: string }) {
+  createQuestionPool(
+    @Body()
+    dto: {
+      name: string;
+      description?: string;
+      tags?: string[];
+      difficulty?: 'easy' | 'medium' | 'hard';
+      questionIds?: string[];
+      isAutoSelect?: boolean;
+      autoSelectRules?: {
+        minDifficulty?: 'easy' | 'medium' | 'hard';
+        maxDifficulty?: 'easy' | 'medium' | 'hard';
+        tags?: string[];
+        excludeTags?: string[];
+        maxCount?: number;
+        minCount?: number;
+        questionBankId?: string;
+      };
+    },
+    @CurrentUser() user: { id: string },
+  ) {
     return this.questionPoolService.createQuestionPool(user.id, dto);
+  }
+
+  @Post('question-pools/pre-check')
+  @ApiOperation({ summary: '문제 풀 규칙 Pre-check (Admin Only)' })
+  @ApiResponse({ status: 200, description: 'Pre-check 성공' })
+  async preCheckPoolRules(
+    @Body()
+    rules: {
+      minDifficulty?: 'easy' | 'medium' | 'hard';
+      maxDifficulty?: 'easy' | 'medium' | 'hard';
+      tags?: string[];
+      excludeTags?: string[];
+      maxCount?: number;
+      minCount?: number;
+      questionBankId?: string;
+    },
+  ) {
+    return {
+      data: await this.questionPoolService.preCheckPoolRules(rules),
+    };
   }
 
   @Get('question-pools')
@@ -314,7 +443,24 @@ export class AdminController {
   @ApiResponse({ status: 404, description: '문제 풀을 찾을 수 없음' })
   updateQuestionPool(
     @Param('id') id: string,
-    @Body() dto: { name?: string; description?: string; tags?: string[]; difficulty?: 'easy' | 'medium' | 'hard'; questionIds?: string[] },
+    @Body()
+    dto: {
+      name?: string;
+      description?: string;
+      tags?: string[];
+      difficulty?: 'easy' | 'medium' | 'hard';
+      questionIds?: string[];
+      isAutoSelect?: boolean;
+      autoSelectRules?: {
+        minDifficulty?: 'easy' | 'medium' | 'hard';
+        maxDifficulty?: 'easy' | 'medium' | 'hard';
+        tags?: string[];
+        excludeTags?: string[];
+        maxCount?: number;
+        minCount?: number;
+        questionBankId?: string;
+      };
+    },
     @CurrentUser() user: { id: string },
   ) {
     return this.questionPoolService.updateQuestionPool(id, user.id, dto);
@@ -358,12 +504,17 @@ export class AdminController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @HttpCode(HttpStatus.OK)
   async updateSiteSettings(
-    @Body() dto: UpdateSiteSettingsDto,
+    @Body() dto: UpdateSiteSettingsDto & { createVersion?: boolean; versionLabel?: string; versionDescription?: string },
     @CurrentUser() user: { id: string },
   ) {
     try {
+      const { createVersion, versionLabel, versionDescription, ...settingsData } = dto;
       return {
-        data: await this.siteSettingsService.updateSettings(user.id, dto),
+        data: await this.siteSettingsService.updateSettings(
+          user.id,
+          settingsData,
+          { createVersion, versionLabel, versionDescription },
+        ),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -374,6 +525,65 @@ export class AdminController {
         code: errorCode,
         stack: errorStack,
       });
+      throw error;
+    }
+  }
+
+  // 사이트 설정 버전 관리
+  @Get('site-settings/versions')
+  @ApiOperation({ summary: '사이트 설정 버전 목록 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '버전 목록 조회 성공' })
+  async getSiteSettingsVersions() {
+    try {
+      const settings = await this.siteSettingsService.getAdminSettings();
+      return {
+        data: await this.siteSettingsService.getVersions(settings.id),
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getSiteSettingsVersions 에러:', { message: errorMessage });
+      throw error;
+    }
+  }
+
+  @Post('site-settings/versions')
+  @ApiOperation({ summary: '사이트 설정 버전 생성 (Admin Only)' })
+  @ApiResponse({ status: 201, description: '버전 생성 성공' })
+  async createSiteSettingsVersion(
+    @Body() dto: { label?: string; description?: string },
+    @CurrentUser() user: { id: string },
+  ) {
+    try {
+      const settings = await this.siteSettingsService.getAdminSettings();
+      return {
+        data: await this.siteSettingsService.createVersion(
+          settings.id,
+          user.id,
+          dto.label,
+          dto.description,
+        ),
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ createSiteSettingsVersion 에러:', { message: errorMessage });
+      throw error;
+    }
+  }
+
+  @Post('site-settings/versions/:versionId/rollback')
+  @ApiOperation({ summary: '사이트 설정 버전 롤백 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '롤백 성공' })
+  async rollbackSiteSettingsVersion(
+    @Param('versionId') versionId: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    try {
+      return {
+        data: await this.siteSettingsService.rollbackToVersion(versionId, user.id),
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ rollbackSiteSettingsVersion 에러:', { message: errorMessage });
       throw error;
     }
   }
@@ -609,6 +819,20 @@ export class AdminController {
     }
   }
 
+  @Get('badges/statistics')
+  @ApiOperation({ summary: '배지 통계 조회' })
+  @ApiResponse({ status: 200, description: '배지 통계 조회 성공' })
+  async getBadgeStatistics() {
+    try {
+      const statistics = await this.badgeService.getBadgeStatistics();
+      return { data: statistics };
+    } catch (error: any) {
+      const errorMessage = error?.message || '알 수 없는 오류';
+      this.logger.error('❌ getBadgeStatistics 에러:', errorMessage);
+      throw error;
+    }
+  }
+
   @Delete('badges/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '배지 삭제 (Admin Only)' })
@@ -689,6 +913,10 @@ export class AdminController {
       name: string;
       description?: string;
       category?: string;
+      subcategory?: string;
+      level?: string;
+      source?: string;
+      sourceYear?: number;
     },
     @CurrentUser() user: any,
   ) {
@@ -714,6 +942,10 @@ export class AdminController {
       name?: string;
       description?: string;
       category?: string;
+      subcategory?: string;
+      level?: string;
+      source?: string;
+      sourceYear?: number;
     },
   ) {
     try {
@@ -787,6 +1019,275 @@ export class AdminController {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('❌ removeAllQuestionsFromBank 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('question-banks/move-question')
+  @ApiOperation({ summary: '문제 은행 간 문제 이동 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 이동 성공' })
+  async moveQuestion(
+    @Body() body: {
+      questionId: string;
+      targetBankId: string;
+      sourceBankId?: string;
+    },
+  ) {
+    try {
+      const question = await this.questionBankService.moveQuestion(
+        body.questionId,
+        body.targetBankId,
+        body.sourceBankId,
+      );
+      return { data: question };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ moveQuestion 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('question-banks/move-questions')
+  @ApiOperation({ summary: '문제 은행 간 일괄 문제 이동 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '일괄 문제 이동 성공' })
+  async moveQuestions(
+    @Body() body: {
+      questionIds: string[];
+      targetBankId: string;
+      sourceBankId?: string;
+    },
+  ) {
+    try {
+      const result = await this.questionBankService.moveQuestions(
+        body.questionIds,
+        body.targetBankId,
+        body.sourceBankId,
+      );
+      return { data: result };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ moveQuestions 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('questions/:id/usage')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '문제 사용 추적 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 사용 추적 성공' })
+  @ApiResponse({ status: 404, description: '문제를 찾을 수 없음' })
+  async getQuestionUsage(@Param('id') id: string) {
+    try {
+      const trace = await this.contentLinkingService.getQuestionUsage(id);
+      return { data: trace };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getQuestionUsage 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('templates/:id/usage')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '템플릿 사용 추적 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '템플릿 사용 추적 성공' })
+  @ApiResponse({ status: 404, description: '템플릿을 찾을 수 없음' })
+  async getTemplateUsage(@Param('id') id: string) {
+    try {
+      const trace = await this.contentLinkingService.getTemplateUsage(id);
+      return { data: trace };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getTemplateUsage 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('question-banks/:id/usage')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '문제 은행 사용 추적 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 은행 사용 추적 성공' })
+  @ApiResponse({ status: 404, description: '문제 은행을 찾을 수 없음' })
+  async getQuestionBankUsage(@Param('id') id: string) {
+    try {
+      const trace = await this.contentLinkingService.getQuestionBankUsage(id);
+      return { data: trace };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getQuestionBankUsage 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  // ==================== 섹션 난이도 균형 ====================
+
+  @Get('exams/:id/sections/difficulty-analysis')
+  @ApiOperation({ summary: '시험 섹션 난이도 분석 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '섹션 난이도 분석 성공' })
+  @ApiResponse({ status: 404, description: '시험을 찾을 수 없음' })
+  async analyzeSectionDifficulty(@Param('id') id: string) {
+    try {
+      const analysis = await this.sectionDifficultyBalancerService.analyzeExamDifficulty(id);
+      return { data: analysis };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ analyzeSectionDifficulty 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('exams/:id/sections/balance-recommendations')
+  @ApiOperation({ summary: '섹션 난이도 균형 조정 제안 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '균형 조정 제안 성공' })
+  @ApiResponse({ status: 404, description: '시험을 찾을 수 없음' })
+  async getBalanceRecommendations(@Param('id') id: string) {
+    try {
+      const recommendations = await this.sectionDifficultyBalancerService.generateBalanceRecommendations(id);
+      return { data: recommendations };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getBalanceRecommendations 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('exams/:examId/sections/move-question')
+  @ApiOperation({ summary: '문제를 다른 섹션으로 이동 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '문제 이동 성공' })
+  @ApiResponse({ status: 404, description: '시험 또는 섹션을 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async moveQuestionToSection(
+    @Param('examId') examId: string,
+    @Body() body: { questionId: string; targetSectionId: string },
+  ) {
+    try {
+      await this.sectionDifficultyBalancerService.moveQuestionToSection(
+        body.questionId,
+        body.targetSectionId,
+      );
+      return { message: '문제가 성공적으로 이동되었습니다.' };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ moveQuestionToSection 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  // ==================== 콘텐츠 버전 관리 ====================
+
+  @Post('content-versions')
+  @ApiOperation({ summary: '콘텐츠 버전 생성 (Admin Only)' })
+  @ApiResponse({ status: 201, description: '버전 생성 성공' })
+  @ApiResponse({ status: 404, description: '콘텐츠를 찾을 수 없음' })
+  @HttpCode(HttpStatus.CREATED)
+  async createVersion(
+    @Body() body: { contentType: 'exam' | 'question' | 'template'; contentId: string; versionLabel?: string; changeDescription?: string },
+    @CurrentUser() user: { id: string },
+  ) {
+    try {
+      const version = await this.contentVersionService.createVersion({
+        contentType: body.contentType,
+        contentId: body.contentId,
+        versionLabel: body.versionLabel,
+        changeDescription: body.changeDescription,
+        changedBy: user.id,
+      });
+      return { data: version };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ createVersion 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('content-versions/:contentType/:contentId')
+  @ApiOperation({ summary: '콘텐츠 버전 목록 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '버전 목록 조회 성공' })
+  async getVersions(
+    @Param('contentType') contentType: 'exam' | 'question' | 'template',
+    @Param('contentId') contentId: string,
+  ) {
+    try {
+      const versions = await this.contentVersionService.getVersions(contentType, contentId);
+      return { data: versions };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getVersions 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('content-versions/:versionId')
+  @ApiOperation({ summary: '특정 버전 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '버전 조회 성공' })
+  @ApiResponse({ status: 404, description: '버전을 찾을 수 없음' })
+  async getVersion(@Param('versionId') versionId: string) {
+    try {
+      const version = await this.contentVersionService.getVersion(versionId);
+      return { data: version };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getVersion 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('content-versions/:versionId1/compare/:versionId2')
+  @ApiOperation({ summary: '버전 비교 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '버전 비교 성공' })
+  @ApiResponse({ status: 400, description: '같은 콘텐츠의 버전만 비교 가능' })
+  async compareVersions(
+    @Param('versionId1') versionId1: string,
+    @Param('versionId2') versionId2: string,
+  ) {
+    try {
+      const differences = await this.contentVersionService.compareVersions(versionId1, versionId2);
+      return { data: differences };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ compareVersions 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Post('content-versions/:versionId/rollback')
+  @ApiOperation({ summary: '특정 버전으로 롤백 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '롤백 성공' })
+  @ApiResponse({ status: 404, description: '버전을 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async rollbackToVersion(
+    @Param('versionId') versionId: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    try {
+      const result = await this.contentVersionService.rollbackToVersion(versionId, user.id);
+      return { data: result, message: '롤백이 완료되었습니다.' };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ rollbackToVersion 에러:', errorMessage);
+      throw error;
+    }
+  }
+
+  @Get('content-versions/:contentType/:contentId/latest')
+  @ApiOperation({ summary: '최신 버전 조회 (Admin Only)' })
+  @ApiResponse({ status: 200, description: '최신 버전 조회 성공' })
+  async getLatestVersion(
+    @Param('contentType') contentType: 'exam' | 'question' | 'template',
+    @Param('contentId') contentId: string,
+  ) {
+    try {
+      const version = await this.contentVersionService.getLatestVersion(contentType, contentId);
+      return { data: version };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ getLatestVersion 에러:', errorMessage);
       throw error;
     }
   }

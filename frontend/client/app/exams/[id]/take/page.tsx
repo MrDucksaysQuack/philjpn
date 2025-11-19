@@ -3,6 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
 import { sessionAPI, NextQuestionResponse, questionAPI, Question } from "@/lib/api";
 import { socketClient } from "@/lib/socket";
@@ -12,6 +14,8 @@ import ProgressBar from "@/components/common/ProgressBar";
 import AudioPlayer from "@/components/common/AudioPlayer";
 
 export default function TakeExamPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -251,7 +255,7 @@ export default function TakeExamPage() {
 
 
   const handleSubmit = () => {
-    if (confirm("시험을 제출하시겠습니까?")) {
+    if (confirm(t("exam.confirmSubmit"))) {
       submitMutation.mutate();
     }
   };
@@ -261,7 +265,7 @@ export default function TakeExamPage() {
       <>
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">시험 정보를 불러오는 중...</div>
+          <div className="text-center">{t("common.loading")}</div>
         </div>
       </>
     );
@@ -273,7 +277,7 @@ export default function TakeExamPage() {
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center text-red-600">
-            시험 세션을 찾을 수 없습니다.
+            {t("common.error")}
           </div>
         </div>
       </>
@@ -308,11 +312,11 @@ export default function TakeExamPage() {
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm font-medium"
                   aria-label="문제 목록 토글"
                 >
-                  {showQuestionList ? "목록 숨기기" : "문제 목록"}
+                  {showQuestionList ? t("common.close") : t("exam.questionList")}
                 </button>
               )}
             <div className="text-sm text-gray-600">
-              남은 시간: {session.expiresAt ? "계산 필요" : "-"}
+              {t("exam.timeRemaining")}: {session.expiresAt ? t("common.loading") : "-"}
               </div>
             </div>
           </div>
@@ -322,7 +326,7 @@ export default function TakeExamPage() {
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-purple-700">🎯 적응형 시험</span>
+                  <span className="text-sm font-semibold text-purple-700">🎯 {t("exam.adaptive")}</span>
                   {ability !== null && (
                     <span className="text-sm text-gray-600">
                       능력 추정: <span className="font-semibold">{ability.toFixed(2)}</span>
@@ -343,7 +347,7 @@ export default function TakeExamPage() {
             <ProgressBar
               current={currentQuestionNumber}
               total={currentTotal}
-              message={`문제 ${currentQuestionNumber} / ${currentTotal}`}
+              message={`${t("exam.question")} ${currentQuestionNumber} ${t("exam.of")} ${currentTotal}`}
               color="blue"
               size="md"
             />
@@ -527,7 +531,7 @@ export default function TakeExamPage() {
                 disabled={currentQuestionNumber === (sectionQuestions[0]?.questionNumber || 1)}
                 className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              이전
+              {t("common.previous")}
             </button>
             )}
             {isAdaptive && <div />}
@@ -540,7 +544,7 @@ export default function TakeExamPage() {
               }
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isAdaptive ? "다음 문제" : "다음"}
+              {isAdaptive ? t("exam.nextQuestion") : t("common.next")}
             </button>
             {isAdaptive && <div />}
           </div>
@@ -551,7 +555,7 @@ export default function TakeExamPage() {
               disabled={submitMutation.isPending}
               className="w-full bg-red-600 text-white px-6 py-3 rounded-md font-medium hover:bg-red-700 disabled:opacity-50"
             >
-              {submitMutation.isPending ? "제출 중..." : "시험 제출"}
+              {submitMutation.isPending ? t("exam.submitting") : t("exam.submitExam")}
             </button>
           </div>
           </div>
@@ -560,7 +564,7 @@ export default function TakeExamPage() {
         {!isAdaptive && showQuestionList && (
           <div className="w-80 bg-white rounded-lg shadow-lg p-4 h-fit sticky top-24">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">문제 목록</h3>
+              <h3 className="font-semibold text-gray-900">{t("exam.questionList")}</h3>
               <button
                 onClick={() => setShowQuestionList(false)}
                 className="p-1 rounded hover:bg-gray-100"

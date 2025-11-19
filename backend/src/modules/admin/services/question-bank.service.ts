@@ -112,6 +112,10 @@ export class QuestionBankService {
     name: string;
     description?: string;
     category?: string;
+    subcategory?: string;
+    level?: string;
+    source?: string;
+    sourceYear?: number;
     createdBy?: string;
   }) {
     if (!data.name || data.name.trim().length === 0) {
@@ -123,6 +127,10 @@ export class QuestionBankService {
         name: data.name.trim(),
         description: data.description?.trim() || undefined,
         category: data.category?.trim() || undefined,
+        subcategory: data.subcategory?.trim() || undefined,
+        level: data.level?.trim() || undefined,
+        source: data.source?.trim() || undefined,
+        sourceYear: data.sourceYear || undefined,
         createdBy: data.createdBy || undefined,
       },
     });
@@ -137,6 +145,10 @@ export class QuestionBankService {
       name?: string;
       description?: string;
       category?: string;
+      subcategory?: string;
+      level?: string;
+      source?: string;
+      sourceYear?: number;
     },
   ) {
     // 존재 확인
@@ -157,6 +169,22 @@ export class QuestionBankService {
 
     if (data.category !== undefined) {
       updateData.category = data.category.trim() || null;
+    }
+
+    if (data.subcategory !== undefined) {
+      updateData.subcategory = data.subcategory.trim() || null;
+    }
+
+    if (data.level !== undefined) {
+      updateData.level = data.level.trim() || null;
+    }
+
+    if (data.source !== undefined) {
+      updateData.source = data.source.trim() || null;
+    }
+
+    if (data.sourceYear !== undefined) {
+      updateData.sourceYear = data.sourceYear || null;
     }
 
     return await this.prisma.questionBank.update({
@@ -255,6 +283,95 @@ export class QuestionBankService {
         questionBankId: null,
       },
     });
+  }
+
+  /**
+   * 문제 은행 간 문제 이동
+   */
+  async moveQuestion(
+    questionId: string,
+    targetBankId: string,
+    sourceBankId?: string,
+  ) {
+    // 문제 존재 확인
+    const question = await this.prisma.question.findUnique({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      throw new NotFoundException(`문제를 찾을 수 없습니다. ID: ${questionId}`);
+    }
+
+    // 소스 은행 확인 (선택사항)
+    if (sourceBankId && question.questionBankId !== sourceBankId) {
+      throw new BadRequestException(
+        '문제가 지정된 소스 문제 은행에 연결되어 있지 않습니다.',
+      );
+    }
+
+    // 타겟 은행 존재 확인
+    await this.findOne(targetBankId);
+
+    // 같은 은행으로 이동하려는 경우
+    if (question.questionBankId === targetBankId) {
+      throw new BadRequestException(
+        '문제가 이미 해당 문제 은행에 연결되어 있습니다.',
+      );
+    }
+
+    return await this.prisma.question.update({
+      where: { id: questionId },
+      data: {
+        questionBankId: targetBankId,
+      },
+    });
+  }
+
+  /**
+   * 문제 은행 간 일괄 문제 이동
+   */
+  async moveQuestions(
+    questionIds: string[],
+    targetBankId: string,
+    sourceBankId?: string,
+  ) {
+    if (!questionIds || questionIds.length === 0) {
+      throw new BadRequestException('이동할 문제를 선택해주세요.');
+    }
+
+    // 타겟 은행 존재 확인
+    await this.findOne(targetBankId);
+
+    // 소스 은행 확인 (선택사항)
+    if (sourceBankId) {
+      const questionsInSource = await this.prisma.question.count({
+        where: {
+          id: { in: questionIds },
+          questionBankId: sourceBankId,
+        },
+      });
+
+      if (questionsInSource !== questionIds.length) {
+        throw new BadRequestException(
+          '일부 문제가 지정된 소스 문제 은행에 연결되어 있지 않습니다.',
+        );
+      }
+    }
+
+    // 문제 이동
+    const result = await this.prisma.question.updateMany({
+      where: {
+        id: { in: questionIds },
+      },
+      data: {
+        questionBankId: targetBankId,
+      },
+    });
+
+    return {
+      movedCount: result.count,
+      totalRequested: questionIds.length,
+    };
   }
 
   /**

@@ -5,14 +5,54 @@ export const dynamic = "force-dynamic";
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState, useRef, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { adminAPI } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TrendChartWidget from "./components/TrendChartWidget";
+import DashboardTabs from "@/components/admin/DashboardTabs";
+import SortableGroup from "@/components/admin/SortableGroup";
+import {
+  useFavoriteStore,
+  useRecentMenuStore,
+  useGroupOrderStore,
+} from "@/lib/store";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export default function AdminDashboardPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
+  const [activeTab, setActiveTab] = useState("overview");
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  
+  // 개인화 기능 스토어
+  const { favorites, toggleFavorite, isFavorite } = useFavoriteStore();
+  const { recentMenus, addRecentMenu, clearRecentMenus } = useRecentMenuStore();
+  const { groupOrder, setGroupOrder, resetGroupOrder } = useGroupOrderStore();
+  
+  // 드래그 앤 드롭 센서
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ["admin-dashboard"],
@@ -69,36 +109,352 @@ export default function AdminDashboardPage() {
     );
   }
 
+  const tabs = [
+    { id: "overview", label: "대시보드", icon: "📊", groupId: "overview-section" },
+    { id: "content", label: "콘텐츠", icon: "📝", groupId: "content-group" },
+    { id: "users", label: "사용자", icon: "👥", groupId: "users-group" },
+    { id: "analytics", label: "분석", icon: "📈", groupId: "analytics-group" },
+    { id: "settings", label: "설정", icon: "⚙️", groupId: "settings-group" },
+  ];
+
+  const handleScrollToGroup = (groupId: string) => {
+    const element = document.getElementById(groupId);
+    if (element) {
+      const offset = 100; // 탭 높이 고려
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // 재분류된 메뉴 구조 (인지 패턴 기반)
+  const allMenuGroups = [
+    {
+      id: "content",
+      title: "📝 콘텐츠 관리",
+      description: "시험과 문제 콘텐츠를 생성하고 관리합니다",
+      color: "blue",
+      items: [
+        {
+          href: "/admin/exams",
+          title: "시험 관리",
+          description: "시험 생성, 수정, 삭제",
+          icon: "📝",
+          priority: "high",
+        },
+        {
+          href: "/admin/questions",
+          title: "문제 관리",
+          description: "전체 문제 조회, 검색 및 관리",
+          icon: "❓",
+          priority: "high",
+        },
+        {
+          href: "/admin/question-banks",
+          title: "문제 은행",
+          description: "카테고리별 문제 은행 생성 및 관리",
+          icon: "🏦",
+          priority: "medium",
+        },
+        {
+          href: "/admin/question-pools",
+          title: "문제 풀",
+          description: "태그/난이도별 문제 그룹화 및 관리",
+          icon: "🏊",
+          priority: "medium",
+        },
+        {
+          href: "/admin/templates",
+          title: "시험 템플릿",
+          description: "템플릿 생성 및 관리로 빠른 시험 생성",
+          icon: "📋",
+          priority: "medium",
+        },
+      ],
+    },
+    {
+      id: "users",
+      title: "👥 사용자 및 접근 관리",
+      description: "사용자와 라이선스 키를 관리합니다",
+      color: "green",
+      items: [
+        {
+          href: "/admin/users",
+          title: "사용자 관리",
+          description: "사용자 목록 조회 및 관리",
+          icon: "👤",
+          priority: "high",
+        },
+        {
+          href: "/admin/license-keys",
+          title: "라이선스 키",
+          description: "키 발급 및 관리",
+          icon: "🔑",
+          priority: "high",
+        },
+      ],
+    },
+    {
+      id: "analytics",
+      title: "📈 분석 및 모니터링",
+      description: "시험 결과와 실시간 활동을 모니터링합니다",
+      color: "purple",
+      items: [
+        {
+          href: "/admin/exam-results",
+          title: "시험 결과",
+          description: "전체 시험 결과 조회 및 분석",
+          icon: "📊",
+          priority: "high",
+        },
+        {
+          href: "/admin/monitoring",
+          title: "실시간 모니터링",
+          description: "진행 중인 시험 세션 모니터링",
+          icon: "👁️",
+          priority: "medium",
+        },
+      ],
+    },
+    {
+      id: "settings",
+      title: "⚙️ 시스템 설정",
+      description: "플랫폼 전반의 설정을 관리합니다",
+      color: "gray",
+      items: [
+        {
+          href: "/admin/settings",
+          title: "사이트 설정",
+          description: "회사 정보, 로고, 색상 테마 및 콘텐츠 관리",
+          icon: "⚙️",
+          priority: "low",
+        },
+        {
+          href: "/admin/categories",
+          title: "카테고리 관리",
+          description: "시험 카테고리 및 서브카테고리 관리",
+          icon: "📁",
+          priority: "medium",
+        },
+        {
+          href: "/admin/badges",
+          title: "배지 관리",
+          description: "게이미피케이션 배지 생성 및 관리",
+          icon: "🏆",
+          priority: "low",
+        },
+      ],
+    },
+  ];
+
+  // 그룹 순서에 따라 정렬된 메뉴 그룹
+  const menuGroups = useMemo(() => {
+    const groupMap = new Map(allMenuGroups.map((g) => [g.id, g]));
+    const orderedGroups: typeof allMenuGroups = [];
+    
+    // 저장된 순서대로 그룹 추가
+    groupOrder.forEach((id) => {
+      const group = groupMap.get(id);
+      if (group) {
+        orderedGroups.push(group);
+        groupMap.delete(id);
+      }
+    });
+    
+    // 순서에 없는 그룹 추가 (새 그룹이 추가된 경우)
+    groupMap.forEach((group) => {
+      orderedGroups.push(group);
+    });
+    
+    return orderedGroups;
+  }, [groupOrder]);
+
+  // 즐겨찾기 메뉴 추출
+  const favoriteMenus = useMemo(() => {
+    const allItems = allMenuGroups.flatMap((group) => group.items);
+    return allItems.filter((item) => isFavorite(item.href));
+  }, [favorites, allMenuGroups]);
+
+  // 드래그 앤 드롭 핸들러
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = groupOrder.indexOf(active.id as string);
+      const newIndex = groupOrder.indexOf(over.id as string);
+      const newOrder = arrayMove(groupOrder, oldIndex, newIndex);
+      setGroupOrder(newOrder);
+    }
+  };
+
+  const getColorClasses = (color: string) => {
+    const colors: Record<string, string> = {
+      blue: "border-blue-200 bg-blue-50 hover:bg-blue-100",
+      green: "border-green-200 bg-green-50 hover:bg-green-100",
+      purple: "border-purple-200 bg-purple-50 hover:bg-purple-100",
+      gray: "border-gray-200 bg-gray-50 hover:bg-gray-100",
+    };
+    return colors[color] || colors.gray;
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    if (priority === "high") {
+      return (
+        <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 rounded-full">
+          자주 사용
+        </span>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
       <Header />
+      <DashboardTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onScrollToGroup={handleScrollToGroup}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          관리자 대시보드
-        </h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            관리자 대시보드
+          </h1>
+          <p className="text-gray-600">
+            플랫폼 관리 및 모니터링을 위한 통합 대시보드
+          </p>
+        </div>
+
+        {/* 빠른 액션 섹션 */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">빠른 액션</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Link
+              href="/admin/exams/create"
+              className="group relative bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-6 hover:shadow-lg hover:border-blue-400 transition-all duration-200 transform hover:-translate-y-1"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-4xl">➕</div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      새 시험 생성
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">템플릿 또는 직접 생성</p>
+                  </div>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg
+                    className="w-5 h-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/admin/questions"
+              className="group relative bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-6 hover:shadow-lg hover:border-green-400 transition-all duration-200 transform hover:-translate-y-1"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-4xl">❓</div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                      새 문제 추가
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">문제 은행에 문제 추가</p>
+                  </div>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg
+                    className="w-5 h-5 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/admin/license-keys"
+              className="group relative bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 p-6 hover:shadow-lg hover:border-purple-400 transition-all duration-200 transform hover:-translate-y-1"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-4xl">🔑</div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                      라이선스 키 발급
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">새 라이선스 키 생성</p>
+                  </div>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg
+                    className="w-5 h-5 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
 
         {/* 요약 통계 */}
-        {dashboard && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
+        <div id="overview-section" className="scroll-mt-24">
+          {dashboard && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
               <div className="text-sm text-gray-500 mb-2">전체 사용자</div>
               <div className="text-3xl font-bold text-gray-900">
                 {dashboard.summary.totalUsers}
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
               <div className="text-sm text-gray-500 mb-2">활성 사용자</div>
               <div className="text-3xl font-bold text-blue-600">
                 {dashboard.summary.activeUsers}
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
               <div className="text-sm text-gray-500 mb-2">전체 시험</div>
               <div className="text-3xl font-bold text-green-600">
                 {dashboard.summary.totalExams}
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
               <div className="text-sm text-gray-500 mb-2">전체 응시</div>
               <div className="text-3xl font-bold text-purple-600">
                 {dashboard.summary.totalAttempts}
@@ -175,93 +531,138 @@ export default function AdminDashboardPage() {
 
         {/* 트렌드 차트 */}
         <TrendChartWidget />
+        </div>
 
-        {/* 빠른 링크 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Link
-            href="/admin/users"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
+        {/* 즐겨찾기 섹션 */}
+        {favoriteMenus.length > 0 && (
+          <div className="mt-12 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <span>⭐</span>
+                <span>즐겨찾기</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {favoriteMenus.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => addRecentMenu(item.href, item.title, item.icon)}
+                  className="group relative bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border-2 border-yellow-200 p-5 hover:shadow-lg hover:border-yellow-400 transition-all duration-200 transform hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">{item.icon}</div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors flex items-center">
+                          {item.title}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleFavorite(item.href);
+                            }}
+                            className="ml-2 text-yellow-500 hover:text-yellow-700"
+                            title="즐겨찾기 제거"
+                          >
+                            ⭐
+                          </button>
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 ml-11">{item.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 최근 사용 메뉴 섹션 */}
+        {recentMenus.length > 0 && (
+          <div className="mt-8 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <span>🕒</span>
+                <span>최근 사용</span>
+              </h2>
+              <button
+                onClick={clearRecentMenus}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                모두 지우기
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recentMenus.map((menu) => (
+                <Link
+                  key={menu.href}
+                  href={menu.href}
+                  onClick={() => addRecentMenu(menu.href, menu.title, menu.icon)}
+                  className="group relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 p-5 hover:shadow-lg hover:border-gray-400 transition-all duration-200 transform hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">{menu.icon}</div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-600 transition-colors">
+                          {menu.title}
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 재분류된 메뉴 그룹 */}
+        <div className="space-y-8 mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">메뉴 그룹</h2>
+            <button
+              onClick={resetGroupOrder}
+              className="text-sm text-gray-500 hover:text-gray-700"
+              title="그룹 순서 초기화"
+            >
+              순서 초기화
+            </button>
+          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            <h3 className="text-lg font-semibold mb-2">사용자 관리</h3>
-            <p className="text-gray-600 text-sm">사용자 목록 조회 및 관리</p>
-          </Link>
-          <Link
-            href="/admin/exams"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">시험 관리</h3>
-            <p className="text-gray-600 text-sm">시험 생성, 수정, 삭제</p>
-          </Link>
-          <Link
-            href="/admin/templates"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">시험 템플릿</h3>
-            <p className="text-gray-600 text-sm">템플릿 생성 및 관리로 빠른 시험 생성</p>
-          </Link>
-          <Link
-            href="/admin/question-pools"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">문제 풀 관리</h3>
-            <p className="text-gray-600 text-sm">태그/난이도별 문제 그룹화 및 관리</p>
-          </Link>
-          <Link
-            href="/admin/exam-results"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">시험 결과 모니터링</h3>
-            <p className="text-gray-600 text-sm">전체 시험 결과 조회 및 분석</p>
-          </Link>
-          <Link
-            href="/admin/license-keys"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">라이선스 키 관리</h3>
-            <p className="text-gray-600 text-sm">키 발급 및 관리</p>
-          </Link>
-          <Link
-            href="/admin/monitoring"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">실시간 모니터링</h3>
-            <p className="text-gray-600 text-sm">진행 중인 시험 세션 모니터링</p>
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">사이트 설정</h3>
-            <p className="text-gray-600 text-sm">회사 정보, 로고, 색상 테마 및 콘텐츠 관리</p>
-          </Link>
-          <Link
-            href="/admin/categories"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">카테고리 관리</h3>
-            <p className="text-gray-600 text-sm">시험 카테고리 및 서브카테고리 관리</p>
-          </Link>
-          <Link
-            href="/admin/badges"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">배지 관리</h3>
-            <p className="text-gray-600 text-sm">게이미피케이션 배지 생성 및 관리</p>
-          </Link>
-          <Link
-            href="/admin/question-banks"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">문제 은행 관리</h3>
-            <p className="text-gray-600 text-sm">카테고리별 문제 은행 생성 및 관리</p>
-          </Link>
-          <Link
-            href="/admin/questions"
-            className="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow"
-          >
-            <h3 className="text-lg font-semibold mb-2">문제 관리</h3>
-            <p className="text-gray-600 text-sm">전체 문제 조회, 검색 및 관리</p>
-          </Link>
+            <SortableContext
+              items={groupOrder}
+              strategy={verticalListSortingStrategy}
+            >
+              {menuGroups.map((group) => {
+                const groupIdMap: Record<string, string> = {
+                  content: "content-group",
+                  users: "users-group",
+                  analytics: "analytics-group",
+                  settings: "settings-group",
+                };
+                const groupId = groupIdMap[group.id] || `${group.id}-group`;
+
+                return (
+                  <SortableGroup
+                    key={group.id}
+                    id={group.id}
+                    group={group}
+                    groupId={groupId}
+                    getColorClasses={getColorClasses}
+                    getPriorityBadge={getPriorityBadge}
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                    addRecentMenu={addRecentMenu}
+                  />
+                );
+              })}
+            </SortableContext>
+          </DndContext>
         </div>
 
         {/* 최근 활동 */}
@@ -276,7 +677,7 @@ export default function AdminDashboardPage() {
                   .map((activity: { user?: { name: string }; exam?: { title: string }; timestamp: string }, idx: number) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-center py-2 border-b"
+                      className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
                     >
                       <div>
                         <span className="font-medium">

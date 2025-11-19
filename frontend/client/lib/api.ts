@@ -173,6 +173,27 @@ export interface Subcategory {
 }
 
 // Badge API
+export interface BadgeStatistics {
+  totalBadges: number;
+  totalUsers: number;
+  totalEarned: number;
+  overallEarnedRate: number;
+  rarityDistribution: Array<{
+    rarity: string;
+    count: number;
+    earnedRate: number;
+  }>;
+  typeDistribution: Array<{
+    type: string;
+    count: number;
+    earnedRate: number;
+  }>;
+  dailyEarned: Array<{
+    date: string;
+    count: number;
+  }>;
+}
+
 export interface Badge {
   id: string;
   badgeType: 'exam_completed' | 'perfect_score' | 'streak_days' | 'word_master' | 'improvement' | 'category_master' | 'speed_demon' | 'consistency';
@@ -199,6 +220,7 @@ export interface Exam {
   subject?: string;
   difficulty?: string;
   isPublic?: boolean;
+  status?: 'draft' | 'published' | 'archived';
   config?: ExamConfig;
   // Category/Subcategory 연결
   categoryId?: string;
@@ -330,8 +352,11 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  phone?: string;
   isActive?: boolean;
+  isEmailVerified?: boolean;
   lastLoginAt?: string;
+  createdAt?: string;
 }
 
 export interface LoginResponse {
@@ -501,12 +526,87 @@ export const examAPI = {
   getExam: (id: string) => apiClient.get<Exam>(`/exams/${id}`),
   getExamSections: (examId: string) =>
     apiClient.get(`/sections/exams/${examId}`),
+  cloneExam: (id: string, data?: {
+    title?: string;
+    createVersion?: boolean;
+    version?: string;
+    shuffleQuestions?: boolean;
+  }) =>
+    apiClient.post<Exam>(`/exams/${id}/clone`, data || {}),
+  getExamVersions: (id: string) =>
+    apiClient.get<Array<{
+      id: string;
+      title: string;
+      version?: string | null;
+      versionNumber?: number | null;
+      status?: string;
+      createdAt: string;
+      updatedAt: string;
+    }>>(`/exams/${id}/versions`),
+  validateExam: (id: string) =>
+    apiClient.get<{
+      isValid: boolean;
+      hasErrors: boolean;
+      hasWarnings: boolean;
+      issues: Array<{
+        type: 'error' | 'warning';
+        category: 'duplicate' | 'difficulty' | 'section' | 'question_pool' | 'structure';
+        message: string;
+        details?: any;
+      }>;
+      summary: {
+        totalQuestions: number;
+        totalSections: number;
+        duplicateQuestions: number;
+        difficultyDistribution: {
+          easy: number;
+          medium: number;
+          hard: number;
+          unknown: number;
+        };
+        averageDifficulty?: number;
+      };
+    }>(`/exams/${id}/validate`),
+  // 워크플로우 API
+  getWorkflowStatus: (id: string) =>
+    apiClient.get<{
+      id: string;
+      title: string;
+      status: string;
+      createdBy?: string | null;
+      reviewerId?: string | null;
+      approvedBy?: string | null;
+      reviewedAt?: string | null;
+      approvedAt?: string | null;
+      publishedAt?: string | null;
+      reviewComment?: string | null;
+      rejectionReason?: string | null;
+      creator?: { id: string; name: string; email: string } | null;
+      reviewer?: { id: string; name: string; email: string } | null;
+      approver?: { id: string; name: string; email: string } | null;
+    }>(`/exams/${id}/workflow`),
+  submitForReview: (id: string, data?: { comment?: string }) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/submit-for-review`, data || {}),
+  assignReviewer: (id: string, reviewerId: string) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/assign-reviewer`, { reviewerId }),
+  approve: (id: string, data?: { comment?: string }) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/approve`, data || {}),
+  reject: (id: string, reason: string) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/reject`, { reason }),
+  publish: (id: string) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/publish`),
+  archive: (id: string) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/archive`),
+  returnToDraft: (id: string) =>
+    apiClient.post<Exam>(`/exams/${id}/workflow/return-to-draft`),
 };
 
 // Category API
 // Category와 Subcategory 인터페이스는 위에서 이미 정의됨
 
 export const categoryAPI = {
+  getCategoryBySlug: (slug: string) =>
+    apiClient.get<{ data: Category }>(`/api/categories/slug/${slug}`),
   // Public API
   getPublicCategories: () =>
     apiClient.get<{ data: Category[] }>("/categories/public"),
@@ -546,6 +646,11 @@ export const categoryAPI = {
     apiClient.patch<{ data: Subcategory }>(`/categories/subcategories/${id}`, data),
   deleteSubcategory: (id: string) =>
     apiClient.delete(`/categories/subcategories/${id}`),
+  // 순서 업데이트
+  updateCategoryOrders: (orders: { id: string; order: number }[]) =>
+    apiClient.patch<{ data: Category[] }>("/categories/reorder", { orders }),
+  updateSubcategoryOrders: (orders: { id: string; order: number }[]) =>
+    apiClient.patch<{ data: Subcategory[] }>("/categories/subcategories/reorder", { orders }),
 };
 
 // QuestionBank API
@@ -554,6 +659,10 @@ export interface QuestionBank {
   name: string;
   description?: string;
   category?: string;
+  subcategory?: string; // 서브 카테고리
+  level?: string; // 레벨 (예: "N5", "N4", "초급", "중급")
+  source?: string; // 출처(교재명)
+  sourceYear?: number; // 출처 연도
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -580,6 +689,17 @@ export interface Question {
   imageUrl?: string;
   audioUrl?: string;
   audioPlayLimit?: number;
+  usageCount?: number; // 사용 횟수
+  lastUsedAt?: string; // 마지막 사용 일시
+  section?: {
+    id: string;
+    title: string;
+    examId: string;
+    exam?: {
+      id: string;
+      title: string;
+    };
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -1161,23 +1281,126 @@ export interface UpdateSiteSettingsDto {
   };
   aboutContent?: {
     ko?: {
-      team?: { hero?: { title?: string; subtitle?: string } };
-      company?: { hero?: { subtitle?: string } };
-      service?: { hero?: { title?: string; subtitle?: string } };
+      team?: {
+        hero?: { title?: string; subtitle?: string };
+        members?: Array<{
+          name?: string;
+          role?: string;
+          bio?: string;
+          description?: string;
+          image?: string;
+          imageUrl?: string;
+          socialLinks?: {
+            email?: string;
+            linkedin?: string;
+            github?: string;
+          };
+        }>;
+      };
+      company?: {
+        hero?: { title?: string; subtitle?: string };
+      };
+      service?: {
+        hero?: { title?: string; subtitle?: string };
+        features?: Array<{
+          icon?: string;
+          title?: string;
+          description?: string;
+        }>;
+        benefits?: Array<{ text: string }> | string[];
+        process?: Array<{
+          title?: string;
+          description?: string;
+        }>;
+      };
       contact?: { hero?: { title?: string; subtitle?: string } };
     };
     en?: {
-      team?: { hero?: { title?: string; subtitle?: string } };
-      company?: { hero?: { subtitle?: string } };
-      service?: { hero?: { title?: string; subtitle?: string } };
+      team?: {
+        hero?: { title?: string; subtitle?: string };
+        members?: Array<{
+          name?: string;
+          role?: string;
+          bio?: string;
+          description?: string;
+          image?: string;
+          imageUrl?: string;
+          socialLinks?: {
+            email?: string;
+            linkedin?: string;
+            github?: string;
+          };
+        }>;
+      };
+      company?: {
+        hero?: { title?: string; subtitle?: string };
+      };
+      service?: {
+        hero?: { title?: string; subtitle?: string };
+        features?: Array<{
+          icon?: string;
+          title?: string;
+          description?: string;
+        }>;
+        benefits?: Array<{ text: string }> | string[];
+        process?: Array<{
+          title?: string;
+          description?: string;
+        }>;
+      };
       contact?: { hero?: { title?: string; subtitle?: string } };
     };
     ja?: {
-      team?: { hero?: { title?: string; subtitle?: string } };
-      company?: { hero?: { subtitle?: string } };
-      service?: { hero?: { title?: string; subtitle?: string } };
+      team?: {
+        hero?: { title?: string; subtitle?: string };
+        members?: Array<{
+          name?: string;
+          role?: string;
+          bio?: string;
+          description?: string;
+          image?: string;
+          imageUrl?: string;
+          socialLinks?: {
+            email?: string;
+            linkedin?: string;
+            github?: string;
+          };
+        }>;
+      };
+      company?: {
+        hero?: { title?: string; subtitle?: string };
+      };
+      service?: {
+        hero?: { title?: string; subtitle?: string };
+        features?: Array<{
+          icon?: string;
+          title?: string;
+          description?: string;
+        }>;
+        benefits?: Array<{ text: string }> | string[];
+        process?: Array<{
+          title?: string;
+          description?: string;
+        }>;
+      };
       contact?: { hero?: { title?: string; subtitle?: string } };
     };
+  };
+}
+
+export interface SiteSettingsVersion {
+  id: string;
+  settingsId: string;
+  version: number;
+  snapshot: any;
+  label?: string;
+  description?: string;
+  createdBy: string;
+  createdAt: string;
+  creator?: {
+    id: string;
+    name?: string;
+    email?: string;
   };
 }
 
@@ -1213,6 +1436,16 @@ export interface QuestionPool {
   tags: string[];
   difficulty?: 'easy' | 'medium' | 'hard';
   questionIds: string[];
+  isAutoSelect?: boolean;
+  autoSelectRules?: {
+    minDifficulty?: 'easy' | 'medium' | 'hard';
+    maxDifficulty?: 'easy' | 'medium' | 'hard';
+    tags?: string[];
+    excludeTags?: string[];
+    maxCount?: number;
+    minCount?: number;
+    questionBankId?: string;
+  };
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -1272,6 +1505,36 @@ export const adminAPI = {
     apiClient.get<{ data: ExamTemplate[] }>("/admin/templates"),
   getTemplate: (id: string) =>
     apiClient.get<{ data: ExamTemplate }>(`/admin/templates/${id}`),
+  previewTemplate: (id: string) =>
+    apiClient.get<{
+      data: {
+        template: {
+          id: string;
+          name: string;
+          description?: string;
+        };
+        preview: {
+          totalSections: number;
+          totalQuestions: number;
+          sections: Array<{
+            type: string;
+            description?: string;
+            questionCount: number;
+            availableQuestions: number;
+            selectedQuestions: Array<{
+              id: string;
+              content: string;
+              difficulty?: string | null;
+              tags: string[];
+              points: number;
+            }>;
+            questionPoolId?: string;
+            tags?: string[];
+            difficulty?: string;
+          }>;
+        };
+      };
+    }>(`/admin/templates/${id}/preview`),
   updateTemplate: (id: string, data: Partial<CreateTemplateData>) =>
     apiClient.put<{ data: ExamTemplate }>(`/admin/templates/${id}`, data),
   deleteTemplate: (id: string) =>
@@ -1279,6 +1542,215 @@ export const adminAPI = {
   createExamFromTemplate: (data: CreateExamFromTemplateData) =>
     apiClient.post<{ data: Exam }>(`/admin/exams/from-template`, data),
   // Question APIs
+  getQuestionStatistics: (id: string) =>
+    apiClient.get<{
+      data: {
+        id: string;
+        questionId: string;
+        totalAttempts: number;
+        correctCount: number;
+        incorrectCount: number;
+        unansweredCount: number;
+        averageTimeSpent?: number | null;
+        calculatedDifficulty?: number | null;
+        correctRate?: number | null;
+        commonMistakes?: Record<string, number> | null;
+        lastCalculatedAt?: string | null;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }>(`/admin/questions/${id}/statistics`),
+    calculateQuestionStatistics: (id: string) =>
+      apiClient.post<{
+        data: {
+          id: string;
+          questionId: string;
+          totalAttempts: number;
+          correctCount: number;
+          incorrectCount: number;
+          unansweredCount: number;
+          averageTimeSpent?: number | null;
+          calculatedDifficulty?: number | null;
+          correctRate?: number | null;
+          commonMistakes?: Record<string, number> | null;
+          lastCalculatedAt?: string | null;
+          createdAt: string;
+          updatedAt: string;
+        };
+      }>(`/admin/questions/${id}/statistics/calculate`),
+    updateQuestionDifficulty: (id: string) =>
+      apiClient.post<{
+        data: {
+          questionId: string;
+          oldDifficulty: 'easy' | 'medium' | 'hard' | null;
+          newDifficulty: 'easy' | 'medium' | 'hard' | null;
+          calculatedDifficulty: number | null;
+        };
+      }>(`/admin/questions/${id}/difficulty/auto-update`),
+    updateQuestionDifficultiesBatch: (questionIds: string[]) =>
+      apiClient.post<{
+        data: {
+          updated: number;
+          skipped: number;
+          results: Array<{
+            questionId: string;
+            oldDifficulty: 'easy' | 'medium' | 'hard' | null;
+            newDifficulty: 'easy' | 'medium' | 'hard' | null;
+            calculatedDifficulty: number | null;
+            error?: string;
+          }>;
+        };
+      }>(`/admin/questions/difficulty/batch-update`, { questionIds }),
+    getQuestionUsage: (id: string) =>
+      apiClient.get<{
+        data: {
+          question: {
+            id: string;
+            content: string;
+            questionType: string;
+            difficulty?: string | null;
+            tags: string[];
+            questionBank?: {
+              id: string;
+              name: string;
+            } | null;
+          };
+          currentUsage: {
+            exam: {
+              id: string;
+              title: string;
+            };
+            section: {
+              id: string;
+              title: string;
+            };
+            questionNumber: number;
+          } | null;
+          usageHistory: Array<{
+            exam: {
+              id: string;
+              title: string;
+              examType: string;
+              status?: string;
+              createdAt: string;
+            };
+            section: {
+              id: string;
+              title: string;
+              order: number;
+            };
+            questionNumber: number;
+            usedAt: string;
+          }>;
+          totalUsages: number;
+        };
+      }>(`/admin/questions/${id}/usage`),
+    getTemplateUsage: (id: string) =>
+      apiClient.get<{
+        data: {
+          template: {
+            id: string;
+            name: string;
+            description?: string | null;
+            createdAt: string;
+          };
+          usageHistory: Array<{
+            exam: {
+              id: string;
+              title: string;
+              examType: string;
+              status?: string;
+              createdAt: string;
+              createdBy?: string;
+              creator?: {
+                id: string;
+                name: string;
+                email: string;
+              };
+            };
+            usedAt: string;
+          }>;
+          totalUsages: number;
+        };
+      }>(`/admin/templates/${id}/usage`),
+    getQuestionBankUsage: (id: string) =>
+      apiClient.get<{
+        data: {
+          questionBank: {
+            id: string;
+            name: string;
+            description?: string | null;
+          };
+          totalQuestions: number;
+          usageHistory: Array<{
+            exam: {
+              id: string;
+              title: string;
+              examType: string;
+              status?: string;
+              createdAt: string;
+            };
+            questionCount: number;
+            sections: Array<{
+              id: string;
+              title: string;
+              questionCount: number;
+            }>;
+          }>;
+          totalExams: number;
+        };
+      }>(`/admin/question-banks/${id}/usage`),
+  // Section Difficulty Balance APIs
+  analyzeSectionDifficulty: (examId: string) =>
+    apiClient.get<{
+      data: {
+        examId: string;
+        examTitle: string;
+        totalSections: number;
+        totalQuestions: number;
+        overallAverageDifficulty: number;
+        sections: Array<{
+          sectionId: string;
+          sectionTitle: string;
+          order: number;
+          totalQuestions: number;
+          difficultyDistribution: {
+            easy: number;
+            medium: number;
+            hard: number;
+            unknown: number;
+          };
+          averageDifficulty: number;
+          difficultyScore: number;
+        }>;
+        imbalanceIssues: Array<{
+          type: 'high_variance' | 'extreme_section' | 'uneven_distribution';
+          severity: 'low' | 'medium' | 'high';
+          message: string;
+          sectionId?: string;
+          details?: any;
+        }>;
+      };
+    }>(`/admin/exams/${examId}/sections/difficulty-analysis`),
+  getBalanceRecommendations: (examId: string) =>
+    apiClient.get<{
+      data: Array<{
+        sectionId: string;
+        sectionTitle: string;
+        currentDifficulty: number;
+        targetDifficulty: number;
+        recommendations: Array<{
+          action: 'move_question' | 'replace_question' | 'add_question' | 'remove_question';
+          questionId?: string;
+          questionContent?: string;
+          fromSectionId?: string;
+          toSectionId?: string;
+          reason: string;
+        }>;
+      }>;
+    }>(`/admin/exams/${examId}/sections/balance-recommendations`),
+  moveQuestionToSection: (examId: string, data: { questionId: string; targetSectionId: string }) =>
+    apiClient.post<{ message: string }>(`/admin/exams/${examId}/sections/move-question`, data),
   getQuestions: (params?: {
     search?: string;
     tags?: string[];
@@ -1311,6 +1783,16 @@ export const adminAPI = {
     tags?: string[];
     difficulty?: 'easy' | 'medium' | 'hard';
     questionIds?: string[];
+    isAutoSelect?: boolean;
+    autoSelectRules?: {
+      minDifficulty?: 'easy' | 'medium' | 'hard';
+      maxDifficulty?: 'easy' | 'medium' | 'hard';
+      tags?: string[];
+      excludeTags?: string[];
+      maxCount?: number;
+      minCount?: number;
+      questionBankId?: string;
+    };
   }) => apiClient.post<{ data: QuestionPool }>('/admin/question-pools', data),
   getQuestionPools: () =>
     apiClient.get<{ data: QuestionPool[] }>('/admin/question-pools'),
@@ -1324,11 +1806,38 @@ export const adminAPI = {
       tags?: string[];
       difficulty?: 'easy' | 'medium' | 'hard';
       questionIds?: string[];
+      isAutoSelect?: boolean;
+      autoSelectRules?: {
+        minDifficulty?: 'easy' | 'medium' | 'hard';
+        maxDifficulty?: 'easy' | 'medium' | 'hard';
+        tags?: string[];
+        excludeTags?: string[];
+        maxCount?: number;
+        minCount?: number;
+        questionBankId?: string;
+      };
     },
   ) =>
     apiClient.put<{ data: QuestionPool }>(`/admin/question-pools/${id}`, data),
   deleteQuestionPool: (id: string) =>
     apiClient.delete(`/admin/question-pools/${id}`),
+  preCheckPoolRules: (rules: {
+    minDifficulty?: 'easy' | 'medium' | 'hard';
+    maxDifficulty?: 'easy' | 'medium' | 'hard';
+    tags?: string[];
+    excludeTags?: string[];
+    maxCount?: number;
+    minCount?: number;
+    questionBankId?: string;
+  }) =>
+    apiClient.post<{
+      data: {
+        availableCount: number;
+        requiredCount: number;
+        isValid: boolean;
+        message: string;
+      };
+    }>('/admin/question-pools/pre-check', rules),
   // Site Settings APIs
   getSiteSettings: () =>
     apiClient.get<{ data: SiteSettings }>("/admin/site-settings"),
@@ -1336,7 +1845,16 @@ export const adminAPI = {
     apiClient.put<{ data: SiteSettings }>("/admin/site-settings", data),
   analyzeColors: (logoUrl: string) =>
     apiClient.post<{ data: ColorAnalysisResult }>("/admin/site-settings/analyze-colors", { logoUrl }),
+  // Site Settings Version APIs
+  getSiteSettingsVersions: () =>
+    apiClient.get<{ data: SiteSettingsVersion[] }>("/admin/site-settings/versions"),
+  createSiteSettingsVersion: (data: { label?: string; description?: string }) =>
+    apiClient.post<{ data: SiteSettingsVersion }>("/admin/site-settings/versions", data),
+  rollbackSiteSettingsVersion: (versionId: string) =>
+    apiClient.post<{ data: SiteSettings }>(`/admin/site-settings/versions/${versionId}/rollback`),
   // Badge APIs
+  getBadgeStatistics: () =>
+    apiClient.get<{ data: BadgeStatistics }>('/api/admin/badges/statistics'),
   getBadges: (includeInactive?: boolean) =>
     apiClient.get<{ data: Badge[] }>("/admin/badges", {
       params: includeInactive ? { includeInactive: "true" } : undefined,
@@ -1383,6 +1901,10 @@ export const adminAPI = {
     name: string;
     description?: string;
     category?: string;
+    subcategory?: string;
+    level?: string;
+    source?: string;
+    sourceYear?: number;
   }) => apiClient.post<{ data: QuestionBank }>("/admin/question-banks", data),
   updateQuestionBank: (
     id: string,
@@ -1390,6 +1912,10 @@ export const adminAPI = {
       name?: string;
       description?: string;
       category?: string;
+      subcategory?: string;
+      level?: string;
+      source?: string;
+      sourceYear?: number;
     },
   ) => apiClient.patch<{ data: QuestionBank }>(`/admin/question-banks/${id}`, data),
   deleteQuestionBank: (id: string) => apiClient.delete(`/admin/question-banks/${id}`),
@@ -1399,6 +1925,16 @@ export const adminAPI = {
     apiClient.delete(`/admin/question-banks/${questionBankId}/questions/${questionId}`),
   removeAllQuestionsFromBank: (questionBankId: string) =>
     apiClient.delete(`/admin/question-banks/${questionBankId}/questions`),
+  moveQuestion: (data: {
+    questionId: string;
+    targetBankId: string;
+    sourceBankId?: string;
+  }) => apiClient.post<{ data: Question }>("/admin/question-banks/move-question", data),
+  moveQuestions: (data: {
+    questionIds: string[];
+    targetBankId: string;
+    sourceBankId?: string;
+  }) => apiClient.post<{ data: { movedCount: number; totalRequested: number } }>("/admin/question-banks/move-questions", data),
   // File Upload API
   uploadImage: (file: File) => {
     const formData = new FormData();
@@ -1418,6 +1954,92 @@ export const adminAPI = {
       },
     });
   },
+  // Content Version APIs
+  createContentVersion: (data: {
+    contentType: 'exam' | 'question' | 'template';
+    contentId: string;
+    versionLabel?: string;
+    changeDescription?: string;
+  }) =>
+    apiClient.post<{
+      data: {
+        id: string;
+        contentType: string;
+        contentId: string;
+        versionNumber: number;
+        versionLabel: string | null;
+        snapshot: any;
+        changeDescription: string | null;
+        changedBy: string | null;
+        parentVersionId: string | null;
+        createdAt: string;
+        changedByUser?: { id: string; name: string; email: string } | null;
+      };
+    }>('/admin/content-versions', data),
+  getContentVersions: (contentType: 'exam' | 'question' | 'template', contentId: string) =>
+    apiClient.get<{
+      data: Array<{
+        id: string;
+        contentType: string;
+        contentId: string;
+        versionNumber: number;
+        versionLabel: string | null;
+        changeDescription: string | null;
+        changedBy: string | null;
+        parentVersionId: string | null;
+        createdAt: string;
+        changedByUser?: { id: string; name: string; email: string } | null;
+      }>;
+    }>(`/admin/content-versions/${contentType}/${contentId}`),
+  getContentVersion: (versionId: string) =>
+    apiClient.get<{
+      data: {
+        id: string;
+        contentType: string;
+        contentId: string;
+        versionNumber: number;
+        versionLabel: string | null;
+        snapshot: any;
+        changeDescription: string | null;
+        changedBy: string | null;
+        parentVersionId: string | null;
+        createdAt: string;
+        changedByUser?: { id: string; name: string; email: string } | null;
+        parentVersion?: {
+          id: string;
+          versionNumber: number;
+          versionLabel: string | null;
+          changedByUser?: { id: string; name: string; email: string } | null;
+        } | null;
+      };
+    }>(`/admin/content-versions/${versionId}`),
+  compareContentVersions: (versionId1: string, versionId2: string) =>
+    apiClient.get<{
+      data: Array<{
+        field: string;
+        oldValue: any;
+        newValue: any;
+      }>;
+    }>(`/admin/content-versions/${versionId1}/compare/${versionId2}`),
+  rollbackToVersion: (versionId: string) =>
+    apiClient.post<{
+      data: any;
+      message: string;
+    }>(`/admin/content-versions/${versionId}/rollback`),
+  getLatestContentVersion: (contentType: 'exam' | 'question' | 'template', contentId: string) =>
+    apiClient.get<{
+      data: {
+        id: string;
+        contentType: string;
+        contentId: string;
+        versionNumber: number;
+        versionLabel: string | null;
+        changeDescription: string | null;
+        changedBy: string | null;
+        createdAt: string;
+        changedByUser?: { id: string; name: string; email: string } | null;
+      } | null;
+    }>(`/admin/content-versions/${contentType}/${contentId}/latest`),
 };
 
 // License Key API

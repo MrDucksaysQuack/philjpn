@@ -4,6 +4,9 @@ export enum UserRole {
   USER = 'user',
   ADMIN = 'admin',
   PARTNER = 'partner',
+  CREATOR = 'creator',    // 출제자
+  REVIEWER = 'reviewer',  // 검토자
+  APPROVER = 'approver',  // 승인자
 }
 
 export enum ExamType {

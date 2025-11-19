@@ -8,9 +8,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { TokenBlacklistService } from './services/token-blacklist.service';
+import { PermissionService } from './services/permission.service';
+import { CommonModule } from '../../common/utils/common.module';
 
 @Module({
   imports: [
+    CommonModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -28,7 +31,7 @@ import { TokenBlacklistService } from './services/token-blacklist.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard, TokenBlacklistService],
-  exports: [AuthService, JwtAuthGuard, RolesGuard, TokenBlacklistService],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard, TokenBlacklistService, PermissionService],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, TokenBlacklistService, PermissionService],
 })
 export class AuthModule {}

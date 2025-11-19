@@ -957,7 +957,10 @@ export class AdminService {
         tags: q.tags,
         points: q.points,
         section: q.section,
+        usageCount: q.usageCount || 0,
+        lastUsedAt: q.lastUsedAt,
         createdAt: q.createdAt,
+        updatedAt: q.updatedAt,
       })),
     };
   }

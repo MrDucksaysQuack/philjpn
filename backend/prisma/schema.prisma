@@ -8,35 +8,39 @@ datasource db {
 }
 
 model User {
-  id                   String            @id @default(uuid())
-  email                String            @unique
-  password             String
-  name                 String
-  role                 UserRole          @default(user)
-  phone                String?
-  profileImage         String?           @db.VarChar(500)
-  isActive             Boolean           @default(true)
-  isEmailVerified      Boolean           @default(false)
-  lastLoginAt          DateTime?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  deletedAt            DateTime?
-  auditLogs            AuditLog[]
-  examResults          ExamResult[]
-  createdExamTemplates ExamTemplate[]
-  createdExams         Exam[]
-  keyUsageLogs         KeyUsageLog[]
-  learningCycles       LearningCycle[]
-  learningPatterns     LearningPattern[]
-  issuedLicenseKeys    LicenseKey[]      @relation("IssuedBy")
-  licenseKeys          LicenseKey[]
-  issuedLicenseKeyBatches LicenseKeyBatch[] @relation("BatchIssuer")
-  createdQuestionPools QuestionPool[]
-  updatedSiteSettings  SiteSettings[]    @relation("SiteSettingsUpdater")
-  examSessions         UserExamSession[]
-  goals                UserGoal[]
-  wordBooks            WordBook[]
-  badges               UserBadge[]
+  id                          String                @id @default(uuid())
+  email                       String                @unique
+  password                    String
+  name                        String
+  role                        UserRole              @default(user)
+  phone                       String?
+  profileImage                String?               @db.VarChar(500)
+  isActive                    Boolean               @default(true)
+  isEmailVerified             Boolean               @default(false)
+  lastLoginAt                 DateTime?
+  createdAt                   DateTime              @default(now())
+  updatedAt                   DateTime              @updatedAt
+  deletedAt                   DateTime?
+  auditLogs                   AuditLog[]
+  examResults                 ExamResult[]
+  createdExamTemplates        ExamTemplate[]
+  createdExams                Exam[]
+  reviewedExams               Exam[]                @relation("ExamReviewer")
+  approvedExams               Exam[]                @relation("ExamApprover")
+  keyUsageLogs                KeyUsageLog[]
+  learningCycles              LearningCycle[]
+  learningPatterns            LearningPattern[]
+  issuedLicenseKeys           LicenseKey[]          @relation("IssuedBy")
+  licenseKeys                 LicenseKey[]
+  issuedLicenseKeyBatches     LicenseKeyBatch[]     @relation("BatchIssuer")
+  createdQuestionPools        QuestionPool[]
+  updatedSiteSettings         SiteSettings[]        @relation("SiteSettingsUpdater")
+  examSessions                UserExamSession[]
+  goals                       UserGoal[]
+  wordBooks                   WordBook[]
+  badges                      UserBadge[]
+  changedContentVersions      ContentVersion[]      @relation("ContentVersionChanger")
+  createdSiteSettingsVersions SiteSettingsVersion[] @relation("SiteSettingsVersionCreator")
 
   @@index([email])
   @@index([role])
@@ -45,48 +49,70 @@ model User {
 }
 
 model Exam {
-  id             String            @id @default(uuid())
-  title          String
-  description    String?
-  examType       ExamType
-  subject        String?           @db.VarChar(100)
-  difficulty     Difficulty?
-  totalQuestions Int               @default(0)
-  totalSections  Int               @default(0)
-  estimatedTime  Int?
-  passingScore   Int?
-  isActive       Boolean           @default(true)
-  isPublic       Boolean           @default(false)
-  publishedAt    DateTime?
-  createdBy      String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  deletedAt      DateTime?
-  templateId     String?
-  randomSeed     Int?
-  isAdaptive     Boolean           @default(false)
-  adaptiveConfig Json?
-  config         ExamConfig?
+  id                String             @id @default(uuid())
+  title             String
+  description       String?
+  examType          ExamType
+  subject           String?            @db.VarChar(100)
+  difficulty        Difficulty?
+  totalQuestions    Int                @default(0)
+  totalSections     Int                @default(0)
+  estimatedTime     Int?
+  passingScore      Int?
+  isActive          Boolean            @default(true)
+  isPublic          Boolean            @default(false)
+  status            String             @default("draft") // draft, review, approved, published, rejected, archived
+  publishedAt       DateTime?
+  createdBy         String?
+  // 워크플로우 관리
+  reviewerId        String? // 검수자 ID
+  approvedBy        String? // 승인자 ID
+  reviewedAt        DateTime? // 검수 일시
+  approvedAt        DateTime? // 승인 일시
+  reviewComment     String?            @db.Text // 검수 코멘트
+  rejectionReason   String?            @db.Text // 거부 사유
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  templateId        String?
+  randomSeed        Int?
+  isAdaptive        Boolean            @default(false)
+  adaptiveConfig    Json?
+  config            ExamConfig?
+  // 버전 관리
+  parentExamId      String? // 원본 시험 ID (버전이 있는 경우)
+  version           String?            @db.VarChar(10) // 버전 식별자 (예: "A", "B", "C")
+  versionNumber     Int? // 버전 번호 (1, 2, 3...)
   // Category/Subcategory 연결
-  categoryId     String?
-  subcategoryId  String?
-  category       Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  subcategory    Subcategory?      @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
-  examResults    ExamResult[]
-  creator        User?             @relation(fields: [createdBy], references: [id])
-  template       ExamTemplate?     @relation("TemplateBased", fields: [templateId], references: [id])
-  sections       Section[]
-  examSessions   UserExamSession[]
+  categoryId        String?
+  subcategoryId     String?
+  category          Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategory       Subcategory?       @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  examResults       ExamResult[]
+  creator           User?              @relation(fields: [createdBy], references: [id])
+  reviewer          User?              @relation("ExamReviewer", fields: [reviewerId], references: [id])
+  approver          User?              @relation("ExamApprover", fields: [approvedBy], references: [id])
+  template          ExamTemplate?      @relation("TemplateBased", fields: [templateId], references: [id])
+  sections          Section[]
+  examSessions      UserExamSession[]
   adaptiveQuestions AdaptiveQuestion[]
+  parentExam        Exam?              @relation("ExamVersions", fields: [parentExamId], references: [id], onDelete: SetNull)
+  versions          Exam[]             @relation("ExamVersions")
+  examVersion       ExamVersion?
 
   @@index([examType])
   @@index([subject])
   @@index([isActive])
+  @@index([status])
+  @@index([reviewerId])
+  @@index([approvedBy])
   @@index([createdAt])
   @@index([templateId])
   @@index([isAdaptive])
   @@index([categoryId])
   @@index([subcategoryId])
+  @@index([parentExamId])
+  @@index([version])
   @@map("exams")
 }
 
@@ -128,32 +154,37 @@ model Section {
 }
 
 model Question {
-  id              String           @id @default(uuid())
-  sectionId       String
-  questionBankId  String?
-  questionNumber  Int
-  questionType    QuestionType
-  content         String
-  options         Json?
-  correctAnswer   String
-  explanation     String?
-  points          Int              @default(1)
-  difficulty      Difficulty?
-  tags            String[]
-  imageUrl        String?          // 문제 이미지 URL (Part 1: Vocabulary & Grammar용)
-  audioUrl        String?          // 오디오 파일 URL (Part 4: Listening용)
-  audioPlayLimit  Int?             @default(2) // 오디오 재생 횟수 제한 (기본 2회)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  questionResults QuestionResult[]
-  questionBank    QuestionBank?      @relation(fields: [questionBankId], references: [id])
-  section         Section            @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  id                String              @id @default(uuid())
+  sectionId         String
+  questionBankId    String?
+  questionNumber    Int
+  questionType      QuestionType
+  content           String
+  options           Json?
+  correctAnswer     String
+  explanation       String?
+  points            Int                 @default(1)
+  difficulty        Difficulty?
+  tags              String[]
+  imageUrl          String? // 문제 이미지 URL (Part 1: Vocabulary & Grammar용)
+  audioUrl          String? // 오디오 파일 URL (Part 4: Listening용)
+  audioPlayLimit    Int?                @default(2) // 오디오 재생 횟수 제한 (기본 2회)
+  usageCount        Int                 @default(0) // 사용 횟수 (어느 시험에 사용되었는지)
+  lastUsedAt        DateTime? // 마지막 사용 일시
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  questionResults   QuestionResult[]
+  questionBank      QuestionBank?       @relation(fields: [questionBankId], references: [id])
+  section           Section             @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   adaptiveQuestions AdaptiveQuestion[]
+  statistics        QuestionStatistics?
 
   @@index([sectionId])
   @@index([sectionId, questionNumber])
   @@index([difficulty])
   @@index([tags])
+  @@index([usageCount])
+  @@index([lastUsedAt])
   @@map("questions")
 }
 
@@ -162,11 +193,18 @@ model QuestionBank {
   name        String
   description String?
   category    String?    @db.VarChar(100)
+  subcategory String?    @db.VarChar(100) // 서브 카테고리
+  level       String?    @db.VarChar(50) // 레벨 (예: "N5", "N4", "초급", "중급")
+  source      String?    @db.VarChar(200) // 출처(교재명)
+  sourceYear  Int? // 출처 연도
   createdBy   String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   questions   Question[]
 
+  @@index([category])
+  @@index([subcategory])
+  @@index([level])
   @@map("question_banks")
 }
 
@@ -246,6 +284,43 @@ model QuestionResult {
   @@map("question_results")
 }
 
+model QuestionStatistics {
+  id                   String    @id @default(uuid())
+  questionId           String    @unique
+  totalAttempts        Int       @default(0) // 총 시도 횟수
+  correctCount         Int       @default(0) // 정답 횟수
+  incorrectCount       Int       @default(0) // 오답 횟수
+  unansweredCount      Int       @default(0) // 미답변 횟수
+  averageTimeSpent     Int? // 평균 소요 시간 (초)
+  calculatedDifficulty Decimal?  @db.Decimal(3, 2) // 계산된 난이도 (0.00-1.00, 높을수록 어려움)
+  correctRate          Decimal?  @db.Decimal(5, 2) // 정답률 (0.00-100.00)
+  commonMistakes       Json? // 오답 패턴 { "answer": count }
+  lastCalculatedAt     DateTime? // 마지막 계산 일시
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  question             Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([calculatedDifficulty])
+  @@index([correctRate])
+  @@map("question_statistics")
+}
+
+model ExamVersion {
+  id            String   @id @default(uuid())
+  examId        String   @unique
+  version       String   @db.VarChar(10) // "A", "B", "C"
+  versionNumber Int // 1, 2, 3...
+  questionOrder Json? // 버전별 문제 순서 { sectionId: [questionIds] }
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@index([examId])
+  @@index([version])
+  @@map("exam_versions")
+}
+
 model UserExamSession {
   id                    String             @id @default(uuid())
   userId                String
@@ -270,18 +345,18 @@ model UserExamSession {
 }
 
 model AdaptiveQuestion {
-  id              String           @id @default(uuid())
-  sessionId       String
-  questionId      String
-  difficulty      Difficulty
-  order           Int
-  answeredAt      DateTime?
-  isCorrect       Boolean?
-  selectedAt      DateTime          @default(now())
-  session         UserExamSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  question        Question         @relation(fields: [questionId], references: [id])
-  exam            Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
-  examId          String
+  id         String          @id @default(uuid())
+  sessionId  String
+  questionId String
+  difficulty Difficulty
+  order      Int
+  answeredAt DateTime?
+  isCorrect  Boolean?
+  selectedAt DateTime        @default(now())
+  session    UserExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question   Question        @relation(fields: [questionId], references: [id])
+  exam       Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId     String
 
   @@index([sessionId])
   @@index([questionId])
@@ -291,26 +366,26 @@ model AdaptiveQuestion {
 }
 
 model LicenseKey {
-  id          String            @id @default(uuid())
+  id          String           @id @default(uuid())
   userId      String?
-  key         String            @unique
+  key         String           @unique
   keyType     KeyType
   examIds     String[]
   usageLimit  Int?
-  usageCount  Int               @default(0)
-  validFrom   DateTime          @default(now())
+  usageCount  Int              @default(0)
+  validFrom   DateTime         @default(now())
   validUntil  DateTime?
-  isActive    Boolean           @default(true)
+  isActive    Boolean          @default(true)
   issuedBy    String?
-  issuedAt    DateTime          @default(now())
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  issuedAt    DateTime         @default(now())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   batchId     String?
   examResults ExamResult[]
   usageLogs   KeyUsageLog[]
-  issuer      User?             @relation("IssuedBy", fields: [issuedBy], references: [id])
-  user        User?             @relation(fields: [userId], references: [id])
-  batch       LicenseKeyBatch?  @relation(fields: [batchId], references: [id])
+  issuer      User?            @relation("IssuedBy", fields: [issuedBy], references: [id])
+  user        User?            @relation(fields: [userId], references: [id])
+  batch       LicenseKeyBatch? @relation(fields: [batchId], references: [id])
 
   @@index([key])
   @@index([userId])
@@ -321,7 +396,7 @@ model LicenseKey {
 }
 
 model LicenseKeyBatch {
-  id          String        @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
   description String?
   keyType     KeyType
@@ -330,9 +405,9 @@ model LicenseKeyBatch {
   usageLimit  Int?
   validUntil  DateTime?
   createdBy   String
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime     @default(now())
   keys        LicenseKey[]
-  issuer      User          @relation("BatchIssuer", fields: [createdBy], references: [id])
+  issuer      User         @relation("BatchIssuer", fields: [createdBy], references: [id])
 
   @@index([createdBy])
   @@index([createdAt])
@@ -483,16 +558,19 @@ model ExamTemplate {
 }
 
 model QuestionPool {
-  id          String      @id @default(uuid())
-  name        String
-  description String?
-  tags        String[]    @default([])
-  difficulty  Difficulty?
-  questionIds String[]    @default([])
-  createdBy   String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  creator     User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  id              String      @id @default(uuid())
+  name            String
+  description     String?
+  tags            String[]    @default([])
+  difficulty      Difficulty?
+  questionIds     String[]    @default([])
+  // 규칙 기반 자동 선택 설정
+  autoSelectRules Json? // 자동 선택 규칙 (예: { minDifficulty: "medium", maxCount: 30, tags: ["문법"] })
+  isAutoSelect    Boolean     @default(false) // 자동 선택 활성화 여부
+  createdBy       String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  creator         User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   @@index([createdBy])
   @@index([tags])
@@ -501,22 +579,22 @@ model QuestionPool {
 }
 
 model SiteSettings {
-  id              String   @id @default(uuid())
-  companyName     String   @default("Exam Platform")
-  logoUrl         String?  @db.VarChar(500)
-  faviconUrl      String?  @db.VarChar(500)
-  primaryColor    String?  @db.VarChar(7)
-  secondaryColor  String?  @db.VarChar(7)
-  accentColor     String?  @db.VarChar(7)
+  id              String                @id @default(uuid())
+  companyName     String                @default("Exam Platform")
+  logoUrl         String?               @db.VarChar(500)
+  faviconUrl      String?               @db.VarChar(500)
+  primaryColor    String?               @db.VarChar(7)
+  secondaryColor  String?               @db.VarChar(7)
+  accentColor     String?               @db.VarChar(7)
   colorScheme     Json?
   aboutCompany    String?
   aboutTeam       String?
   contactInfo     Json?
   serviceInfo     String?
-  isActive        Boolean  @default(true)
+  isActive        Boolean               @default(true)
   updatedBy       String?
-  updatedAt       DateTime @updatedAt
-  createdAt       DateTime @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdAt       DateTime              @default(now())
   companyStats    Json?
   teamMembers     Json?
   serviceFeatures Json?
@@ -526,19 +604,40 @@ model SiteSettings {
   team_culture    Json?
   // 언어별 동적 콘텐츠 (JSON 형식)
   // homeContent: { ko: { hero: { title, subtitle }, features: [...] }, en: {...}, ja: {...} }
-  homeContent     Json?    // 메인 페이지 콘텐츠 (언어별)
+  homeContent     Json? // 메인 페이지 콘텐츠 (언어별)
   // aboutContent: { ko: { team: { hero: {...} }, company: {...}, service: {...}, contact: {...} }, en: {...}, ja: {...} }
-  aboutContent    Json?    // About 페이지 콘텐츠 (언어별)
-  updater         User?    @relation("SiteSettingsUpdater", fields: [updatedBy], references: [id])
+  aboutContent    Json? // About 페이지 콘텐츠 (언어별)
+  updater         User?                 @relation("SiteSettingsUpdater", fields: [updatedBy], references: [id])
+  versions        SiteSettingsVersion[]
 
   @@index([isActive])
   @@map("site_settings")
+}
+
+model SiteSettingsVersion {
+  id          String       @id @default(uuid())
+  settingsId  String
+  version     Int
+  snapshot    Json // 전체 설정 스냅샷
+  label       String? // 버전 라벨
+  description String? // 변경 사유
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  settings    SiteSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+  creator     User         @relation("SiteSettingsVersionCreator", fields: [createdBy], references: [id])
+
+  @@index([settingsId])
+  @@index([version])
+  @@map("site_settings_versions")
 }
 
 enum UserRole {
   user
   admin
   partner
+  creator // 출제자
+  reviewer // 검토자
+  approver // 승인자
 }
 
 enum ExamType {
@@ -561,17 +660,20 @@ enum QuestionType {
 
 // 시험 카테고리 모델 (대분류)
 model Category {
-  id          String        @id @default(uuid())
-  name        String        @db.VarChar(100)
-  description String?
-  icon        String?       @db.VarChar(50) // 아이콘 이름 또는 이모지
-  order       Int           @default(0) // 정렬 순서
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String        @id @default(uuid())
+  name          String        @db.VarChar(100)
+  slug          String        @unique @db.VarChar(100) // SEO-friendly URL slug
+  description   String?
+  icon          String?       @db.VarChar(50) // 아이콘 이름 또는 이모지
+  order         Int           @default(0) // 정렬 순서
+  isActive      Boolean       @default(true)
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   subcategories Subcategory[]
-  exams       Exam[]
+  exams         Exam[]
 
+  @@index([slug])
   @@index([isActive])
   @@index([order])
   @@map("categories")
@@ -579,16 +681,16 @@ model Category {
 
 // 시험 서브카테고리 모델 (중분류)
 model Subcategory {
-  id          String        @id @default(uuid())
+  id          String   @id @default(uuid())
   categoryId  String
-  name        String        @db.VarChar(100)
+  name        String   @db.VarChar(100)
   description String?
-  icon        String?       @db.VarChar(50)
-  order       Int           @default(0)
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  icon        String?  @db.VarChar(50)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   exams       Exam[]
 
   @@index([categoryId])
@@ -631,14 +733,14 @@ enum GoalStatus {
 }
 
 enum BadgeType {
-  exam_completed      // 시험 완료
-  perfect_score       // 만점 달성
-  streak_days         // 연속 학습 일수
-  word_master         // 단어장 마스터
-  improvement         // 성적 향상
-  category_master     // 카테고리 마스터
-  speed_demon         // 빠른 완료
-  consistency         // 꾸준함
+  exam_completed // 시험 완료
+  perfect_score // 만점 달성
+  streak_days // 연속 학습 일수
+  word_master // 단어장 마스터
+  improvement // 성적 향상
+  category_master // 카테고리 마스터
+  speed_demon // 빠른 완료
+  consistency // 꾸준함
 }
 
 enum BadgeRarity {
@@ -656,7 +758,7 @@ model Badge {
   description String?     @db.VarChar(500)
   icon        String?     @db.VarChar(50) // 이모지 또는 아이콘 이름
   rarity      BadgeRarity @default(common)
-  condition   Json?       // 획득 조건 (JSON 형식)
+  condition   Json? // 획득 조건 (JSON 형식)
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -669,17 +771,42 @@ model Badge {
 
 // 사용자 배지 (사용자가 획득한 배지)
 model UserBadge {
-  id          String    @id @default(uuid())
-  userId      String
-  badgeId     String
-  earnedAt    DateTime  @default(now())
-  progress    Int?      @default(0) // 진행도 (0-100)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge       Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  id       String   @id @default(uuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  progress Int?     @default(0) // 진행도 (0-100)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
   @@index([userId])
   @@index([badgeId])
   @@index([earnedAt])
   @@map("user_badges")
+}
+
+// 콘텐츠 버전 관리 (시험, 문제, 템플릿의 변경 이력)
+model ContentVersion {
+  id                String           @id @default(uuid())
+  contentType       String           @db.VarChar(20) // 'exam', 'question', 'template'
+  contentId         String // Exam, Question, ExamTemplate의 ID
+  versionNumber     Int // 버전 번호 (1, 2, 3...)
+  versionLabel      String?          @db.VarChar(50) // 버전 라벨 (예: "v1.0", "2024-01-03")
+  snapshot          Json // 전체 콘텐츠 스냅샷
+  changeDescription String?          @db.Text // 변경 사유/설명
+  changedBy         String? // 변경한 사용자 ID
+  parentVersionId   String? // 이전 버전 ID (버전 체인)
+  createdAt         DateTime         @default(now())
+  changedByUser     User?            @relation("ContentVersionChanger", fields: [changedBy], references: [id], onDelete: SetNull)
+  parentVersion     ContentVersion?  @relation("ContentVersionChain", fields: [parentVersionId], references: [id], onDelete: SetNull)
+  childVersions     ContentVersion[] @relation("ContentVersionChain")
+
+  @@index([contentType, contentId])
+  @@index([contentId])
+  @@index([versionNumber])
+  @@index([changedBy])
+  @@index([createdAt])
+  @@index([parentVersionId])
+  @@map("content_versions")
 }

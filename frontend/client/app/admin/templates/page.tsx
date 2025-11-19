@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { adminAPI, ExamTemplate, CreateTemplateData, QuestionPool } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
@@ -16,6 +17,9 @@ export default function TemplatesPage() {
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
+  const [showUsageModal, setShowUsageModal] = useState(false);
+  const [usageTemplateId, setUsageTemplateId] = useState<string | null>(null);
 
   const { data: templatesResponse, isLoading } = useQuery({
     queryKey: ["admin-templates"],
@@ -149,12 +153,30 @@ export default function TemplatesPage() {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className="w-full px-4 py-2 bg-theme-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-all"
-                  >
-                    이 템플릿으로 시험 생성
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setUsageTemplateId(template.id);
+                        setShowUsageModal(true);
+                      }}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-all text-sm"
+                      title="사용 추적"
+                    >
+                      추적
+                    </button>
+                    <button
+                      onClick={() => setPreviewTemplateId(template.id)}
+                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all"
+                    >
+                      미리보기
+                    </button>
+                    <button
+                      onClick={() => setSelectedTemplate(template.id)}
+                      className="flex-1 px-4 py-2 bg-theme-gradient-primary text-white rounded-lg font-medium hover:opacity-90 transition-all"
+                    >
+                      시험 생성
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -193,8 +215,223 @@ export default function TemplatesPage() {
             }}
           />
         )}
+
+        {/* 템플릿 Preview 모달 */}
+        {previewTemplateId && (
+          <TemplatePreviewModal
+            templateId={previewTemplateId}
+            onClose={() => setPreviewTemplateId(null)}
+          />
+        )}
+
+        {/* 템플릿 사용 추적 모달 */}
+        {showUsageModal && usageTemplateId && (
+          <TemplateUsageModal
+            templateId={usageTemplateId}
+            onClose={() => {
+              setShowUsageModal(false);
+              setUsageTemplateId(null);
+            }}
+          />
+        )}
       </div>
     </>
+  );
+}
+
+// 템플릿 Preview 모달 컴포넌트
+function TemplatePreviewModal({
+  templateId,
+  onClose,
+}: {
+  templateId: string;
+  onClose: () => void;
+}) {
+  const { data: previewResponse, isLoading } = useQuery({
+    queryKey: ["template-preview", templateId],
+    queryFn: async () => {
+      const response = await adminAPI.previewTemplate(templateId);
+      return response.data;
+    },
+  });
+
+  const preview = previewResponse?.data?.preview;
+  const template = previewResponse?.data?.template;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">템플릿 미리보기</h2>
+            {template && (
+              <p className="text-sm text-gray-600 mt-1">{template.name}</p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="p-6">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <LoadingSpinner message="미리보기 생성 중..." />
+            </div>
+          ) : preview ? (
+            <div className="space-y-6">
+              {/* 요약 정보 */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm text-blue-700 font-medium">총 섹션 수</div>
+                    <div className="text-2xl font-bold text-blue-900">{preview.totalSections}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-blue-700 font-medium">총 문제 수</div>
+                    <div className="text-2xl font-bold text-blue-900">{preview.totalQuestions}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 섹션별 상세 정보 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">섹션별 상세</h3>
+                {preview.sections.map((section, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">
+                          섹션 {index + 1}: {section.type}
+                        </h4>
+                        {section.description && (
+                          <p className="text-sm text-gray-600 mt-1">{section.description}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-500">요청 문제 수</div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {section.questionCount}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          사용 가능: {section.availableQuestions}개
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 필터 정보 */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {section.questionPoolId && (
+                        <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
+                          문제 풀 사용
+                        </span>
+                      )}
+                      {section.tags && section.tags.length > 0 && (
+                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                          태그: {section.tags.join(", ")}
+                        </span>
+                      )}
+                      {section.difficulty && (
+                        <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
+                          난이도: {section.difficulty}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 문제 부족 경고 */}
+                    {section.availableQuestions < section.questionCount && (
+                      <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="text-sm text-red-700 font-medium">
+                          ⚠️ 경고: 요청한 문제 수({section.questionCount}개)보다 사용 가능한 문제 수({section.availableQuestions}개)가 적습니다.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 선택된 문제 목록 */}
+                    {section.selectedQuestions.length > 0 ? (
+                      <div>
+                        <div className="text-sm font-medium text-gray-700 mb-2">
+                          선택될 문제 ({section.selectedQuestions.length}개):
+                        </div>
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {section.selectedQuestions.map((question: any) => (
+                            <div
+                              key={question.id}
+                              className="p-2 bg-gray-50 rounded border border-gray-200"
+                            >
+                              <div className="flex items-start justify-between">
+                                <p className="text-sm text-gray-900 flex-1 line-clamp-2">
+                                  {question.content}
+                                </p>
+                                <div className="flex gap-2 ml-2">
+                                  {question.difficulty && (
+                                    <span
+                                      className={`px-2 py-0.5 text-xs rounded ${
+                                        question.difficulty === "easy"
+                                          ? "bg-green-100 text-green-700"
+                                          : question.difficulty === "medium"
+                                          ? "bg-yellow-100 text-yellow-700"
+                                          : "bg-red-100 text-red-700"
+                                      }`}
+                                    >
+                                      {question.difficulty}
+                                    </span>
+                                  )}
+                                  <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                                    {question.points}점
+                                  </span>
+                                </div>
+                              </div>
+                              {question.tags && question.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {question.tags.slice(0, 3).map((tag: string) => (
+                                    <span
+                                      key={tag}
+                                      className="px-1.5 py-0.5 text-xs bg-gray-200 text-gray-600 rounded"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                        <p className="text-sm text-yellow-700">
+                          선택될 문제가 없습니다. 필터 조건을 확인해주세요.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              미리보기를 불러올 수 없습니다.
+            </div>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -556,6 +793,140 @@ function CreateExamFromTemplateModal({
             className="px-6 py-2 bg-theme-gradient-primary text-white rounded-lg hover:opacity-90 disabled:opacity-50"
           >
             {createMutation.isPending ? "생성 중..." : "시험 생성"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 템플릿 사용 추적 모달 컴포넌트
+function TemplateUsageModal({
+  templateId,
+  onClose,
+}: {
+  templateId: string;
+  onClose: () => void;
+}) {
+  const { data: traceResponse, isLoading } = useQuery({
+    queryKey: ["template-usage", templateId],
+    queryFn: async () => {
+      const response = await adminAPI.getTemplateUsage(templateId);
+      return response.data;
+    },
+  });
+
+  const trace = traceResponse;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">템플릿 사용 추적</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="p-6">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <LoadingSpinner message="사용 추적 정보를 불러오는 중..." />
+            </div>
+          ) : trace ? (
+            <div className="space-y-6">
+              {/* 템플릿 정보 */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">템플릿 정보</h3>
+                <div className="space-y-2">
+                  <div className="text-lg font-semibold text-gray-900">{(trace as any).template.name}</div>
+                  {(trace as any).template.description && (
+                    <div className="text-sm text-gray-600">{(trace as any).template.description}</div>
+                  )}
+                  <div className="text-xs text-gray-500">
+                    생성일: {new Date((trace as any).template.createdAt).toLocaleString("ko-KR")}
+                  </div>
+                </div>
+              </div>
+
+              {/* 사용 이력 */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  사용 이력 ({(trace as any).totalUsages}개)
+                </h3>
+                {(trace as any).usageHistory && (trace as any).usageHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {(trace as any).usageHistory.map((usage: any, index: number) => (
+                      <div
+                        key={index}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Link
+                                href={`/admin/exams/${usage.exam.id}`}
+                                className="text-lg font-semibold text-gray-900 hover:text-blue-600"
+                              >
+                                {usage.exam.title}
+                              </Link>
+                              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                                {usage.exam.examType}
+                              </span>
+                              {usage.exam.status && (
+                                <span
+                                  className={`px-2 py-1 text-xs rounded ${
+                                    usage.exam.status === "published"
+                                      ? "bg-green-100 text-green-700"
+                                      : usage.exam.status === "draft"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {usage.exam.status === "published"
+                                    ? "발행됨"
+                                    : usage.exam.status === "draft"
+                                    ? "초안"
+                                    : "보관됨"}
+                                </span>
+                              )}
+                            </div>
+                            {usage.exam.creator && (
+                              <div className="text-sm text-gray-600 mb-1">
+                                생성자: {usage.exam.creator.name} ({usage.exam.creator.email})
+                              </div>
+                            )}
+                            <div className="text-xs text-gray-500">
+                              생성일: {new Date(usage.usedAt).toLocaleString("ko-KR")}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    이 템플릿으로 생성된 시험이 없습니다.
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              사용 추적 정보를 불러올 수 없습니다.
+            </div>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+          >
+            닫기
           </button>
         </div>
       </div>

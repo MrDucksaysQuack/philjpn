@@ -18,6 +18,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   get userBadge() {
     return (this as unknown as PrismaClient).userBadge;
   }
+  
+  get questionStatistics() {
+    return (this as unknown as PrismaClient).questionStatistics;
+  }
+  
   private readonly MAX_RETRIES = 5;
   private readonly RETRY_DELAY_MS = 5000; // 5초
 

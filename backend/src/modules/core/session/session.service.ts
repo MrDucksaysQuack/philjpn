@@ -6,6 +6,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../common/utils/prisma.service';
 import { StartExamDto } from './dto/start-exam.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
@@ -16,6 +17,7 @@ import { ExamMonitoringGateway } from '../../monitoring/gateway/exam-monitoring.
 import { QuestionPoolService } from '../../admin/services/question-pool.service';
 import { Difficulty } from '../../../common/types';
 import { IRTService } from './services/irt.service';
+import { ExamCompletedEvent } from '../../report/events/exam-completed.event';
 
 @Injectable()
 export class SessionService {
@@ -24,6 +26,7 @@ export class SessionService {
     private gradingService: GradingService,
     private questionPoolService: QuestionPoolService,
     private irtService: IRTService,
+    private eventEmitter: EventEmitter2,
     @Inject(forwardRef(() => ExamMonitoringGateway))
     private monitoringGateway?: ExamMonitoringGateway,
   ) {}
@@ -423,8 +426,26 @@ export class SessionService {
       session.examResultId,
     );
 
-    // 배지 체크는 나중에 구현 (순환 의존성 문제로 인해 주석 처리)
-    // TODO: 배지 체크 로직 구현 (이벤트 기반 또는 별도 서비스로 분리)
+    // 시험 정보 가져오기 (categoryId 확인용)
+    const exam = await this.prisma.exam.findUnique({
+      where: { id: examResult.examId },
+      select: { categoryId: true },
+    });
+
+    // 배지 자동 부여를 위한 이벤트 발행
+    this.eventEmitter.emit(
+      'exam.completed',
+      new ExamCompletedEvent(
+        userId,
+        session.examResultId,
+        examResult.examId,
+        gradedResult.totalScore,
+        gradedResult.maxScore,
+        gradedResult.percentage,
+        exam?.categoryId,
+        gradedResult.timeSpent,
+      ),
+    );
 
     return {
       examResultId: session.examResultId,

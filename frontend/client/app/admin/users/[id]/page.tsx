@@ -13,7 +13,7 @@ import { useAuthStore } from "@/lib/store";
 
 interface UserFormData {
   name: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "partner" | "creator" | "reviewer" | "approver";
   isActive: boolean;
   isEmailVerified: boolean;
 }
@@ -64,11 +64,11 @@ export default function EditUserPage() {
     if (userData) {
       setFormData({
         name: userData.name || "",
-        role: (userData.role === "admin" || userData.role === "user") 
-          ? userData.role 
+        role: (userData.role === "admin" || userData.role === "user" || userData.role === "partner" || userData.role === "creator" || userData.role === "reviewer" || userData.role === "approver")
+          ? userData.role as "admin" | "user" | "partner" | "creator" | "reviewer" | "approver"
           : "user",
         isActive: userData.isActive ?? true,
-        isEmailVerified: (userData as any).isEmailVerified ?? false,
+        isEmailVerified: userData.isEmailVerified ?? false,
       });
     }
   }, [userData]);
@@ -187,7 +187,7 @@ export default function EditUserPage() {
                 </label>
                 <input
                   type="text"
-                  value={(userData as any).phone || "-"}
+                  value={userData.phone || "-"}
                   disabled
                   className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
                 />
@@ -199,8 +199,8 @@ export default function EditUserPage() {
                 <input
                   type="text"
                   value={
-                    (userData as any).createdAt
-                      ? new Date((userData as any).createdAt).toLocaleString("ko-KR")
+                    userData.createdAt
+                      ? new Date(userData.createdAt).toLocaleString("ko-KR")
                       : "-"
                   }
                   disabled
@@ -290,13 +290,17 @@ export default function EditUserPage() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      role: e.target.value as "admin" | "user",
+                      role: e.target.value as "admin" | "user" | "partner" | "creator" | "reviewer" | "approver",
                     })
                   }
                   className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="user">일반 사용자</option>
                   <option value="admin">관리자</option>
+                  <option value="partner">파트너</option>
+                  <option value="creator">출제자</option>
+                  <option value="reviewer">검토자</option>
+                  <option value="approver">승인자</option>
                 </select>
               </div>
 

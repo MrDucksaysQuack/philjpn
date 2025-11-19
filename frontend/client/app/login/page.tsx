@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuthStore } from "@/lib/store";
+import { useAuthStore, useLocaleStore } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import { authAPI } from "@/lib/api";
 import Header from "@/components/layout/Header";
 
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,14 +27,14 @@ export default function LoginPage() {
     const trimmedPassword = password.trim();
     
     if (!trimmedEmail || !trimmedPassword) {
-      setError("이메일과 비밀번호를 모두 입력해주세요.");
+      setError(t("auth.errors.emailPasswordRequired"));
       return;
     }
     
     // ✅ 이메일 형식 간단 체크
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      setError("올바른 이메일 형식을 입력해주세요.");
+      setError(t("auth.errors.invalidEmail"));
       return;
     }
     
@@ -64,9 +67,9 @@ export default function LoginPage() {
             return `${err.property}: ${constraints}`;
           })
           .join('\n');
-        setError(errorMessages || error.response?.data?.message || "로그인에 실패했습니다.");
+        setError(errorMessages || error.response?.data?.message || t("auth.errors.loginFailed"));
       } else {
-        setError(error.response?.data?.message || "로그인에 실패했습니다.");
+        setError(error.response?.data?.message || t("auth.errors.loginFailed"));
       }
     } finally {
       setLoading(false);
@@ -96,15 +99,15 @@ export default function LoginPage() {
                 </svg>
               </div>
               <h2 className="text-3xl font-extrabold text-gray-900">
-                로그인
+                {t("auth.loginTitle")}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                또는{" "}
+                {t("common.or")}{" "}
                 <Link
                   href="/register"
                   className="font-medium text-theme-primary hover:opacity-80 transition-colors"
                 >
-                  회원가입
+                  {t("auth.register")}
                 </Link>
               </p>
             </div>
@@ -117,7 +120,7 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  이메일
+                  {t("auth.email")}
                 </label>
                 <input
                   id="email"
@@ -126,14 +129,14 @@ export default function LoginPage() {
                   autoComplete="email"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
-                  placeholder="이메일 주소를 입력하세요"
+                  placeholder={t("auth.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  비밀번호
+                  {t("auth.password")}
                 </label>
                 <input
                   id="password"
@@ -142,7 +145,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   required
                   className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder={t("auth.passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -177,10 +180,10 @@ export default function LoginPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    로그인 중...
+                    {t("auth.loggingIn")}
                   </span>
                 ) : (
-                  "로그인"
+                  t("auth.login")
                 )}
               </button>
             </div>

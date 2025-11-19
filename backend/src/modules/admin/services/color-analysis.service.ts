@@ -25,8 +25,26 @@ export interface ColorAnalysisResult {
       primary: string;
       secondary: string;
     };
+    darkMode?: {
+      primary: string;
+      secondary: string;
+      accent: string;
+    };
   };
   confidence: number;
+  accessibility: {
+    contrastRatio: {
+      primary: number;
+      secondary: number;
+      accent: number;
+    };
+    wcagAA: boolean;
+    wcagAAA: boolean;
+  };
+  suggestedPalette: {
+    colors: string[];
+    description: string;
+  };
 }
 
 @Injectable()
@@ -70,12 +88,24 @@ export class ColorAnalysisService {
       // 5. 신뢰도 계산
       const confidence = this.calculateConfidence(palette);
 
+      // 6. 접근성 검증 (WCAG 대비 비율)
+      const accessibility = this.calculateAccessibility(
+        primaryColor,
+        secondaryColor,
+        accentColor,
+      );
+
+      // 7. 색상 팔레트 제안
+      const suggestedPalette = this.generateSuggestedPalette(palette);
+
       return {
         primaryColor,
         secondaryColor,
         accentColor,
         colorScheme,
         confidence,
+        accessibility,
+        suggestedPalette,
       };
     } catch (error: any) {
       this.logger.error('색상 분석 실패:', error.message);
@@ -115,6 +145,11 @@ export class ColorAnalysisService {
     secondary: string,
     accent: string,
   ) {
+    // 다크 모드 색상 생성 (밝기 조정)
+    const darkPrimary = this.adjustBrightness(primary, -0.2);
+    const darkSecondary = this.adjustBrightness(secondary, -0.2);
+    const darkAccent = this.adjustBrightness(accent, -0.2);
+
     return {
       primary: this.hexToTailwind(primary),
       secondary: this.hexToTailwind(secondary),
@@ -132,7 +167,23 @@ export class ColorAnalysisService {
         primary: `${this.hexToTailwind(primary)}-50`,
         secondary: `${this.hexToTailwind(secondary)}-50`,
       },
+      darkMode: {
+        primary: darkPrimary,
+        secondary: darkSecondary,
+        accent: darkAccent,
+      },
     };
+  }
+
+  /**
+   * 밝기 조정 (다크 모드용)
+   */
+  private adjustBrightness(hex: string, factor: number): string {
+    const [r, g, b] = this.hexToRgb(hex);
+    const newR = Math.max(0, Math.min(255, Math.round(r * (1 + factor))));
+    const newG = Math.max(0, Math.min(255, Math.round(g * (1 + factor))));
+    const newB = Math.max(0, Math.min(255, Math.round(b * (1 + factor))));
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
   }
 
   /**
@@ -240,6 +291,121 @@ export class ColorAnalysisService {
     }
 
     return Math.min(1.0, confidence);
+  }
+
+  /**
+   * 접근성 검증 (WCAG 대비 비율 계산)
+   */
+  private calculateAccessibility(
+    primary: string,
+    secondary: string,
+    accent: string,
+  ) {
+    const white = '#FFFFFF';
+    const black = '#000000';
+
+    const primaryContrast = Math.max(
+      this.getContrastRatio(primary, white),
+      this.getContrastRatio(primary, black),
+    );
+    const secondaryContrast = Math.max(
+      this.getContrastRatio(secondary, white),
+      this.getContrastRatio(secondary, black),
+    );
+    const accentContrast = Math.max(
+      this.getContrastRatio(accent, white),
+      this.getContrastRatio(accent, black),
+    );
+
+    // WCAG AA: 4.5:1 이상, AAA: 7:1 이상
+    const wcagAA = Math.min(primaryContrast, secondaryContrast, accentContrast) >= 4.5;
+    const wcagAAA = Math.min(primaryContrast, secondaryContrast, accentContrast) >= 7.0;
+
+    return {
+      contrastRatio: {
+        primary: primaryContrast,
+        secondary: secondaryContrast,
+        accent: accentContrast,
+      },
+      wcagAA,
+      wcagAAA,
+    };
+  }
+
+  /**
+   * 대비 비율 계산 (WCAG 표준)
+   */
+  private getContrastRatio(color1: string, color2: string): number {
+    const lum1 = this.getLuminance(color1);
+    const lum2 = this.getLuminance(color2);
+    const lighter = Math.max(lum1, lum2);
+    const darker = Math.min(lum1, lum2);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /**
+   * 상대 휘도 계산 (WCAG 표준)
+   */
+  private getLuminance(hex: string): number {
+    const rgb = this.hexToRgb(hex);
+    const [r, g, b] = rgb.map((val) => {
+      val = val / 255;
+      return val <= 0.03928
+        ? val / 12.92
+        : Math.pow((val + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
+  /**
+   * HEX를 RGB로 변환
+   */
+  private hexToRgb(hex: string): [number, number, number] {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return [r, g, b];
+  }
+
+  /**
+   * 색상 팔레트 제안 생성
+   */
+  private generateSuggestedPalette(palette: any): {
+    colors: string[];
+    description: string;
+  } {
+    const colors: string[] = [];
+    const descriptions: string[] = [];
+
+    if (palette.Vibrant) {
+      colors.push(palette.Vibrant.hex);
+      descriptions.push('Vibrant');
+    }
+    if (palette.Muted) {
+      colors.push(palette.Muted.hex);
+      descriptions.push('Muted');
+    }
+    if (palette.DarkVibrant) {
+      colors.push(palette.DarkVibrant.hex);
+      descriptions.push('Dark Vibrant');
+    }
+    if (palette.LightVibrant) {
+      colors.push(palette.LightVibrant.hex);
+      descriptions.push('Light Vibrant');
+    }
+    if (palette.DarkMuted) {
+      colors.push(palette.DarkMuted.hex);
+      descriptions.push('Dark Muted');
+    }
+    if (palette.LightMuted) {
+      colors.push(palette.LightMuted.hex);
+      descriptions.push('Light Muted');
+    }
+
+    return {
+      colors: colors.slice(0, 6), // 최대 6개 색상
+      description: `추출된 ${colors.length}개의 주요 색상: ${descriptions.join(', ')}`,
+    };
   }
 }
 
