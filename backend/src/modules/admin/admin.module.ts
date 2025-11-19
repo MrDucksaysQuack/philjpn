@@ -30,6 +30,7 @@ import { SettingsGateway } from './gateway/settings.gateway';
     SiteSettingsService,
     ColorAnalysisService,
     ContentVersionService,
+    SettingsGateway,
   ],
   exports: [
     AdminService,
