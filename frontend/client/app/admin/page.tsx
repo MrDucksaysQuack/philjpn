@@ -791,7 +791,7 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
                       <div className="text-sm text-text-muted">
-                        {new Date(activity.timestamp).toLocaleString("ko-KR")}
+                        {isMounted ? new Date(activity.timestamp).toLocaleString("ko-KR") : activity.timestamp}
                       </div>
                     </div>
                   ))}
