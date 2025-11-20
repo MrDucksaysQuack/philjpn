@@ -171,7 +171,7 @@ export default function AdminQuestionsPage() {
             </Button>
             <Link
               href="/admin"
-              className="text-blue-600 hover:text-blue-700 px-4 py-2 rounded-md border border-blue-600"
+              className="text-link hover:text-link-hover px-4 py-2 rounded-md border border-primary"
             >
               ← 대시보드
             </Link>
@@ -232,10 +232,10 @@ export default function AdminQuestionsPage() {
                         <span
                           className={`px-2 py-1 text-xs rounded ${
                             question.difficulty === "easy"
-                              ? "bg-green-100 text-green-700"
+                              ? "bg-success-light text-success-dark"
                               : question.difficulty === "medium"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-warning-light text-warning-dark"
+                              : "bg-error-light text-error-dark"
                           }`}
                         >
                           {question.difficulty === "easy"
@@ -245,7 +245,7 @@ export default function AdminQuestionsPage() {
                             : t("admin.questionManagement.difficulty.hard")}
                         </span>
                       )}
-                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                      <span className="px-2 py-1 text-xs bg-info-light text-info-dark rounded">
                         {question.questionType === "multiple_choice"
                           ? t("admin.questionManagement.questionType.multipleChoice")
                           : question.questionType === "fill_blank"
@@ -263,14 +263,14 @@ export default function AdminQuestionsPage() {
                       <div className="text-sm text-text-muted mb-2">
                         <Link
                           href={`/admin/exams/${question.section.examId}`}
-                          className="text-blue-600 hover:text-blue-700"
+                          className="text-link hover:text-link-hover"
                         >
                           {question.section.exam?.title || t("exam.title")}
                         </Link>
                         {" > "}
                         <Link
                           href={`/admin/exams/${question.section.examId}/sections/${question.section.id}/questions`}
-                          className="text-blue-600 hover:text-blue-700"
+                          className="text-link hover:text-link-hover"
                         >
                           {question.section.title}
                         </Link>
@@ -315,7 +315,7 @@ export default function AdminQuestionsPage() {
                         setUsageQuestionId(question.id);
                         setShowUsageModal(true);
                       }}
-                      className="text-indigo-600 hover:text-indigo-700 px-3 py-2 text-sm border border-indigo-600 rounded-md hover:bg-indigo-50"
+                      className="text-primary-dark hover:text-primary px-3 py-2 text-sm border border-primary rounded-md hover:bg-primary-light"
                       title={t("admin.questionManagement.usageTracking.title")}
                     >
                       {t("admin.questionManagement.usageTracking.track")}
@@ -325,7 +325,7 @@ export default function AdminQuestionsPage() {
                         setStatisticsQuestionId(question.id);
                         setShowStatisticsModal(true);
                       }}
-                      className="text-purple-600 hover:text-purple-700 px-3 py-2 text-sm border border-purple-600 rounded-md hover:bg-purple-50"
+                      className="text-primary-dark hover:text-primary px-3 py-2 text-sm border border-primary rounded-md hover:bg-primary-light"
                       title={t("admin.questionManagement.statistics")}
                     >
                       {t("admin.questionManagement.statistics")}
@@ -335,7 +335,7 @@ export default function AdminQuestionsPage() {
                         setPreviewQuestion(question);
                         setShowPreviewModal(true);
                       }}
-                      className="text-green-600 hover:text-green-700 px-3 py-2 text-sm border border-green-600 rounded-md hover:bg-green-50"
+                      className="text-success-dark hover:text-success px-3 py-2 text-sm border border-success rounded-md hover:bg-success-light"
                       title={t("admin.questionManagement.preview")}
                     >
                       {t("admin.questionManagement.preview")}
@@ -345,13 +345,13 @@ export default function AdminQuestionsPage() {
                         setSelectedQuestion(question);
                         setShowEditModal(true);
                       }}
-                      className="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm border border-blue-600 rounded-md hover:bg-blue-50"
+                      className="text-info-dark hover:text-info px-3 py-2 text-sm border border-info rounded-md hover:bg-info-light"
                     >
                       {t("admin.questionManagement.edit")}
                     </button>
                     <button
                       onClick={() => handleDelete(question)}
-                      className="text-red-600 hover:text-red-700 px-3 py-2 text-sm"
+                      className="text-error-dark hover:text-error px-3 py-2 text-sm"
                     >
                       {t("admin.questionManagement.delete")}
                     </button>
@@ -374,19 +374,19 @@ export default function AdminQuestionsPage() {
             </div>
             <div>
               <div className="text-sm text-text-muted">객관식</div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-info">
                 {questions.filter((q: any) => q.questionType === "multiple_choice").length}
               </div>
             </div>
             <div>
               <div className="text-sm text-text-muted">빈칸 채우기</div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-success">
                 {questions.filter((q: any) => q.questionType === "fill_blank").length}
               </div>
             </div>
             <div>
               <div className="text-sm text-text-muted">주관식</div>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-primary-dark">
                 {questions.filter((q: any) => q.questionType === "essay").length}
               </div>
             </div>
@@ -540,7 +540,7 @@ function QuestionStatisticsModal({
           <h2 className="text-2xl font-bold text-text-primary">문제 통계</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            className="text-text-muted hover:text-text-primary text-2xl font-bold"
           >
             ×
           </button>
@@ -555,21 +555,21 @@ function QuestionStatisticsModal({
             <div className="space-y-6">
               {/* 요약 정보 */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="text-sm text-blue-700 font-medium mb-1">총 시도</div>
-                  <div className="text-2xl font-bold text-blue-900">
+                <div className="bg-info-light border border-info rounded-lg p-4">
+                  <div className="text-sm text-info-dark font-medium mb-1">총 시도</div>
+                  <div className="text-2xl font-bold text-info-dark">
                     {statistics.totalAttempts}
                   </div>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="text-sm text-green-700 font-medium mb-1">정답</div>
-                  <div className="text-2xl font-bold text-green-900">
+                <div className="bg-success-light border border-success rounded-lg p-4">
+                  <div className="text-sm text-success-dark font-medium mb-1">정답</div>
+                  <div className="text-2xl font-bold text-success-dark">
                     {statistics.correctCount}
                   </div>
                 </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="text-sm text-error font-medium mb-1">오답</div>
-                  <div className="text-2xl font-bold text-error">
+                <div className="bg-error-light border border-error rounded-lg p-4">
+                  <div className="text-sm text-error-dark font-medium mb-1">오답</div>
+                  <div className="text-2xl font-bold text-error-dark">
                     {statistics.incorrectCount}
                   </div>
                 </div>
@@ -583,23 +583,23 @@ function QuestionStatisticsModal({
 
               {/* 정답률 및 난이도 */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <div className="text-sm text-purple-700 font-medium mb-1">정답률</div>
-                  <div className="text-2xl font-bold text-purple-900">
+                <div className="bg-primary-light border border-primary rounded-lg p-4">
+                  <div className="text-sm text-primary-dark font-medium mb-1">정답률</div>
+                  <div className="text-2xl font-bold text-primary-dark">
                     {statistics.correctRate !== null && statistics.correctRate !== undefined
                       ? `${Number(statistics.correctRate).toFixed(1)}%`
                       : "N/A"}
                   </div>
                 </div>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <div className="text-sm text-orange-700 font-medium mb-1">계산된 난이도</div>
-                  <div className="text-2xl font-bold text-orange-900">
+                <div className="bg-warning-light border border-warning rounded-lg p-4">
+                  <div className="text-sm text-warning-dark font-medium mb-1">계산된 난이도</div>
+                  <div className="text-2xl font-bold text-warning-dark">
                     {statistics.calculatedDifficulty !== null &&
                     statistics.calculatedDifficulty !== undefined
                       ? Number(statistics.calculatedDifficulty).toFixed(2)
                       : "N/A"}
                   </div>
-                  <div className="text-xs text-orange-600 mt-1">
+                  <div className="text-xs text-warning-dark mt-1">
                     (0.00=쉬움, 1.00=어려움)
                   </div>
                 </div>
@@ -608,11 +608,11 @@ function QuestionStatisticsModal({
               {/* 평균 소요 시간 */}
               {statistics.averageTimeSpent !== null &&
                 statistics.averageTimeSpent !== undefined && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="text-sm text-yellow-700 font-medium mb-1">
+                  <div className="bg-warning-light border border-warning rounded-lg p-4">
+                    <div className="text-sm text-warning-dark font-medium mb-1">
                       평균 소요 시간
                     </div>
-                    <div className="text-xl font-bold text-yellow-900">
+                    <div className="text-xl font-bold text-warning-dark">
                       {statistics.averageTimeSpent}초
                     </div>
                   </div>
@@ -650,7 +650,7 @@ function QuestionStatisticsModal({
               )}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-text-muted">
               통계 데이터가 없습니다.
             </div>
           )}
@@ -693,12 +693,12 @@ function QuestionPreviewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-3xl w-full m-4 max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">문제 미리보기</h2>
+      <div className="bg-surface rounded-2xl max-w-3xl w-full m-4 max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-surface border-b border-border p-6 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-text-primary">문제 미리보기</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            className="text-text-muted hover:text-text-primary text-2xl font-bold"
           >
             ×
           </button>
@@ -706,7 +706,7 @@ function QuestionPreviewModal({
         <div className="p-6">
           {/* 문제 메타 정보 */}
           <div className="flex items-center gap-2 mb-4">
-            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+            <span className="px-2 py-1 text-xs bg-info-light text-info-dark rounded">
               {question.questionType === "multiple_choice"
                 ? "객관식"
                 : question.questionType === "fill_blank"
@@ -717,10 +717,10 @@ function QuestionPreviewModal({
               <span
                 className={`px-2 py-1 text-xs rounded ${
                   question.difficulty === "easy"
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-success-light text-success-dark"
                     : question.difficulty === "medium"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
+                    ? "bg-warning-light text-warning-dark"
+                    : "bg-error-light text-error-dark"
                 }`}
               >
                 {question.difficulty === "easy"
@@ -730,7 +730,7 @@ function QuestionPreviewModal({
                   : "어려움"}
               </span>
             )}
-            <span className="text-sm text-gray-500">{question.points}점</span>
+            <span className="text-sm text-text-muted">{question.points}점</span>
           </div>
 
           {/* 오디오 재생 (Part 4: Listening) */}
@@ -749,14 +749,14 @@ function QuestionPreviewModal({
               <img
                 src={question.imageUrl}
                 alt="문제 이미지"
-                className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
+                className="max-w-full h-auto rounded-lg border border-border shadow-sm"
                 style={{ maxHeight: "400px" }}
               />
             </div>
           )}
 
           {/* 문제 내용 */}
-          <div className="text-lg font-semibold mb-6 text-gray-900">
+          <div className="text-lg font-semibold mb-6 text-text-primary">
             {question.content}
           </div>
 
@@ -766,7 +766,7 @@ function QuestionPreviewModal({
               {options.map((option) => (
                 <label
                   key={option.id}
-                  className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 cursor-not-allowed bg-gray-50"
+                  className="flex items-center p-4 border-2 border-border rounded-lg hover:border-info cursor-not-allowed bg-surface-hover"
                 >
                   <input
                     type="radio"
@@ -775,9 +775,9 @@ function QuestionPreviewModal({
                     disabled
                     className="mr-3 cursor-not-allowed"
                   />
-                  <span className="text-gray-700">{option.text}</span>
+                  <span className="text-text-primary">{option.text}</span>
                   {option.id === question.correctAnswer && (
-                    <span className="ml-auto px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                    <span className="ml-auto px-2 py-1 text-xs bg-success-light text-success-dark rounded">
                       정답
                     </span>
                   )}
@@ -790,18 +790,18 @@ function QuestionPreviewModal({
           {(question.questionType === "fill_blank" ||
             question.questionType === "essay") && (
             <div className="mb-6">
-              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                <p className="text-sm text-gray-500 text-center">
+              <div className="p-4 border-2 border-dashed border-border rounded-lg bg-surface-hover">
+                <p className="text-sm text-text-muted text-center">
                   {question.questionType === "fill_blank"
                     ? "빈칸 채우기 문제입니다."
                     : "주관식 문제입니다."}
                 </p>
                 {question.correctAnswer && (
-                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="text-sm font-semibold text-green-700 mb-1">
+                  <div className="mt-4 p-3 bg-success-light border border-success rounded-lg">
+                    <div className="text-sm font-semibold text-success-dark mb-1">
                       정답:
                     </div>
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-text-primary">
                       {question.correctAnswer}
                     </div>
                   </div>
@@ -812,11 +812,11 @@ function QuestionPreviewModal({
 
           {/* 해설 */}
           {question.explanation && (
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-sm font-semibold text-blue-700 mb-2">
+            <div className="mt-6 p-4 bg-info-light rounded-lg border border-info">
+              <div className="text-sm font-semibold text-info-dark mb-2">
                 해설:
               </div>
-              <div className="text-sm text-gray-700">{question.explanation}</div>
+              <div className="text-sm text-text-primary">{question.explanation}</div>
             </div>
           )}
 
@@ -826,7 +826,7 @@ function QuestionPreviewModal({
               {question.tags.map((tag: string) => (
                 <span
                   key={tag}
-                  className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
+                  className="px-2 py-1 text-xs bg-surface-hover text-text-primary rounded"
                 >
                   {tag}
                 </span>
@@ -834,7 +834,7 @@ function QuestionPreviewModal({
             </div>
           )}
         </div>
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
+        <div className="sticky bottom-0 bg-surface border-t border-border p-6 flex justify-end">
           <Button
             onClick={onClose}
           >
@@ -958,9 +958,9 @@ function QuestionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
+      <div className="bg-surface rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4">
+        <div className="p-6 border-b border-border">
+          <h2 className="text-2xl font-bold text-text-primary">
             {question ? "문제 수정" : "새 문제 추가"}
           </h2>
         </div>
@@ -969,25 +969,25 @@ function QuestionModal({
           {/* 기본 정보 */}
           <div className="grid grid-cols-2 gap-4">
             {question?.sectionId && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  문제 번호 *
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={formData.questionNumber}
-                  onChange={(e) =>
-                    setFormData({ ...formData, questionNumber: parseInt(e.target.value) || 1 })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  min={1}
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                문제 번호 *
+              </label>
+              <input
+                type="number"
+                required
+                value={formData.questionNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, questionNumber: parseInt(e.target.value) || 1 })
+                }
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                min={1}
+              />
+            </div>
             )}
 
             <div className={question?.sectionId ? "" : "col-span-2"}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 문제 유형 *
               </label>
               <select
@@ -999,7 +999,7 @@ function QuestionModal({
                     questionType: e.target.value as 'multiple_choice' | 'fill_blank' | 'essay',
                   })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="multiple_choice">객관식</option>
                 <option value="fill_blank">빈칸 채우기</option>
@@ -1011,7 +1011,7 @@ function QuestionModal({
           {/* 문제 은행 선택 (선택적) */}
           {!question && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 문제 은행 (선택사항)
               </label>
               <select
@@ -1019,7 +1019,7 @@ function QuestionModal({
                 onChange={(e) =>
                   setFormData({ ...formData, questionBankId: e.target.value || undefined })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">문제 은행 선택 안 함</option>
                 {questionBanks.map((bank) => (
@@ -1029,7 +1029,7 @@ function QuestionModal({
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 💡 문제 은행에 속하면 카테고리별로 관리할 수 있습니다.
               </p>
             </div>
@@ -1037,7 +1037,7 @@ function QuestionModal({
 
           {/* 문제 내용 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               문제 내용 *
             </label>
             <textarea
@@ -1045,7 +1045,7 @@ function QuestionModal({
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               placeholder="문제 내용을 입력하세요"
             />
           </div>
@@ -1069,7 +1069,7 @@ function QuestionModal({
           {/* 오디오 재생 제한 */}
           {formData.audioUrl && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 오디오 재생 횟수 제한
               </label>
               <input
@@ -1078,7 +1078,7 @@ function QuestionModal({
                 onChange={(e) =>
                   setFormData({ ...formData, audioPlayLimit: parseInt(e.target.value) || 2 })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                 min={1}
                 max={10}
               />
@@ -1088,27 +1088,27 @@ function QuestionModal({
           {/* 선택지 (객관식일 때) */}
           {formData.questionType === 'multiple_choice' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 선택지 *
               </label>
               <div className="space-y-2">
                 {formData.options?.map((option, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <span className="w-8 text-sm font-semibold text-gray-600">
+                    <span className="w-8 text-sm font-semibold text-text-muted">
                       {option.id}
                     </span>
                     <input
                       type="text"
                       value={option.text}
                       onChange={(e) => updateOption(index, e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder={`선택지 ${option.id} 내용`}
                     />
                     {formData.options && formData.options.length > 2 && (
                       <button
                         type="button"
                         onClick={() => removeOption(index)}
-                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        className="px-3 py-2 text-error-dark hover:bg-error-light rounded-lg"
                       >
                         삭제
                       </button>
@@ -1118,7 +1118,7 @@ function QuestionModal({
                 <button
                   type="button"
                   onClick={addOption}
-                  className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
+                  className="px-4 py-2 text-sm text-info-dark border border-info rounded-lg hover:bg-info-light"
                 >
                   + 선택지 추가
                 </button>
@@ -1128,7 +1128,7 @@ function QuestionModal({
 
           {/* 정답 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               정답 *
             </label>
             {formData.questionType === 'multiple_choice' ? (
@@ -1136,7 +1136,7 @@ function QuestionModal({
                 required
                 value={formData.correctAnswer}
                 onChange={(e) => setFormData({ ...formData, correctAnswer: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">선택하세요</option>
                 {formData.options?.map((option) => (
@@ -1151,7 +1151,7 @@ function QuestionModal({
                 required
                 value={formData.correctAnswer}
                 onChange={(e) => setFormData({ ...formData, correctAnswer: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                 placeholder="정답을 입력하세요"
               />
             )}
@@ -1159,14 +1159,14 @@ function QuestionModal({
 
           {/* 해설 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               해설
             </label>
             <textarea
               value={formData.explanation || ''}
               onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               placeholder="해설을 입력하세요"
             />
           </div>
@@ -1174,7 +1174,7 @@ function QuestionModal({
           {/* 기타 설정 */}
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 배점
               </label>
               <input
@@ -1183,13 +1183,13 @@ function QuestionModal({
                 onChange={(e) =>
                   setFormData({ ...formData, points: parseInt(e.target.value) || 1 })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                 min={1}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 난이도
               </label>
               <select
@@ -1200,7 +1200,7 @@ function QuestionModal({
                     difficulty: (e.target.value || undefined) as 'easy' | 'medium' | 'hard' | undefined,
                   })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">선택 안 함</option>
                 <option value="easy">쉬움</option>
@@ -1212,7 +1212,7 @@ function QuestionModal({
 
           {/* 태그 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               태그
             </label>
             <div className="flex gap-2 mb-2">
@@ -1226,13 +1226,13 @@ function QuestionModal({
                     addTag();
                   }
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                 placeholder="태그 입력 후 Enter"
               />
               <button
                 type="button"
                 onClick={addTag}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-surface-hover text-text-primary rounded-lg hover:bg-surface-hover"
               >
                 추가
               </button>
@@ -1242,13 +1242,13 @@ function QuestionModal({
                 {formData.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm flex items-center gap-2"
+                    className="px-3 py-1 bg-info-light text-info-dark rounded-lg text-sm flex items-center gap-2"
                   >
                     {tag}
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
-                      className="text-blue-700 hover:text-blue-900"
+                      className="text-info-dark hover:text-info"
                     >
                       ×
                     </button>
@@ -1259,11 +1259,11 @@ function QuestionModal({
           </div>
 
           {/* 버튼 */}
-          <div className="flex justify-end gap-4 pt-4 border-t">
+          <div className="flex justify-end gap-4 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              className="px-6 py-2 border border-border text-text-primary rounded-lg hover:bg-surface-hover"
             >
               취소
             </button>
@@ -1316,12 +1316,12 @@ function QuestionUsageModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">{t("admin.questionManagement.usageTracking.modalTitle")}</h2>
+      <div className="bg-surface rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-surface border-b border-border p-6 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-text-primary">{t("admin.questionManagement.usageTracking.modalTitle")}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            className="text-text-muted hover:text-text-primary text-2xl font-bold"
           >
             ×
           </button>
@@ -1335,15 +1335,15 @@ function QuestionUsageModal({
           ) : trace ? (
             <div className="space-y-6">
               {/* 문제 정보 */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t("admin.questionManagement.usageTracking.questionInfo")}</h3>
+              <div className="bg-surface-hover border border-border rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-text-primary mb-3">{t("admin.questionManagement.usageTracking.questionInfo")}</h3>
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-700">
+                  <div className="text-sm text-text-primary">
                     <span className="font-medium">{t("admin.questionManagement.usageTracking.content")}:</span> {trace.question.content.substring(0, 100)}
                     {trace.question.content.length > 100 && "..."}
                   </div>
                   <div className="flex items-center gap-4 text-sm">
-                    <span className="text-gray-600">
+                    <span className="text-text-secondary">
                       <span className="font-medium">{t("admin.questionManagement.usageTracking.type")}:</span>{" "}
                       {trace.question.questionType === "multiple_choice"
                         ? t("admin.questionManagement.multipleChoice")
@@ -1352,7 +1352,7 @@ function QuestionUsageModal({
                         : t("admin.questionManagement.subjective")}
                     </span>
                     {trace.question.difficulty && (
-                      <span className="text-gray-600">
+                      <span className="text-text-secondary">
                         <span className="font-medium">{t("admin.questionManagement.usageTracking.difficulty")}:</span>{" "}
                         {trace.question.difficulty === "easy"
                           ? t("admin.questionManagement.easy")
@@ -1362,7 +1362,7 @@ function QuestionUsageModal({
                       </span>
                     )}
                     {trace.question.questionBank && (
-                      <span className="text-gray-600">
+                      <span className="text-text-secondary">
                         <span className="font-medium">{t("admin.questionManagement.usageTracking.questionBank")}:</span> {trace.question.questionBank.name}
                       </span>
                     )}
@@ -1372,7 +1372,7 @@ function QuestionUsageModal({
                       {trace.question.tags.map((tag: string) => (
                         <span
                           key={tag}
-                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+                          className="px-2 py-1 text-xs bg-info-light text-info-dark rounded"
                         >
                           {tag}
                         </span>
@@ -1384,18 +1384,18 @@ function QuestionUsageModal({
 
               {/* 현재 사용 중인 시험 */}
               {trace.currentUsage && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-3">{t("admin.questionManagement.usageTracking.currentlyInUse")}</h3>
+                <div className="bg-info-light border border-info rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-info-dark mb-3">{t("admin.questionManagement.usageTracking.currentlyInUse")}</h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/admin/exams/${trace.currentUsage.exam.id}`}
-                        className="text-blue-700 hover:text-blue-900 font-semibold"
+                        className="text-info-dark hover:text-info font-semibold"
                       >
                         {trace.currentUsage.exam.title}
                       </Link>
                     </div>
-                    <div className="text-sm text-blue-700">
+                    <div className="text-sm text-info-dark">
                       {t("admin.questionManagement.usageTracking.section")}: {trace.currentUsage.section.title} - {t("admin.questionManagement.usageTracking.questionNumber", { number: trace.currentUsage.questionNumber })}
                     </div>
                   </div>
@@ -1404,7 +1404,7 @@ function QuestionUsageModal({
 
               {/* 사용 이력 */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                <h3 className="text-lg font-semibold text-text-primary mb-3">
                   {t("admin.questionManagement.usageTracking.usageHistory")} ({trace.totalUsages}{t("common.count") || "개"})
                 </h3>
                 {trace.usageHistory.length > 0 ? (
@@ -1412,28 +1412,28 @@ function QuestionUsageModal({
                     {trace.usageHistory.map((usage, index) => (
                       <div
                         key={index}
-                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
+                        className="border border-border rounded-lg p-4 hover:bg-surface-hover"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <Link
                                 href={`/admin/exams/${usage.exam.id}`}
-                                className="text-lg font-semibold text-gray-900 hover:text-blue-600"
+                                className="text-lg font-semibold text-text-primary hover:text-link"
                               >
                                 {usage.exam.title}
                               </Link>
-                              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                              <span className="px-2 py-1 text-xs bg-info-light text-info-dark rounded">
                                 {usage.exam.examType}
                               </span>
                               {usage.exam.status && (
                                 <span
                                   className={`px-2 py-1 text-xs rounded ${
                                     usage.exam.status === "published"
-                                      ? "bg-green-100 text-green-700"
+                                      ? "bg-success-light text-success-dark"
                                       : usage.exam.status === "draft"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-gray-100 text-gray-800"
+                                      ? "bg-warning-light text-warning-dark"
+                                      : "bg-surface-hover text-text-secondary"
                                   }`}
                                 >
                                   {usage.exam.status === "published"
@@ -1444,10 +1444,10 @@ function QuestionUsageModal({
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-gray-600 mb-1">
+                            <div className="text-sm text-text-secondary mb-1">
                               {t("admin.questionManagement.usageTracking.section")}: {usage.section.title} ({t("admin.questionManagement.usageTracking.order")}: {usage.section.order}) - {t("admin.questionManagement.usageTracking.questionNumber", { number: usage.questionNumber })}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-text-muted">
                               {t("admin.questionManagement.usageTracking.usedAt")}: {isMounted ? new Date(usage.usedAt).toLocaleString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US") : new Date(usage.usedAt).toISOString()}
                             </div>
                           </div>
@@ -1456,20 +1456,20 @@ function QuestionUsageModal({
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-text-muted">
                     {t("admin.questionManagement.usageTracking.noUsageHistory")}
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-text-muted">
               {t("admin.questionManagement.usageTracking.failedToLoad")}
             </div>
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
+        <div className="sticky bottom-0 bg-surface border-t border-border p-6 flex justify-end">
           <Button
             onClick={onClose}
             variant="outline"

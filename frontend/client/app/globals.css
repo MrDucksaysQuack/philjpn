@@ -460,6 +460,74 @@ html {
   color: var(--color-info, #3b82f6);
 }
 
+/* 상태 색상 - 밝은 배경 변형 (투명도 적용) */
+.bg-success-light {
+  background-color: rgba(var(--color-success-rgb, 16, 185, 129), 0.1);
+}
+
+.bg-error-light {
+  background-color: rgba(var(--color-error-rgb, 239, 68, 68), 0.1);
+}
+
+.bg-warning-light {
+  background-color: rgba(var(--color-warning-rgb, 245, 158, 11), 0.1);
+}
+
+.bg-info-light {
+  background-color: rgba(var(--color-info-rgb, 59, 130, 246), 0.1);
+}
+
+/* 상태 색상 - 진한 텍스트 변형 */
+.text-success-dark {
+  color: rgba(var(--color-success-rgb, 16, 185, 129), 0.9);
+}
+
+.text-error-dark {
+  color: rgba(var(--color-error-rgb, 239, 68, 68), 0.9);
+}
+
+.text-warning-dark {
+  color: rgba(var(--color-warning-rgb, 245, 158, 11), 0.9);
+}
+
+.text-info-dark {
+  color: rgba(var(--color-info-rgb, 59, 130, 246), 0.9);
+}
+
+/* 상태 색상 - 테두리 */
+.border-success {
+  border-color: var(--color-success, #10b981);
+}
+
+.border-error {
+  border-color: var(--color-error, #ef4444);
+}
+
+.border-warning {
+  border-color: var(--color-warning, #f59e0b);
+}
+
+.border-info {
+  border-color: var(--color-info, #3b82f6);
+}
+
+/* Primary 색상 변형 */
+.bg-primary-light {
+  background-color: rgba(var(--color-primary-rgb, 102, 126, 234), 0.1);
+}
+
+.text-primary-dark {
+  color: rgba(var(--color-primary-rgb, 102, 126, 234), 0.9);
+}
+
+.border-primary {
+  border-color: var(--color-primary, #667eea);
+}
+
+.hover\:bg-primary-light:hover {
+  background-color: rgba(var(--color-primary-rgb, 102, 126, 234), 0.15);
+}
+
 /* 버튼 색상 */
 .bg-button-primary {
   background-color: var(--color-button-primary, var(--color-primary, #667eea));
