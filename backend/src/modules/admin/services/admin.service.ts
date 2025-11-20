@@ -177,29 +177,34 @@ export class AdminService {
           totalAttempts,
           completedResults,
         ] = await Promise.all([
-          this.prisma.exam.count(),
+          this.prisma.exam.count().catch(() => 0),
           this.prisma.exam.count({
             where: { isActive: true },
-          }),
-          this.prisma.examResult.count(),
+          }).catch(() => 0),
+          this.prisma.examResult.count().catch(() => 0),
           this.prisma.examResult.count({
             where: { status: 'completed' },
-          }),
+          }).catch(() => 0),
         ]);
 
-        const averageScoreResult = await this.prisma.examResult.aggregate({
-          where: {
-            status: 'completed',
-            totalScore: { not: null },
-          },
-          _avg: {
-            totalScore: true,
-          },
-        });
+        let averageScore = 0;
+        try {
+          const averageScoreResult = await this.prisma.examResult.aggregate({
+            where: {
+              status: 'completed',
+              totalScore: { not: null },
+            },
+            _avg: {
+              totalScore: true,
+            },
+          });
 
-        const averageScore = averageScoreResult._avg.totalScore
-          ? Math.round(averageScoreResult._avg.totalScore)
-          : 0;
+          averageScore = averageScoreResult._avg.totalScore
+            ? Math.round(averageScoreResult._avg.totalScore)
+            : 0;
+        } catch (aggregateError: any) {
+          console.error('❌ aggregate 에러 (기본값 사용):', aggregateError?.message);
+        }
 
         const completionRate =
           totalAttempts > 0 ? (completedResults / totalAttempts) * 100 : 0;
@@ -217,8 +222,16 @@ export class AdminService {
         code: error?.code,
         message: error?.message,
         name: error?.name,
+        stack: error?.stack,
       });
-      throw error;
+      // 에러 발생 시 기본값 반환
+      return {
+        totalExams: 0,
+        activeExams: 0,
+        totalAttempts: 0,
+        averageScore: 0,
+        completionRate: 0,
+      };
     }
   }
 
@@ -295,13 +308,13 @@ export class AdminService {
       return await this.prisma.executeWithRetry(async () => {
         const [totalKeys, activeKeys, totalUsage, expiringKeys] =
           await Promise.all([
-            this.prisma.licenseKey.count(),
+            this.prisma.licenseKey.count().catch(() => 0),
             this.prisma.licenseKey.count({
               where: { isActive: true },
-            }),
+            }).catch(() => 0),
             this.prisma.keyUsageLog.count({
               where: { status: 'success' },
-            }),
+            }).catch(() => 0),
             this.prisma.licenseKey.count({
               where: {
                 isActive: true,
@@ -310,7 +323,7 @@ export class AdminService {
                   lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 이내
                 },
               },
-            }),
+            }).catch(() => 0),
           ]);
 
         return {
@@ -325,8 +338,15 @@ export class AdminService {
         code: error?.code,
         message: error?.message,
         name: error?.name,
+        stack: error?.stack,
       });
-      throw error;
+      // 에러 발생 시 기본값 반환
+      return {
+        totalKeys: 0,
+        activeKeys: 0,
+        totalUsage: 0,
+        expiringSoon: 0,
+      };
     }
   }
 
@@ -343,10 +363,10 @@ export class AdminService {
           totalAttempts,
           recentResults,
         ] = await Promise.all([
-          this.prisma.user.count(),
-          this.prisma.user.count({ where: { isActive: true } }),
-          this.prisma.exam.count({ where: { isActive: true } }),
-          this.prisma.examResult.count(),
+          this.prisma.user.count().catch(() => 0),
+          this.prisma.user.count({ where: { isActive: true } }).catch(() => 0),
+          this.prisma.exam.count({ where: { isActive: true } }).catch(() => 0),
+          this.prisma.examResult.count().catch(() => 0),
           this.prisma.examResult.findMany({
             take: 10,
             orderBy: { startedAt: 'desc' },
@@ -365,23 +385,29 @@ export class AdminService {
                 },
               },
             },
-          }),
+          }).catch(() => []),
         ]);
 
         // 최근 7일간 일별 시험 응시 횟수
-        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        const dailyAttemptsRaw = await this.prisma.examResult.groupBy({
-          by: ['startedAt'],
-          where: {
-            startedAt: { gte: sevenDaysAgo },
-          },
-          _count: true,
-        });
+        let dailyAttempts: any[] = [];
+        try {
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+          const dailyAttemptsRaw = await this.prisma.examResult.groupBy({
+            by: ['startedAt'],
+            where: {
+              startedAt: { gte: sevenDaysAgo },
+            },
+            _count: true,
+          });
 
-        const dailyAttempts = dailyAttemptsRaw.map((item) => ({
-          date: item.startedAt.toISOString().split('T')[0],
-          count: item._count,
-        }));
+          dailyAttempts = dailyAttemptsRaw.map((item) => ({
+            date: item.startedAt.toISOString().split('T')[0],
+            count: item._count,
+          }));
+        } catch (groupByError: any) {
+          console.error('❌ groupBy 에러 (기본값 반환):', groupByError?.message);
+          // groupBy 실패 시 빈 배열 반환
+        }
 
         return {
           summary: {
@@ -408,8 +434,21 @@ export class AdminService {
         code: error?.code,
         message: error?.message,
         name: error?.name,
+        stack: error?.stack,
       });
-      throw error;
+      // 에러 발생 시 기본값 반환
+      return {
+        summary: {
+          totalUsers: 0,
+          activeUsers: 0,
+          totalExams: 0,
+          totalAttempts: 0,
+        },
+        recentActivity: [],
+        chartData: {
+          dailyAttempts: [],
+        },
+      };
     }
   }
 
