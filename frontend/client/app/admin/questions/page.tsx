@@ -35,7 +35,13 @@ export default function AdminQuestionsPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
+  const [isMounted, setIsMounted] = useState(false);
   const [search, setSearch] = useState("");
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
   const [examFilter, setExamFilter] = useState<string>("");
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
@@ -281,13 +287,13 @@ export default function AdminQuestionsPage() {
                       {question.lastUsedAt && (
                         <span className="flex items-center gap-1">
                           <span className="font-medium">마지막 사용:</span>
-                          <span>{new Date(question.lastUsedAt).toLocaleDateString('ko-KR')}</span>
+                          <span>{isMounted ? new Date(question.lastUsedAt).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US") : new Date(question.lastUsedAt).toISOString().split('T')[0]}</span>
                         </span>
                       )}
                       {question.createdAt && (
                         <span className="flex items-center gap-1">
                           <span className="font-medium">생성일:</span>
-                          <span>{new Date(question.createdAt).toLocaleDateString('ko-KR')}</span>
+                          <span>{isMounted ? new Date(question.createdAt).toLocaleDateString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US") : new Date(question.createdAt).toISOString().split('T')[0]}</span>
                         </span>
                       )}
                     </div>
@@ -527,7 +533,14 @@ function QuestionStatisticsModal({
   questionId: string;
   onClose: () => void;
 }) {
+  const { locale } = useLocaleStore();
+  const [isMounted, setIsMounted] = useState(false);
   const queryClient = useQueryClient();
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const { data: statisticsResponse, isLoading } = useQuery({
     queryKey: ["question-statistics", questionId],
     queryFn: async () => {
@@ -661,7 +674,7 @@ function QuestionStatisticsModal({
               {statistics.lastCalculatedAt && (
                 <div className="text-sm text-text-muted text-center">
                   마지막 계산:{" "}
-                  {new Date(statistics.lastCalculatedAt).toLocaleString("ko-KR")}
+                  {isMounted ? new Date(statistics.lastCalculatedAt).toLocaleString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US") : new Date(statistics.lastCalculatedAt).toISOString()}
                 </div>
               )}
             </div>
@@ -1355,7 +1368,19 @@ function QuestionUsageModal({
 }) {
   const { locale } = useLocaleStore();
   const { t } = useTranslation(locale);
+  const [isMounted, setIsMounted] = useState(false);
   const { data: usageResponse, isLoading } = useQuery({
+    queryKey: ["question-usage", questionId],
+    queryFn: async () => {
+      const response = await adminAPI.getQuestionUsage(questionId);
+      return response.data;
+    },
+  });
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
     queryKey: ["question-usage", questionId],
     queryFn: async () => {
       const response = await adminAPI.getQuestionUsage(questionId);
@@ -1499,7 +1524,7 @@ function QuestionUsageModal({
                               {t("admin.questionManagement.usageTracking.section")}: {usage.section.title} ({t("admin.questionManagement.usageTracking.order")}: {usage.section.order}) - {t("admin.questionManagement.usageTracking.questionNumber", { number: usage.questionNumber })}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {t("admin.questionManagement.usageTracking.usedAt")}: {new Date(usage.usedAt).toLocaleString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US")}
+                              {t("admin.questionManagement.usageTracking.usedAt")}: {isMounted ? new Date(usage.usedAt).toLocaleString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US") : new Date(usage.usedAt).toISOString()}
                             </div>
                           </div>
                         </div>

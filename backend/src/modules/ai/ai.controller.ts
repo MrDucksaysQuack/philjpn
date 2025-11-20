@@ -105,9 +105,19 @@ export class AIController {
   @ApiOperation({ summary: '큐 통계 조회' })
   @ApiResponse({ status: 200, description: '큐 통계 조회 성공' })
   @ApiResponse({ status: 500, description: '서버 오류' })
-  async getQueueStats() {
+  async getQueueStats(@Req() request: Request, @Res() response: Response) {
+    // CORS 헤더 설정
+    const origin = request.headers.origin;
+    if (origin) {
+      response.setHeader('Access-Control-Allow-Origin', origin);
+      response.setHeader('Access-Control-Allow-Credentials', 'true');
+      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
+    }
+    
     try {
-      return await this.aiQueueService.getQueueStats();
+      const stats = await this.aiQueueService.getQueueStats();
+      return response.status(200).json(stats);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: string })?.code;
@@ -130,14 +140,14 @@ export class AIController {
       );
       
       // 큐가 초기화되지 않은 경우 기본값 반환
-      return {
+      return response.status(200).json({
         waiting: 0,
         active: 0,
         completed: 0,
         failed: 0,
         delayed: 0,
         total: 0,
-      };
+      });
     }
   }
 
