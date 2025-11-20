@@ -183,7 +183,7 @@ export default function BatchManagementPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">전체 배치</div>
-              <div className="text-2xl font-bold">{dashboard.recentBatches?.length || 0}</div>
+              <div className="text-2xl font-bold">{Array.isArray(dashboard.recentBatches) ? dashboard.recentBatches.length : 0}</div>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-sm text-gray-500">전체 키</div>
