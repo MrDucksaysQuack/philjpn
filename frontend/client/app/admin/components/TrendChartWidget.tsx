@@ -23,14 +23,7 @@ export default function TrendChartWidget() {
     setIsMounted(true);
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <LoadingSpinner message="트렌드 데이터를 불러오는 중..." />
-      </div>
-    );
-  }
-
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
   // 클라이언트에서만 날짜 계산 (hydration mismatch 방지)
   const { dailyAttempts, dailyScores } = useMemo(() => {
     if (!isMounted) {
@@ -97,6 +90,15 @@ export default function TrendChartWidget() {
 
     return { dailyAttempts: attempts, dailyScores: scores };
   }, [isMounted, examResults]);
+
+  // Early return은 모든 hooks 호출 후에 수행
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <LoadingSpinner message="트렌드 데이터를 불러오는 중..." />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
