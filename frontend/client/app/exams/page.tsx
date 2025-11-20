@@ -457,6 +457,9 @@ function ExamsPageContent() {
 }
 
 export default function ExamsPage() {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+
   return (
     <Suspense fallback={
       <>
