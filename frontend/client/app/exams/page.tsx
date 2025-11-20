@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
@@ -68,8 +68,9 @@ function ExamsPageContent() {
     },
   });
 
-  // 카테고리 선택 핸들러
-  const handleCategorySelect = (catId: string | null) => {
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
+  // 카테고리 선택 핸들러를 useCallback으로 메모이제이션
+  const handleCategorySelect = useCallback((catId: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
     if (catId) {
       params.set("categoryId", catId);
@@ -79,10 +80,10 @@ function ExamsPageContent() {
       params.delete("subcategoryId");
     }
     router.push(`/exams?${params.toString()}`);
-  };
+  }, [searchParams, router]);
 
-  // 서브카테고리 선택 핸들러
-  const handleSubcategorySelect = (subId: string | null) => {
+  // 서브카테고리 선택 핸들러를 useCallback으로 메모이제이션
+  const handleSubcategorySelect = useCallback((subId: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
     if (subId) {
       params.set("subcategoryId", subId);
@@ -90,9 +91,10 @@ function ExamsPageContent() {
       params.delete("subcategoryId");
     }
     router.push(`/exams?${params.toString()}`);
-  };
+  }, [searchParams, router]);
 
-  // 필터링된 시험 목록 (컴포넌트 최상위에서 useMemo 호출)
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
+  // 필터링된 시험 목록을 useMemo로 메모이제이션
   const filteredData = useMemo(() => {
     if (!data) return [];
     
@@ -133,6 +135,7 @@ function ExamsPageContent() {
     });
   }, [data, filters]);
 
+  // Early return은 모든 hooks 호출 후에 수행
   if (isLoading) {
     return (
       <>

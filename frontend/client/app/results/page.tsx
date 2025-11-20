@@ -31,6 +31,50 @@ export default function ResultsPage() {
     enabled: !!user,
   });
 
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
+  // 필터링된 결과를 useMemo로 메모이제이션
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    
+    return data.filter((result: ExamResult) => {
+      // 검색 필터
+      if (filters.search && !result.id.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
+      
+      // 상태 필터
+      if (filters.status && result.status !== filters.status) {
+        return false;
+      }
+      
+      // 날짜 필터
+      const startedDate = new Date(result.startedAt);
+      if (filters.dateFrom && startedDate < new Date(filters.dateFrom)) {
+        return false;
+      }
+      if (filters.dateTo) {
+        const toDate = new Date(filters.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (startedDate > toDate) {
+          return false;
+        }
+      }
+      
+      // 점수 필터
+      if (result.totalScore !== null && result.totalScore !== undefined) {
+        if (filters.minScore && result.totalScore < parseFloat(filters.minScore)) {
+          return false;
+        }
+        if (filters.maxScore && result.totalScore > parseFloat(filters.maxScore)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [data, filters]);
+
+  // Early return은 모든 hooks 호출 후에 수행
   if (authLoading) {
     return (
       <>
@@ -84,48 +128,6 @@ export default function ResultsPage() {
       </>
     );
   }
-
-  // 필터링된 결과 (컴포넌트 최상위에서 useMemo 호출)
-  const filteredData = useMemo(() => {
-    if (!data) return [];
-    
-    return data.filter((result: ExamResult) => {
-      // 검색 필터
-      if (filters.search && !result.id.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
-      }
-      
-      // 상태 필터
-      if (filters.status && result.status !== filters.status) {
-        return false;
-      }
-      
-      // 날짜 필터
-      const startedDate = new Date(result.startedAt);
-      if (filters.dateFrom && startedDate < new Date(filters.dateFrom)) {
-        return false;
-      }
-      if (filters.dateTo) {
-        const toDate = new Date(filters.dateTo);
-        toDate.setHours(23, 59, 59, 999);
-        if (startedDate > toDate) {
-          return false;
-        }
-      }
-      
-      // 점수 필터
-      if (result.totalScore !== null && result.totalScore !== undefined) {
-        if (filters.minScore && result.totalScore < parseFloat(filters.minScore)) {
-          return false;
-        }
-        if (filters.maxScore && result.totalScore > parseFloat(filters.maxScore)) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-  }, [data, filters]);
 
   return (
     <>

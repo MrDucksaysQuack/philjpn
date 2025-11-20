@@ -24,57 +24,57 @@ export class WordBookService {
    */
   async findAll(userId: string, query: WordBookQueryDto) {
     try {
-      const { page = 1, limit = 10, difficulty, tags, masteryLevel } = query;
-      const skip = (page - 1) * limit;
+    const { page = 1, limit = 10, difficulty, tags, masteryLevel } = query;
+    const skip = (page - 1) * limit;
 
-      const where: any = {
-        userId,
+    const where: any = {
+      userId,
+    };
+
+    if (difficulty) where.difficulty = difficulty;
+    if (tags && tags.length > 0) {
+      where.tags = {
+        hasSome: tags,
       };
-
-      if (difficulty) where.difficulty = difficulty;
-      if (tags && tags.length > 0) {
-        where.tags = {
-          hasSome: tags,
-        };
-      }
-      if (masteryLevel !== undefined) {
-        where.masteryLevel = {
-          gte: masteryLevel,
-        };
-      }
-
-      const [data, total] = await Promise.all([
-        this.prisma.wordBook.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-        }),
-        this.prisma.wordBook.count({ where }),
-      ]);
-
-      return {
-        data: data.map((word) => ({
-          id: word.id,
-          word: word.word,
-          meaning: word.meaning,
-          example: word.example,
-          difficulty: word.difficulty,
-          masteryLevel: word.masteryLevel,
-          reviewCount: word.reviewCount,
-          nextReviewAt: word.nextReviewAt,
-          tags: word.tags,
-          source: word.source,
-          sourceId: word.sourceId,
-          createdAt: word.createdAt,
-        })),
-        meta: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
+    }
+    if (masteryLevel !== undefined) {
+      where.masteryLevel = {
+        gte: masteryLevel,
       };
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.wordBook.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.wordBook.count({ where }),
+    ]);
+
+    return {
+      data: data.map((word) => ({
+        id: word.id,
+        word: word.word,
+        meaning: word.meaning,
+        example: word.example,
+        difficulty: word.difficulty,
+        masteryLevel: word.masteryLevel,
+        reviewCount: word.reviewCount,
+        nextReviewAt: word.nextReviewAt,
+        tags: word.tags,
+        source: word.source,
+        sourceId: word.sourceId,
+        createdAt: word.createdAt,
+      })),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: string })?.code;

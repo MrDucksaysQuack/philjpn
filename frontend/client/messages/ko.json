@@ -154,7 +154,13 @@
       "challenge": "도전",
       "appropriate": "적정",
       "easy": "완화",
-      "viewAllExams": "전체 시험 목록 보기"
+      "viewAllExams": "전체 시험 목록 보기",
+      "matchScore": "적합도",
+      "errorLoading": "추천 시험을 불러오는 중 오류가 발생했습니다",
+      "retry": "다시 시도",
+      "noLearningPath": "학습 경로 정보가 없습니다",
+      "examNumber": "시험 번호",
+      "startExam": "시험 시작"
     },
     "take": {
       "abilityEstimate": "능력 추정",

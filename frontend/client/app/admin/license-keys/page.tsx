@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/common/Button";
 import {
@@ -220,12 +220,9 @@ export default function AdminLicenseKeysPage() {
     });
   }, [data, filters]);
 
-  // SSR 중에는 로딩 표시
-  if (typeof window === 'undefined' || !user || user.role !== "admin") {
-    return null;
-  }
-
-  const handleCreate = () => {
+  // ⚠️ 중요: 모든 hooks와 핸들러 함수는 early return 전에 호출되어야 함 (React Hooks 규칙)
+  // 핸들러 함수들을 useCallback으로 메모이제이션
+  const handleCreate = useCallback(() => {
     const payload: CreateLicenseKeyPayload = {
       keyType: newKey.keyType,
       examIds: newKey.examIds,
@@ -235,9 +232,9 @@ export default function AdminLicenseKeysPage() {
     if (newKey.validFrom) payload.validFrom = newKey.validFrom;
     if (newKey.validUntil) payload.validUntil = newKey.validUntil;
     createMutation.mutate(payload);
-  };
+  }, [newKey, createMutation]);
 
-  const validateBatchForm = (): boolean => {
+  const validateBatchForm = useCallback((): boolean => {
     const newErrors: typeof errors = {};
     
     if (!newBatch.name.trim()) {
@@ -250,9 +247,9 @@ export default function AdminLicenseKeysPage() {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [newBatch, setErrors]);
 
-  const handleCreateBatch = () => {
+  const handleCreateBatch = useCallback(() => {
     if (!validateBatchForm()) {
       return;
     }
@@ -271,16 +268,16 @@ export default function AdminLicenseKeysPage() {
     if (typeof window !== 'undefined' && confirm(`${newBatch.count}개의 라이선스 키를 생성하시겠습니까?`)) {
       createBatchMutation.mutate(payload);
     }
-  };
+  }, [newBatch, validateBatchForm, createBatchMutation]);
 
-  const toggleKeyStatus = (key: LicenseKey) => {
+  const toggleKeyStatus = useCallback((key: LicenseKey) => {
     updateMutation.mutate({
       id: key.id,
       data: { isActive: !key.isActive },
     });
-  };
+  }, [updateMutation]);
 
-  const toggleKeySelection = (keyId: string) => {
+  const toggleKeySelection = useCallback((keyId: string) => {
     setSelectedKeys((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(keyId)) {
@@ -290,18 +287,18 @@ export default function AdminLicenseKeysPage() {
       }
       return newSet;
     });
-  };
+  }, [setSelectedKeys]);
 
-  const selectAllKeys = () => {
+  const selectAllKeys = useCallback(() => {
     if (filteredData.length === 0) return;
     if (selectedKeys.size === filteredData.length) {
       setSelectedKeys(new Set());
     } else {
       setSelectedKeys(new Set(filteredData.map((key: LicenseKey) => key.id)));
     }
-  };
+  }, [filteredData, selectedKeys, setSelectedKeys]);
 
-  const handleBulkActivate = () => {
+  const handleBulkActivate = useCallback(() => {
     if (selectedKeys.size === 0) return;
     if (typeof window !== 'undefined' && confirm(`${selectedKeys.size}개의 키를 활성화하시겠습니까?`)) {
       Array.from(selectedKeys).forEach((keyId) => {
@@ -315,9 +312,9 @@ export default function AdminLicenseKeysPage() {
       });
       setSelectedKeys(new Set());
     }
-  };
+  }, [selectedKeys, data?.data, updateMutation, setSelectedKeys]);
 
-  const handleBulkDeactivate = () => {
+  const handleBulkDeactivate = useCallback(() => {
     if (selectedKeys.size === 0) return;
     if (typeof window !== 'undefined' && confirm(`${selectedKeys.size}개의 키를 비활성화하시겠습니까?`)) {
       Array.from(selectedKeys).forEach((keyId) => {
@@ -331,7 +328,12 @@ export default function AdminLicenseKeysPage() {
       });
       setSelectedKeys(new Set());
     }
-  };
+  }, [selectedKeys, data?.data, updateMutation, setSelectedKeys]);
+
+  // Early return은 모든 hooks 호출 후에 수행
+  if (typeof window === 'undefined' || !user || user.role !== "admin") {
+    return null;
+  }
 
   return (
     <>

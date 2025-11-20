@@ -154,7 +154,13 @@
       "challenge": "Challenge",
       "appropriate": "Appropriate",
       "easy": "Easy",
-      "viewAllExams": "View All Exams"
+      "viewAllExams": "View All Exams",
+      "matchScore": "Match Score",
+      "errorLoading": "An error occurred while loading recommended exams",
+      "retry": "Retry",
+      "noLearningPath": "No learning path information available",
+      "examNumber": "Exam #",
+      "startExam": "Start Exam"
     },
     "take": {
       "abilityEstimate": "Ability Estimate",

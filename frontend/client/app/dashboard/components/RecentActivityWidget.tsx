@@ -19,10 +19,7 @@ export default function RecentActivityWidget() {
     enabled: !!user,
   });
 
-  if (isLoading) {
-    return <LoadingSkeleton type="card" />;
-  }
-
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
   // recentResults와 계산된 값들을 useMemo로 메모이제이션
   const processedResults = useMemo(() => {
     const recentResults = (data || []).slice(0, 3);
@@ -60,6 +57,11 @@ export default function RecentActivityWidget() {
   }, [data]);
 
   const recentResults = processedResults;
+
+  // Early return은 모든 hooks 호출 후에 수행
+  if (isLoading) {
+    return <LoadingSkeleton type="card" />;
+  }
 
   return (
     <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">

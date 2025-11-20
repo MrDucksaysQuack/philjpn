@@ -154,7 +154,13 @@
       "challenge": "挑戦",
       "appropriate": "適切",
       "easy": "緩和",
-      "viewAllExams": "すべての試験一覧を見る"
+      "viewAllExams": "すべての試験一覧を見る",
+      "matchScore": "適合度",
+      "errorLoading": "推奨試験の読み込み中にエラーが発生しました",
+      "retry": "再試行",
+      "noLearningPath": "学習パス情報がありません",
+      "examNumber": "試験番号",
+      "startExam": "試験開始"
     },
     "take": {
       "abilityEstimate": "能力推定",
