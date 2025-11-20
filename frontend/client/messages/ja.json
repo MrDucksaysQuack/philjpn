@@ -912,6 +912,11 @@
     "examCategories": "試験カテゴリー",
     "allExams": "すべての試験",
     "language": "言語選択",
+    "localeLabels": {
+      "ko": "한국어",
+      "en": "English",
+      "ja": "日本語"
+    },
     "nameSuffix": "さん",
     "defaultCompanyName": "Exam Platform",
     "navigateToCategory": "カテゴリーへ移動",

@@ -771,6 +771,11 @@
     "examCategories": "시험 카테고리",
     "allExams": "전체 시험 목록",
     "language": "언어 선택",
+    "localeLabels": {
+      "ko": "한국어",
+      "en": "English",
+      "ja": "日本語"
+    },
     "nameSuffix": "님",
     "defaultCompanyName": "Exam Platform",
     "navigateToCategory": "카테고리로 이동",

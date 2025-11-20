@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore, useLocaleStore, type Locale } from "@/lib/store";
@@ -92,11 +92,14 @@ export default function Header() {
     setIsLocaleMenuOpen(false);
   };
 
-  const localeLabels: Record<Locale, string> = {
-    ko: "한국어",
-    en: "English",
-    ja: "日本語",
-  };
+  const localeLabels: Record<Locale, string> = useMemo(
+    () => ({
+      ko: t("header.localeLabels.ko"),
+      en: t("header.localeLabels.en"),
+      ja: t("header.localeLabels.ja"),
+    }),
+    [t, locale]
+  );
 
   // 모바일 메뉴 열릴 때 body 스크롤 방지
   useEffect(() => {

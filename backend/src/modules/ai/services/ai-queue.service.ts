@@ -159,22 +159,46 @@ export class AIQueueService implements OnModuleInit {
    * 큐 통계 조회
    */
   async getQueueStats() {
-    const [waiting, active, completed, failed, delayed] = await Promise.all([
-      this.aiQueue.getWaitingCount(),
-      this.aiQueue.getActiveCount(),
-      this.aiQueue.getCompletedCount(),
-      this.aiQueue.getFailedCount(),
-      this.aiQueue.getDelayedCount(),
-    ]);
+    try {
+      if (!this.aiQueue) {
+        this.logger.warn('AI Queue가 초기화되지 않았습니다.');
+        return {
+          waiting: 0,
+          active: 0,
+          completed: 0,
+          failed: 0,
+          delayed: 0,
+          total: 0,
+        };
+      }
 
-    return {
-      waiting,
-      active,
-      completed,
-      failed,
-      delayed,
-      total: waiting + active + completed + failed + delayed,
-    };
+      const [waiting, active, completed, failed, delayed] = await Promise.all([
+        this.aiQueue.getWaitingCount().catch(() => 0),
+        this.aiQueue.getActiveCount().catch(() => 0),
+        this.aiQueue.getCompletedCount().catch(() => 0),
+        this.aiQueue.getFailedCount().catch(() => 0),
+        this.aiQueue.getDelayedCount().catch(() => 0),
+      ]);
+
+      return {
+        waiting,
+        active,
+        completed,
+        failed,
+        delayed,
+        total: waiting + active + completed + failed + delayed,
+      };
+    } catch (error) {
+      this.logger.error('❌ getQueueStats 에러:', error);
+      return {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+        delayed: 0,
+        total: 0,
+      };
+    }
   }
 }
 

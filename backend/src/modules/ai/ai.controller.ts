@@ -104,8 +104,23 @@ export class AIController {
   @Get('queue/stats')
   @ApiOperation({ summary: '큐 통계 조회' })
   @ApiResponse({ status: 200, description: '큐 통계 조회 성공' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   async getQueueStats() {
-    return await this.aiQueueService.getQueueStats();
+    try {
+      return await this.aiQueueService.getQueueStats();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ getQueueStats 에러:', errorMessage);
+      // 큐가 초기화되지 않은 경우 기본값 반환
+      return {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+        delayed: 0,
+        total: 0,
+      };
+    }
   }
 
   // ==================== 약점 진단 (동기) ====================
@@ -127,14 +142,24 @@ export class AIController {
   @Post('check-availability')
   @ApiOperation({ summary: 'AI 기능 활성화 확인' })
   @ApiResponse({ status: 200, description: 'AI 기능 상태' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @HttpCode(HttpStatus.OK)
   async checkAvailability() {
-    const isAvailable = this.aiAnalysisService.isAvailable();
-    return {
-      available: isAvailable,
-      message: isAvailable
-        ? 'AI 분석 기능이 활성화되어 있습니다.'
-        : 'AI 분석 기능이 비활성화되어 있습니다. OPENAI_API_KEY를 설정해주세요.',
-    };
+    try {
+      const isAvailable = this.aiAnalysisService.isAvailable();
+      return {
+        available: isAvailable,
+        message: isAvailable
+          ? 'AI 분석 기능이 활성화되어 있습니다.'
+          : 'AI 분석 기능이 비활성화되어 있습니다. OPENAI_API_KEY를 설정해주세요.',
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ checkAvailability 에러:', errorMessage);
+      return {
+        available: false,
+        message: 'AI 기능 상태를 확인할 수 없습니다.',
+      };
+    }
   }
 }
