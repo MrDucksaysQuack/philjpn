@@ -34,7 +34,12 @@ export default function ScoreTrendWidget() {
       return [];
     }
 
-    return (data || [])
+    // data가 배열이 아닌 경우 빈 배열 반환
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data
     .filter((result: any) => result.status === "completed" && result.totalScore !== null && result.maxScore !== null)
     .map((result: any) => {
       const percentage = result.percentage
@@ -150,27 +155,27 @@ export default function ScoreTrendWidget() {
         </LineChart>
       </ResponsiveContainer>
 
-      {chartData.length > 0 && (
+      {Array.isArray(chartData) && chartData.length > 0 && (
         <div className="mt-4 pt-4 border-t border-border">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-sm text-text-muted">최근 점수</div>
               <div className="text-lg font-semibold text-text-primary">
-                {chartData[chartData.length - 1].score}점
+                {chartData[chartData.length - 1]?.score || 0}점
               </div>
             </div>
             <div>
               <div className="text-sm text-text-muted">평균 점수</div>
               <div className="text-lg font-semibold text-text-primary">
                 {Math.round(
-                  chartData.reduce((sum, d) => sum + d.score, 0) / chartData.length
+                  chartData.reduce((sum, d) => sum + (d?.score || 0), 0) / chartData.length
                 )}점
               </div>
             </div>
             <div>
               <div className="text-sm text-text-muted">최고 점수</div>
               <div className="text-lg font-semibold text-success">
-                {Math.max(...chartData.map((d) => d.score))}점
+                {Math.max(...chartData.map((d) => d?.score || 0))}점
               </div>
             </div>
           </div>

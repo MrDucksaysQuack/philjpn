@@ -22,7 +22,17 @@ export default function RecentActivityWidget() {
   // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
   // recentResults와 계산된 값들을 useMemo로 메모이제이션
   const processedResults = useMemo(() => {
-    const recentResults = (data || []).slice(0, 3);
+    // data가 배열이 아닌 경우 빈 배열 반환
+    if (!Array.isArray(data)) {
+      return [];
+    }
+    
+    const recentResults = data.slice(0, 3);
+    
+    // recentResults가 배열이 아닌 경우 빈 배열 반환
+    if (!Array.isArray(recentResults)) {
+      return [];
+    }
     
     return recentResults.map((result: any, index: number) => {
       const percentage = result.percentage
@@ -70,7 +80,7 @@ export default function RecentActivityWidget() {
           <div className="w-1 h-8 bg-gradient-to-b from-success to-success rounded-full"></div>
           최근 학습 활동
         </h2>
-        {recentResults.length > 0 && (
+        {Array.isArray(recentResults) && recentResults.length > 0 && (
           <Link
             href="/results"
             className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
@@ -83,7 +93,7 @@ export default function RecentActivityWidget() {
         )}
       </div>
 
-      {recentResults.length > 0 ? (
+      {Array.isArray(recentResults) && recentResults.length > 0 ? (
         <div className="space-y-4">
           {recentResults.map((result: any) => {
             const { percentage, improvement } = result;

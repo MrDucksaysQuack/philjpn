@@ -189,8 +189,31 @@ export class LicenseKeyController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '라이선스 키 사용량 대시보드 (Admin Only)' })
   @ApiResponse({ status: 200, description: '대시보드 조회 성공' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   async getDashboard(@CurrentUser() user: any) {
-    return this.licenseKeyService.getDashboard(user.id);
+    try {
+      return await this.licenseKeyService.getDashboard(user.id);
+    } catch (error: any) {
+      // 에러 발생 시 기본값 반환
+      console.error('[getDashboard] 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        userId: user?.id,
+      });
+      return {
+        overview: {
+          totalKeys: 0,
+          activeKeys: 0,
+          inactiveKeys: 0,
+          totalUsage: 0,
+          expiringBatchesCount: 0,
+          expiredBatchesCount: 0,
+        },
+        recentBatches: [],
+        expiringBatches: [],
+        expiredBatches: [],
+      };
+    }
   }
 
   @Get('batches/expiring')

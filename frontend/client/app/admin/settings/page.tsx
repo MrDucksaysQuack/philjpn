@@ -32,7 +32,6 @@ export default function SiteSettingsPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const isInitialLoad = useRef(true);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: settingsResponse, isLoading } = useQuery({
     queryKey: ["admin-site-settings"],
@@ -208,44 +207,7 @@ export default function SiteSettingsPage() {
     },
   });
 
-  // 자동 저장 함수
-  const autoSave = useCallback(() => {
-    // 초기 로드 중이거나 이미 저장 중이면 스킵
-    if (isInitialLoad.current || isSaving) {
-      return;
-    }
-
-    setSavingStatus("saving");
-    setIsSaving(true);
-    
-    const cleanedData = cleanFormData(formData);
-    updateMutation.mutate(cleanedData);
-  }, [formData, isSaving, cleanFormData, updateMutation]);
-
-  // formData 변경 감지 및 자동 저장 (Debounce 3초)
-  useEffect(() => {
-    // 초기 로드 중이면 스킵
-    if (isInitialLoad.current) {
-      return;
-    }
-
-    // 기존 타이머 취소
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // 3초 후 자동 저장
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      autoSave();
-    }, 3000);
-
-    // cleanup
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [formData, autoSave]);
+  // 자동 저장 기능 제거됨 - 저장 버튼을 눌러야만 저장됩니다
 
   const analyzeColorsMutation = useMutation({
     mutationFn: async (logoUrl: string) => {
@@ -324,10 +286,6 @@ export default function SiteSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 자동 저장 타이머 취소
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
     setIsSaving(true);
     setSavingStatus("saving");
     
@@ -2188,7 +2146,10 @@ export default function SiteSettingsPage() {
             {/* 저장 버튼 */}
             <div className="mt-8 flex justify-between items-center">
               <div className="text-sm text-gray-500">
-                💡 변경 사항은 3초 후 자동으로 저장됩니다
+                {savingStatus === "saving" && "💾 저장 중..."}
+                {savingStatus === "saved" && "✅ 저장되었습니다"}
+                {savingStatus === "error" && "❌ 저장 중 오류가 발생했습니다"}
+                {savingStatus === "idle" && "💡 저장 버튼을 눌러 변경 사항을 저장하세요"}
               </div>
               <div className="flex gap-4">
               <Link

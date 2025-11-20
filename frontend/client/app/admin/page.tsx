@@ -262,6 +262,11 @@ export default function AdminDashboardPage() {
       return ALL_MENU_GROUPS;
     }
     
+    // groupOrder가 배열이 아닌 경우 기본 순서 사용
+    if (!Array.isArray(groupOrder)) {
+      return ALL_MENU_GROUPS;
+    }
+    
     const groupMap = new Map(ALL_MENU_GROUPS.map((g) => [g.id, g]));
     const orderedGroups: typeof ALL_MENU_GROUPS = [];
     
@@ -279,7 +284,8 @@ export default function AdminDashboardPage() {
       orderedGroups.push(group);
     });
     
-    return orderedGroups;
+    // 배열이 아닌 경우 기본 순서 반환
+    return Array.isArray(orderedGroups) ? orderedGroups : ALL_MENU_GROUPS;
   }, [isMounted, groupOrder]); // isMounted를 의존성에 추가하여 클라이언트에서만 실행
 
   // 즐겨찾기 메뉴 추출
@@ -741,10 +747,10 @@ export default function AdminDashboardPage() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={groupOrder}
+              items={Array.isArray(groupOrder) ? groupOrder : []}
               strategy={verticalListSortingStrategy}
             >
-              {menuGroups.map((group) => {
+              {Array.isArray(menuGroups) ? menuGroups.map((group) => {
                 const groupIdMap: Record<string, string> = {
                   content: "content-group",
                   users: "users-group",
@@ -766,7 +772,7 @@ export default function AdminDashboardPage() {
                     addRecentMenu={addRecentMenu}
                   />
                 );
-              })}
+              }) : null}
             </SortableContext>
           </DndContext>
         </div>

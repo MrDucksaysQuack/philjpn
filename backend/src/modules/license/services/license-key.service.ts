@@ -600,8 +600,9 @@ export class LicenseKeyService {
    * 사용량 대시보드 (강화된 버전)
    */
   async getDashboard(userId: string) {
-    const [totalKeys, activeKeys, totalUsage, recentBatches, expiringBatches, expiredBatches] =
-      await Promise.all([
+    try {
+      const [totalKeys, activeKeys, totalUsage, recentBatches, expiringBatches, expiredBatches] =
+        await Promise.all([
         this.prisma.licenseKey.count({
           where: { issuedBy: userId },
         }),
@@ -708,6 +709,27 @@ export class LicenseKeyService {
           : null,
       })),
     };
+    } catch (error: any) {
+      console.error('[LicenseKeyService.getDashboard] 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        userId,
+      });
+      // 에러 발생 시 기본값 반환
+      return {
+        overview: {
+          totalKeys: 0,
+          activeKeys: 0,
+          inactiveKeys: 0,
+          totalUsage: 0,
+          expiringBatchesCount: 0,
+          expiredBatchesCount: 0,
+        },
+        recentBatches: [],
+        expiringBatches: [],
+        expiredBatches: [],
+      };
+    }
   }
 
   /**

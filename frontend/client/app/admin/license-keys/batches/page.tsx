@@ -25,13 +25,35 @@ export default function BatchManagementPage() {
   const [showPredictionModal, setShowPredictionModal] = useState(false);
 
   // 대시보드 데이터 (배치 목록 포함)
-  const { data: dashboard, isLoading: dashboardLoading } = useQuery<LicenseKeyDashboard>({
+  const { data: dashboard, isLoading: dashboardLoading, error: dashboardError } = useQuery<LicenseKeyDashboard>({
     queryKey: ["license-key-dashboard"],
     queryFn: async () => {
-      const response = await licenseKeyAPI.getDashboard();
-      return (response.data as unknown) as LicenseKeyDashboard;
+      try {
+        const response = await licenseKeyAPI.getDashboard();
+        return (response.data as unknown) as LicenseKeyDashboard;
+      } catch (error: any) {
+        // 404 에러인 경우 기본값 반환
+        if (error?.response?.status === 404) {
+          console.warn("License key dashboard endpoint not found, returning default values");
+          return {
+            overview: {
+              totalKeys: 0,
+              activeKeys: 0,
+              inactiveKeys: 0,
+              totalUsage: 0,
+              expiringBatchesCount: 0,
+              expiredBatchesCount: 0,
+            },
+            recentBatches: [],
+            expiringBatches: [],
+            expiredBatches: [],
+          } as LicenseKeyDashboard;
+        }
+        throw error;
+      }
     },
     enabled: user?.role === "admin",
+    retry: false, // 404 에러는 재시도하지 않음
   });
 
   // 만료 예정 배치
