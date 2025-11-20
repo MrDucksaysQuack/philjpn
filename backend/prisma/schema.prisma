@@ -161,9 +161,9 @@ model Section {
 
 model Question {
   id                String              @id @default(uuid())
-  sectionId         String
+  sectionId         String? // ✅ 선택적 필드로 변경: 독립적인 Question 생성 허용
   questionBankId    String?
-  questionNumber    Int
+  questionNumber    Int                 @default(1) // 독립적인 Question의 경우 기본값
   questionType      QuestionType
   content           String
   options           Json?
@@ -181,7 +181,7 @@ model Question {
   updatedAt         DateTime            @updatedAt
   questionResults   QuestionResult[]
   questionBank      QuestionBank?       @relation(fields: [questionBankId], references: [id])
-  section           Section             @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section           Section?            @relation(fields: [sectionId], references: [id], onDelete: Cascade) // ✅ 선택적 관계
   adaptiveQuestions AdaptiveQuestion[]
   statistics        QuestionStatistics?
 

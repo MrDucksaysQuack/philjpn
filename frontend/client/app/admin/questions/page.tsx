@@ -49,9 +49,7 @@ export default function AdminQuestionsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
-  const [showSectionSelectModal, setShowSectionSelectModal] = useState(false);
-  const [selectedExamId, setSelectedExamId] = useState<string>("");
-  const [selectedSectionId, setSelectedSectionId] = useState<string>("");
+  const [selectedQuestionBankId, setSelectedQuestionBankId] = useState<string>("");
   const [showStatisticsModal, setShowStatisticsModal] = useState(false);
   const [statisticsQuestionId, setStatisticsQuestionId] = useState<string | null>(null);
   const [showUsageModal, setShowUsageModal] = useState(false);
@@ -87,18 +85,19 @@ export default function AdminQuestionsPage() {
   const questions = questionsResponse?.data || [];
   const exams = examsResponse?.data || [];
 
-  // 선택한 시험의 섹션 목록 조회
-  const { data: sectionsResponse } = useQuery({
-    queryKey: ["exam-sections", selectedExamId],
+  // 문제 은행 목록 조회 (Question 생성 시 선택용)
+  const { data: questionBanksResponse } = useQuery({
+    queryKey: ["admin-question-banks"],
     queryFn: async () => {
-      if (!selectedExamId) return null;
-      const response = await examAPI.getExamSections(selectedExamId);
+      const response = await adminAPI.getQuestionBanks({
+        includeQuestions: false,
+      });
       return response.data;
     },
-    enabled: !!selectedExamId && user?.role === "admin",
+    enabled: user?.role === "admin",
   });
 
-  const sections = sectionsResponse || [];
+  const questionBanks = questionBanksResponse?.data || [];
 
   // 문제 삭제 Mutation
   const deleteMutation = useMutation({
@@ -165,7 +164,7 @@ export default function AdminQuestionsPage() {
               </Button>
             )}
             <Button
-              onClick={() => setShowSectionSelectModal(true)}
+              onClick={() => setShowCreateModal(true)}
               size="sm"
             >
               + {t("admin.questionManagement.createNew")}
@@ -394,44 +393,17 @@ export default function AdminQuestionsPage() {
           </div>
         </div>
 
-        {/* 시험/섹션 선택 모달 */}
-        {showSectionSelectModal && (
-          <SectionSelectModal
-            exams={exams}
-            sections={sections}
-            selectedExamId={selectedExamId}
-            selectedSectionId={selectedSectionId}
-            onExamChange={setSelectedExamId}
-            onSectionChange={setSelectedSectionId}
-            onConfirm={() => {
-              if (selectedSectionId) {
-                setShowSectionSelectModal(false);
-                setShowCreateModal(true);
-              } else {
-                toast.error("섹션을 선택해주세요.");
-              }
-            }}
-            onClose={() => {
-              setShowSectionSelectModal(false);
-              setSelectedExamId("");
-              setSelectedSectionId("");
-            }}
-          />
-        )}
-
-        {/* 문제 생성 모달 */}
-        {showCreateModal && selectedSectionId && (
+        {/* 문제 생성 모달 (독립적인 생성) */}
+        {showCreateModal && !selectedQuestion && (
           <QuestionModal
-            sectionId={selectedSectionId}
+            questionBankId={selectedQuestionBankId || undefined}
             onClose={() => {
               setShowCreateModal(false);
-              setSelectedSectionId("");
-              setSelectedExamId("");
+              setSelectedQuestionBankId("");
             }}
             onSuccess={() => {
               setShowCreateModal(false);
-              setSelectedSectionId("");
-              setSelectedExamId("");
+              setSelectedQuestionBankId("");
               queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
             }}
           />
@@ -440,7 +412,6 @@ export default function AdminQuestionsPage() {
         {/* 문제 수정 모달 */}
         {showEditModal && selectedQuestion && (
           <QuestionModal
-            sectionId={selectedQuestion.sectionId}
             question={selectedQuestion}
             onClose={() => {
               setShowEditModal(false);
@@ -875,108 +846,35 @@ function QuestionPreviewModal({
   );
 }
 
-// 시험/섹션 선택 모달
-function SectionSelectModal({
-  exams,
-  sections,
-  selectedExamId,
-  selectedSectionId,
-  onExamChange,
-  onSectionChange,
-  onConfirm,
-  onClose,
-}: {
-  exams: any[];
-  sections: Section[];
-  selectedExamId: string;
-  selectedSectionId: string;
-  onExamChange: (examId: string) => void;
-  onSectionChange: (sectionId: string) => void;
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-md w-full m-4">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">시험 및 섹션 선택</h2>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              시험 선택 *
-            </label>
-            <select
-              value={selectedExamId}
-              onChange={(e) => {
-                onExamChange(e.target.value);
-                onSectionChange(""); // 시험 변경 시 섹션 초기화
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">시험을 선택하세요</option>
-              {exams.map((exam) => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          {selectedExamId && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                섹션 선택 *
-              </label>
-              {sections.length === 0 ? (
-                <p className="text-sm text-gray-500 py-2">로딩 중...</p>
-              ) : (
-                <select
-                  value={selectedSectionId}
-                  onChange={(e) => onSectionChange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">섹션을 선택하세요</option>
-                  {sections.map((section) => (
-                    <option key={section.id} value={section.id}>
-                      {section.title}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="flex justify-end gap-4 p-6 border-t">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-          >
-            취소
-          </button>
-          <Button
-            onClick={onConfirm}
-            disabled={!selectedSectionId}
-          >
-            확인
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // 문제 생성/수정 모달
 function QuestionModal({
-  sectionId,
+  questionBankId,
   question,
   onClose,
   onSuccess,
 }: {
-  sectionId: string;
+  questionBankId?: string;
   question?: Question | null;
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
+
+  // 문제 은행 목록 조회
+  const { data: questionBanksResponse } = useQuery({
+    queryKey: ["admin-question-banks"],
+    queryFn: async () => {
+      const response = await adminAPI.getQuestionBanks({
+        includeQuestions: false,
+      });
+      return response.data;
+    },
+  });
+
+  const questionBanks = questionBanksResponse?.data || [];
+
   const [formData, setFormData] = useState<CreateQuestionDto>({
     questionNumber: question?.questionNumber || 1,
     questionType: question?.questionType || 'multiple_choice',
@@ -994,6 +892,7 @@ function QuestionModal({
     imageUrl: question?.imageUrl,
     audioUrl: question?.audioUrl,
     audioPlayLimit: question?.audioPlayLimit || 2,
+    questionBankId: questionBankId || question?.questionBankId,
   });
 
   const [newTag, setNewTag] = useState('');
@@ -1003,7 +902,8 @@ function QuestionModal({
       if (question) {
         await questionAPI.updateQuestion(question.id, data);
       } else {
-        await questionAPI.createQuestion(sectionId, data);
+        // 독립적인 Question 생성 (sectionId 없이)
+        await questionAPI.createQuestion(data);
       }
     },
     onSuccess: () => {
@@ -1068,23 +968,25 @@ function QuestionModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* 기본 정보 */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                문제 번호 *
-              </label>
-              <input
-                type="number"
-                required
-                value={formData.questionNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, questionNumber: parseInt(e.target.value) || 1 })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                min={1}
-              />
-            </div>
+            {question?.sectionId && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  문제 번호 *
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={formData.questionNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, questionNumber: parseInt(e.target.value) || 1 })
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  min={1}
+                />
+              </div>
+            )}
 
-            <div>
+            <div className={question?.sectionId ? "" : "col-span-2"}>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 문제 유형 *
               </label>
@@ -1105,6 +1007,33 @@ function QuestionModal({
               </select>
             </div>
           </div>
+
+          {/* 문제 은행 선택 (선택적) */}
+          {!question && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                문제 은행 (선택사항)
+              </label>
+              <select
+                value={formData.questionBankId || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, questionBankId: e.target.value || undefined })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">문제 은행 선택 안 함</option>
+                {questionBanks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>
+                    {bank.name}
+                    {bank.category && ` (${bank.category})`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                💡 문제 은행에 속하면 카테고리별로 관리할 수 있습니다.
+              </p>
+            </div>
+          )}
 
           {/* 문제 내용 */}
           <div>
@@ -1376,12 +1305,6 @@ function QuestionUsageModal({
   }, []);
 
   const { data: usageResponse, isLoading } = useQuery({
-    queryKey: ["question-usage", questionId],
-    queryFn: async () => {
-      const response = await adminAPI.getQuestionUsage(questionId);
-      return response.data;
-    },
-  });
     queryKey: ["question-usage", questionId],
     queryFn: async () => {
       const response = await adminAPI.getQuestionUsage(questionId);

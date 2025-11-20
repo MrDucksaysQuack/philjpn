@@ -42,6 +42,12 @@ export class QuestionService {
             id: true,
             title: true,
             examId: true,
+            exam: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
           },
         },
         questionBank: {
@@ -71,6 +77,42 @@ export class QuestionService {
     return result;
   }
 
+  /**
+   * 독립적인 Question 생성 (sectionId 없이)
+   * 아키텍처 흐름: Question → Pool → Template → Exam
+   */
+  async createStandalone(createQuestionDto: CreateQuestionDto) {
+    const { options, questionNumber, ...questionData } = createQuestionDto;
+
+    // 독립적인 Question 생성
+    const question = await this.prisma.question.create({
+      data: {
+        ...questionData,
+        sectionId: null, // 독립적인 Question
+        questionNumber: questionNumber || 1, // 기본값
+        options: options ? (options as any) : null,
+        usageCount: 0, // 아직 사용되지 않음 (Pool에 추가되면 증가)
+        // lastUsedAt은 null (아직 사용되지 않음)
+      },
+      include: {
+        questionBank: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...question,
+      options: question.options as any,
+    };
+  }
+
+  /**
+   * Section에 속한 Question 생성 (기존 기능 유지 - 하위 호환성)
+   */
   async create(sectionId: string, createQuestionDto: CreateQuestionDto) {
     // 섹션 존재 확인
     const section = await this.prisma.section.findUnique({
@@ -152,16 +194,21 @@ export class QuestionService {
       where: { id },
     });
 
-    // 섹션의 questionCount 업데이트
-    await this.updateSectionQuestionCount(question.section.id);
+    // Section에 속한 Question인 경우에만 카운트 업데이트
+    if (question.section) {
+      // 섹션의 questionCount 업데이트
+      await this.updateSectionQuestionCount(question.section.id);
 
-    // 시험의 totalQuestions 업데이트
-    await this.updateExamQuestionCount(question.section.examId);
+      // 시험의 totalQuestions 업데이트
+      await this.updateExamQuestionCount(question.section.examId);
+    }
 
     return { message: '문제가 삭제되었습니다.' };
   }
 
   private async updateSectionQuestionCount(sectionId: string) {
+    if (!sectionId) return; // sectionId가 없으면 업데이트 불필요
+
     const questionCount = await this.prisma.question.count({
       where: { sectionId },
     });

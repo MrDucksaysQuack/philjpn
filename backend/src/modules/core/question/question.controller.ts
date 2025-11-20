@@ -42,15 +42,26 @@ export class QuestionController {
     return this.questionService.findOne(id, query);
   }
 
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '독립적인 문제 생성 (Admin Only, sectionId 없이)' })
+  @ApiResponse({ status: 201, description: '문제 생성 성공' })
+  @HttpCode(HttpStatus.CREATED)
+  createStandalone(@Body() createQuestionDto: CreateQuestionDto) {
+    return this.questionService.createStandalone(createQuestionDto);
+  }
+
   @Post('sections/:sectionId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '문제 생성 (Admin Only)' })
+  @ApiOperation({ summary: '섹션에 속한 문제 생성 (Admin Only, 하위 호환성)' })
   @ApiResponse({ status: 201, description: '문제 생성 성공' })
   @ApiResponse({ status: 404, description: '섹션을 찾을 수 없음' })
   @HttpCode(HttpStatus.CREATED)
-  create(
+  createInSection(
     @Param('sectionId') sectionId: string,
     @Body() createQuestionDto: CreateQuestionDto,
   ) {

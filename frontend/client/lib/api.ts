@@ -787,7 +787,11 @@ export const questionAPI = {
     apiClient.get<{ data: Question[] }>(`/questions/sections/${sectionId}`),
   getQuestion: (id: string, includeAnswer?: boolean) =>
     apiClient.get<Question>(`/questions/${id}`, { params: { includeAnswer } }),
-  createQuestion: (sectionId: string, data: CreateQuestionDto) =>
+  // 독립적인 Question 생성 (sectionId 없이)
+  createQuestion: (data: CreateQuestionDto) =>
+    apiClient.post<Question>(`/questions`, data),
+  // Section에 속한 Question 생성 (하위 호환성)
+  createQuestionInSection: (sectionId: string, data: CreateQuestionDto) =>
     apiClient.post<Question>(`/questions/sections/${sectionId}`, data),
   updateQuestion: (id: string, data: UpdateQuestionDto) =>
     apiClient.patch<Question>(`/questions/${id}`, data),
