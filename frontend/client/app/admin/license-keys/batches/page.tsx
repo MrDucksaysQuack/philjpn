@@ -245,6 +245,12 @@ export default function BatchManagementPage() {
         {/* 배치 목록 */}
         {dashboardLoading ? (
           <div className="text-center py-8">로딩 중...</div>
+        ) : dashboardError ? (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+            <p className="text-yellow-800 text-sm">
+              대시보드 데이터를 불러올 수 없습니다. 기본값을 표시합니다.
+            </p>
+          </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -268,7 +274,7 @@ export default function BatchManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {dashboard?.recentBatches && dashboard.recentBatches.length > 0 ? (
+                {Array.isArray(dashboard?.recentBatches) && dashboard.recentBatches.length > 0 ? (
                   dashboard.recentBatches.map((batch: any) => (
                     <tr key={batch.batchId || batch.id}>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
