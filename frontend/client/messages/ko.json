@@ -573,6 +573,10 @@
   },
   "about": {
     "title": "About Us",
+    "company": "회사 소개",
+    "team": "팀 소개",
+    "service": "서비스 소개",
+    "contact": "연락처",
     "team": {
       "hero": {
         "title": "우리 팀을 소개합니다",
