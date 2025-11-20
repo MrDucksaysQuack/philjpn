@@ -44,16 +44,22 @@ export class ReportController {
   async generateReport(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       return await this.reportService.generateReport(id, user.id);
-    } catch (error: any) {
-      console.error('❌ generateReport 컨트롤러 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[generateReport]';
+      
+      // Winston + console 병행
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
         resultId: id,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString(),
       });
+      
       throw error;
     }
   }
@@ -67,16 +73,22 @@ export class ReportController {
   async getDetailedFeedback(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       return await this.reportService.generateDetailedFeedback(id, user.id);
-    } catch (error: any) {
-      console.error('❌ getDetailedFeedback 컨트롤러 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getDetailedFeedback]';
+      
+      // Winston + console 병행
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
         resultId: id,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString(),
       });
+      
       throw error;
     }
   }
@@ -93,17 +105,31 @@ export class ReportController {
   ) {
     try {
       return await this.reportService.getUserStatistics(user.id, examId, period);
-    } catch (error: any) {
-      console.error('❌ getUserStatistics 컨트롤러 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getUserStatistics]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
         examId,
         period,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       // 에러를 다시 throw하여 NestJS 예외 필터가 처리
       throw error;
     }
@@ -117,12 +143,29 @@ export class ReportController {
   async getLearningPatterns(@CurrentUser() user: any) {
     try {
       return await this.reportService.getLearningPatterns(user.id);
-    } catch (error: any) {
-      console.error('❌ getLearningPatterns 에러:', {
-        message: error?.message,
-        stack: error?.stack,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getLearningPatterns]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -135,12 +178,29 @@ export class ReportController {
   async getWeaknessAnalysis(@CurrentUser() user: any) {
     try {
       return await this.reportService.getWeaknessAnalysis(user.id);
-    } catch (error: any) {
-      console.error('❌ getWeaknessAnalysis 에러:', {
-        message: error?.message,
-        stack: error?.stack,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getWeaknessAnalysis]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -153,12 +213,29 @@ export class ReportController {
   async getEfficiencyMetrics(@CurrentUser() user: any) {
     try {
       return await this.reportService.getEfficiencyMetrics(user.id);
-    } catch (error: any) {
-      console.error('❌ getEfficiencyMetrics 에러:', {
-        message: error?.message,
-        stack: error?.stack,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getEfficiencyMetrics]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -190,15 +267,29 @@ export class ReportController {
   async getGoalProgress(@CurrentUser() user: any) {
     try {
       return await this.goalService.getGoalProgress(user.id);
-    } catch (error: any) {
-      console.error('❌ getGoalProgress 컨트롤러 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getGoalProgress]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }

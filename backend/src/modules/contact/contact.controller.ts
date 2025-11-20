@@ -19,14 +19,27 @@ export class ContactController {
   async submitContact(@Body() dto: SubmitContactDto) {
     try {
       return await this.contactService.submitContact(dto);
-    } catch (error: any) {
-      console.error('❌ submitContact 컨트롤러 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
-        timestamp: new Date().toISOString(),
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[submitContact]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }

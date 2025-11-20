@@ -18,16 +18,30 @@ export class ResultController {
   async findAll(@Query() query: ResultQueryDto, @CurrentUser() user: any) {
     try {
       return await this.resultService.findAll(user.id, query);
-    } catch (error: any) {
-      console.error('❌ findAll (ResultController) 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[findAll-ResultController]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
         query,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString(),
       });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -41,16 +55,22 @@ export class ResultController {
   async findOne(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       return await this.resultService.findOne(id, user.id);
-    } catch (error: any) {
-      console.error('❌ findOne (ResultController) 에러:', {
-        message: error?.message,
-        stack: error?.stack,
-        code: error?.code,
-        name: error?.name,
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[findOne-ResultController]';
+      
+      // Winston + console 병행
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
         userId: user?.id,
         resultId: id,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString(),
       });
+      
       throw error;
     }
   }

@@ -110,7 +110,25 @@ export class AIController {
       return await this.aiQueueService.getQueueStats();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('❌ getQueueStats 에러:', errorMessage);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getQueueStats]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       // 큐가 초기화되지 않은 경우 기본값 반환
       return {
         waiting: 0,
@@ -155,7 +173,25 @@ export class AIController {
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('❌ checkAvailability 에러:', errorMessage);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[checkAvailability]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       return {
         available: false,
         message: 'AI 기능 상태를 확인할 수 없습니다.',

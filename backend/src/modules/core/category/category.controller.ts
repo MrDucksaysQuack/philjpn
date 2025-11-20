@@ -37,10 +37,29 @@ export class CategoryController {
       return {
         data: categories,
       };
-    } catch (error: any) {
-      console.error('Error in getPublicCategories controller:', error);
-      console.error('Error stack:', error?.stack);
-      console.error('Error message:', error?.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[getPublicCategories]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        locale: locale || 'ko',
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Locale: ${locale || 'ko'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       // 에러 발생 시 빈 배열 반환 (500 에러 방지)
       return {
         data: [],

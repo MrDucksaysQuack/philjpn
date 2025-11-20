@@ -12,7 +12,7 @@ export const loggerConfig: WinstonModuleOptions = {
   ),
   defaultMeta: { service: 'exam-platform' },
   transports: [
-    // 콘솔 출력 (개발 환경)
+    // 콘솔 출력 (Railway 환경에서도 에러가 보이도록 개선)
     new winston.transports.Console({
       format: format.combine(
         format.colorize(),
@@ -20,7 +20,14 @@ export const loggerConfig: WinstonModuleOptions = {
           ({ timestamp, level, message, context, ...meta }) => {
             const contextStr = context ? `[${context}]` : '';
             const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : '';
-            return `${timestamp} ${level} ${contextStr} ${message} ${metaStr}`;
+            const logMessage = `${timestamp} ${level} ${contextStr} ${message} ${metaStr}`;
+            
+            // Railway 환경에서 error 레벨은 stderr로도 출력
+            if (level.includes('error') || level.includes('ERROR')) {
+              process.stderr.write(`[ERROR] ${logMessage}\n`);
+            }
+            
+            return logMessage;
           },
         ),
       ),

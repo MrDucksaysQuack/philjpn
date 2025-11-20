@@ -128,11 +128,27 @@ export class AdminController {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: string })?.code;
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error('❌ getExamStatistics 에러:', {
-        message: errorMessage,
+      const context = '[getExamStatistics]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      this.logger.error(`${context} ${errorMessage}`, {
         code: errorCode,
         stack: errorStack,
       });
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -167,11 +183,27 @@ export class AdminController {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: string })?.code;
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error('❌ getLicenseKeyStatistics 에러:', {
-        message: errorMessage,
+      const context = '[getLicenseKeyStatistics]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      this.logger.error(`${context} ${errorMessage}`, {
         code: errorCode,
         stack: errorStack,
       });
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -189,11 +221,27 @@ export class AdminController {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: string })?.code;
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error('❌ getDashboardData 에러:', {
-        message: errorMessage,
+      const context = '[getDashboard]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      this.logger.error(`${context} ${errorMessage}`, {
         code: errorCode,
         stack: errorStack,
       });
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
       throw error;
     }
   }
@@ -1292,4 +1340,10 @@ export class AdminController {
     }
   }
 }
+
+
+
+
+
+
 
