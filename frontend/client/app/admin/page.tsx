@@ -17,7 +17,9 @@ import {
   useFavoriteStore,
   useRecentMenuStore,
   useGroupOrderStore,
+  useLocaleStore,
 } from "@/lib/store";
+import { useTranslation } from "@/lib/i18n";
 import {
   DndContext,
   closestCenter,
@@ -40,6 +42,8 @@ export default function AdminDashboardPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const [activeTab, setActiveTab] = useState("overview");
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   
   // 개인화 기능 스토어
   const { favorites, toggleFavorite, isFavorite } = useFavoriteStore();
@@ -153,46 +157,46 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 재분류된 메뉴 구조 (인지 패턴 기반)
-  const allMenuGroups = [
+  // 재분류된 메뉴 구조 (인지 패턴 기반) - useMemo로 메모이제이션하여 동적 메뉴 유지 + i18n 지원
+  const allMenuGroups = useMemo(() => [
     {
       id: "content",
-      title: "📝 콘텐츠 관리",
-      description: "시험과 문제 콘텐츠를 생성하고 관리합니다",
+      title: t("admin.menuGroups.content.title"),
+      description: t("admin.menuGroups.content.description"),
       color: "blue",
       items: [
         {
           href: "/admin/exams",
-          title: "시험 관리",
-          description: "시험 생성, 수정, 삭제",
+          title: t("admin.menuGroups.content.items.exams.title"),
+          description: t("admin.menuGroups.content.items.exams.description"),
           icon: "📝",
           priority: "high",
         },
         {
           href: "/admin/questions",
-          title: "문제 관리",
-          description: "전체 문제 조회, 검색 및 관리",
+          title: t("admin.menuGroups.content.items.questions.title"),
+          description: t("admin.menuGroups.content.items.questions.description"),
           icon: "❓",
           priority: "high",
         },
         {
           href: "/admin/question-banks",
-          title: "문제 은행",
-          description: "카테고리별 문제 은행 생성 및 관리",
+          title: t("admin.menuGroups.content.items.questionBanks.title"),
+          description: t("admin.menuGroups.content.items.questionBanks.description"),
           icon: "🏦",
           priority: "medium",
         },
         {
           href: "/admin/question-pools",
-          title: "문제 풀",
-          description: "태그/난이도별 문제 그룹화 및 관리",
+          title: t("admin.menuGroups.content.items.questionPools.title"),
+          description: t("admin.menuGroups.content.items.questionPools.description"),
           icon: "🏊",
           priority: "medium",
         },
         {
           href: "/admin/templates",
-          title: "시험 템플릿",
-          description: "템플릿 생성 및 관리로 빠른 시험 생성",
+          title: t("admin.menuGroups.content.items.templates.title"),
+          description: t("admin.menuGroups.content.items.templates.description"),
           icon: "📋",
           priority: "medium",
         },
@@ -200,21 +204,21 @@ export default function AdminDashboardPage() {
     },
     {
       id: "users",
-      title: "👥 사용자 및 접근 관리",
-      description: "사용자와 라이선스 키를 관리합니다",
+      title: t("admin.menuGroups.users.title"),
+      description: t("admin.menuGroups.users.description"),
       color: "green",
       items: [
         {
           href: "/admin/users",
-          title: "사용자 관리",
-          description: "사용자 목록 조회 및 관리",
+          title: t("admin.menuGroups.users.items.users.title"),
+          description: t("admin.menuGroups.users.items.users.description"),
           icon: "👤",
           priority: "high",
         },
         {
           href: "/admin/license-keys",
-          title: "라이선스 키",
-          description: "키 발급 및 관리",
+          title: t("admin.menuGroups.users.items.licenseKeys.title"),
+          description: t("admin.menuGroups.users.items.licenseKeys.description"),
           icon: "🔑",
           priority: "high",
         },
@@ -222,21 +226,21 @@ export default function AdminDashboardPage() {
     },
     {
       id: "analytics",
-      title: "📈 분석 및 모니터링",
-      description: "시험 결과와 실시간 활동을 모니터링합니다",
+      title: t("admin.menuGroups.analytics.title"),
+      description: t("admin.menuGroups.analytics.description"),
       color: "purple",
       items: [
         {
           href: "/admin/exam-results",
-          title: "시험 결과",
-          description: "전체 시험 결과 조회 및 분석",
+          title: t("admin.menuGroups.analytics.items.examResults.title"),
+          description: t("admin.menuGroups.analytics.items.examResults.description"),
           icon: "📊",
           priority: "high",
         },
         {
           href: "/admin/monitoring",
-          title: "실시간 모니터링",
-          description: "진행 중인 시험 세션 모니터링",
+          title: t("admin.menuGroups.analytics.items.monitoring.title"),
+          description: t("admin.menuGroups.analytics.items.monitoring.description"),
           icon: "👁️",
           priority: "medium",
         },
@@ -244,34 +248,34 @@ export default function AdminDashboardPage() {
     },
     {
       id: "settings",
-      title: "⚙️ 시스템 설정",
-      description: "플랫폼 전반의 설정을 관리합니다",
+      title: t("admin.menuGroups.settings.title"),
+      description: t("admin.menuGroups.settings.description"),
       color: "gray",
       items: [
         {
           href: "/admin/settings",
-          title: "사이트 설정",
-          description: "회사 정보, 로고, 색상 테마 및 콘텐츠 관리",
+          title: t("admin.menuGroups.settings.items.siteSettings.title"),
+          description: t("admin.menuGroups.settings.items.siteSettings.description"),
           icon: "⚙️",
           priority: "low",
         },
         {
           href: "/admin/categories",
-          title: "카테고리 관리",
-          description: "시험 카테고리 및 서브카테고리 관리",
+          title: t("admin.menuGroups.settings.items.categories.title"),
+          description: t("admin.menuGroups.settings.items.categories.description"),
           icon: "📁",
           priority: "medium",
         },
         {
           href: "/admin/badges",
-          title: "배지 관리",
-          description: "게이미피케이션 배지 생성 및 관리",
+          title: t("admin.menuGroups.settings.items.badges.title"),
+          description: t("admin.menuGroups.settings.items.badges.description"),
           icon: "🏆",
           priority: "low",
         },
       ],
     },
-  ];
+  ], [t, locale]); // locale과 t 함수를 의존성으로 추가하여 언어 변경 시 업데이트
 
   // 그룹 순서에 따라 정렬된 메뉴 그룹
   const menuGroups = useMemo(() => {
@@ -293,13 +297,13 @@ export default function AdminDashboardPage() {
     });
     
     return orderedGroups;
-  }, [groupOrder]);
+  }, [groupOrder, allMenuGroups]);
 
   // 즐겨찾기 메뉴 추출
   const favoriteMenus = useMemo(() => {
     const allItems = allMenuGroups.flatMap((group) => group.items);
     return allItems.filter((item) => isFavorite(item.href));
-  }, [favorites, allMenuGroups]);
+  }, [favorites, isFavorite, allMenuGroups]);
 
   // 드래그 앤 드롭 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
