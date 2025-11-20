@@ -23,6 +23,12 @@ export default function BatchManagementPage() {
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // 대시보드 데이터 (배치 목록 포함)
   const { data: dashboard, isLoading: dashboardLoading, error: dashboardError } = useQuery<LicenseKeyDashboard>({
@@ -300,7 +306,7 @@ export default function BatchManagementPage() {
                         )}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(batch.createdAt).toLocaleDateString("ko-KR")}
+                        {isMounted ? new Date(batch.createdAt).toLocaleDateString("ko-KR") : new Date(batch.createdAt).toISOString().split('T')[0]}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         {batch.stats && (
@@ -402,10 +408,10 @@ export default function BatchManagementPage() {
                             {batchStats.dailyUsage.slice(-7).map((day: any) => (
                               <div key={day.date} className="flex items-center gap-3">
                                 <div className="w-24 text-sm text-gray-600">
-                                  {new Date(day.date).toLocaleDateString("ko-KR", {
+                                  {isMounted ? new Date(day.date).toLocaleDateString("ko-KR", {
                                     month: "short",
                                     day: "numeric",
-                                  })}
+                                  }) : new Date(day.date).toISOString().split('T')[0]}
                                 </div>
                                 <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
                                   <div
