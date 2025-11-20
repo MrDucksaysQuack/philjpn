@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useMemo } from "react";
 import { resultAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import LoadingSkeleton from "@/components/common/LoadingSkeleton";
@@ -9,6 +10,7 @@ import { chartColors } from "@/lib/chart-colors";
 
 export default function ScoreTrendWidget() {
   const user = useAuthStore((state) => state.user);
+  const [isMounted, setIsMounted] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["results-for-chart"],
@@ -19,12 +21,20 @@ export default function ScoreTrendWidget() {
     enabled: !!user,
   });
 
-  if (isLoading) {
-    return <LoadingSkeleton type="card" />;
-  }
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  // 성적 추이 데이터 준비
-  const chartData = (data || [])
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
+  // 성적 추이 데이터 준비 (hydration mismatch 방지)
+  const chartData = useMemo(() => {
+    if (!isMounted) {
+      // 서버 렌더링 시 빈 배열 반환
+      return [];
+    }
+
+    return (data || [])
     .filter((result: any) => result.status === "completed" && result.totalScore !== null && result.maxScore !== null)
     .map((result: any) => {
       const percentage = result.percentage
@@ -44,6 +54,12 @@ export default function ScoreTrendWidget() {
     })
     .sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime())
     .slice(-10); // 최근 10개만 표시
+  }, [isMounted, data]);
+
+  // Early return은 모든 hooks 호출 후에 수행
+  if (isLoading) {
+    return <LoadingSkeleton type="card" />;
+  }
 
   if (chartData.length === 0) {
     return (
