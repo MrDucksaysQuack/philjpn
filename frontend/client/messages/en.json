@@ -364,6 +364,30 @@
         "multipleChoice": "Multiple Choice",
         "fillBlank": "Fill in the Blank",
         "subjective": "Subjective"
+      },
+      "usageTracking": {
+        "title": "Usage Tracking",
+        "track": "Track",
+        "modalTitle": "Question Usage Tracking",
+        "loading": "Loading usage tracking information...",
+        "failedToLoad": "Failed to load usage tracking information.",
+        "questionInfo": "Question Information",
+        "content": "Content",
+        "type": "Type",
+        "difficulty": "Difficulty",
+        "questionBank": "Question Bank",
+        "currentlyInUse": "Currently In Use",
+        "section": "Section",
+        "questionNumber": "Question #{number}",
+        "usageHistory": "Usage History",
+        "noUsageHistory": "No usage history available.",
+        "usedAt": "Used At",
+        "order": "Order",
+        "status": {
+          "published": "Published",
+          "draft": "Draft",
+          "archived": "Archived"
+        }
       }
     },
     "userManagement": {

@@ -311,9 +311,9 @@ export default function AdminQuestionsPage() {
                         setShowUsageModal(true);
                       }}
                       className="text-indigo-600 hover:text-indigo-700 px-3 py-2 text-sm border border-indigo-600 rounded-md hover:bg-indigo-50"
-                      title="사용 추적"
+                      title={t("admin.questionManagement.usageTracking.title")}
                     >
-                      추적
+                      {t("admin.questionManagement.usageTracking.track")}
                     </button>
                     <button
                       onClick={() => {
@@ -1353,6 +1353,8 @@ function QuestionUsageModal({
   questionId: string;
   onClose: () => void;
 }) {
+  const { locale } = useLocaleStore();
+  const { t } = useTranslation(locale);
   const { data: usageResponse, isLoading } = useQuery({
     queryKey: ["question-usage", questionId],
     queryFn: async () => {
@@ -1367,7 +1369,7 @@ function QuestionUsageModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">문제 사용 추적</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t("admin.questionManagement.usageTracking.modalTitle")}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -1379,40 +1381,40 @@ function QuestionUsageModal({
         <div className="p-6">
           {isLoading ? (
             <div className="text-center py-12">
-              <LoadingSpinner message="사용 추적 정보를 불러오는 중..." />
+              <LoadingSpinner message={t("admin.questionManagement.usageTracking.loading")} />
             </div>
           ) : trace ? (
             <div className="space-y-6">
               {/* 문제 정보 */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">문제 정보</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t("admin.questionManagement.usageTracking.questionInfo")}</h3>
                 <div className="space-y-2">
                   <div className="text-sm text-gray-700">
-                    <span className="font-medium">내용:</span> {trace.question.content.substring(0, 100)}
+                    <span className="font-medium">{t("admin.questionManagement.usageTracking.content")}:</span> {trace.question.content.substring(0, 100)}
                     {trace.question.content.length > 100 && "..."}
                   </div>
                   <div className="flex items-center gap-4 text-sm">
                     <span className="text-gray-600">
-                      <span className="font-medium">유형:</span>{" "}
+                      <span className="font-medium">{t("admin.questionManagement.usageTracking.type")}:</span>{" "}
                       {trace.question.questionType === "multiple_choice"
-                        ? "객관식"
+                        ? t("admin.questionManagement.multipleChoice")
                         : trace.question.questionType === "fill_blank"
-                        ? "빈칸 채우기"
-                        : "주관식"}
+                        ? t("admin.questionManagement.fillBlank")
+                        : t("admin.questionManagement.subjective")}
                     </span>
                     {trace.question.difficulty && (
                       <span className="text-gray-600">
-                        <span className="font-medium">난이도:</span>{" "}
+                        <span className="font-medium">{t("admin.questionManagement.usageTracking.difficulty")}:</span>{" "}
                         {trace.question.difficulty === "easy"
-                          ? "쉬움"
+                          ? t("admin.questionManagement.easy")
                           : trace.question.difficulty === "medium"
-                          ? "보통"
-                          : "어려움"}
+                          ? t("admin.questionManagement.medium")
+                          : t("admin.questionManagement.hard")}
                       </span>
                     )}
                     {trace.question.questionBank && (
                       <span className="text-gray-600">
-                        <span className="font-medium">문제 은행:</span> {trace.question.questionBank.name}
+                        <span className="font-medium">{t("admin.questionManagement.usageTracking.questionBank")}:</span> {trace.question.questionBank.name}
                       </span>
                     )}
                   </div>
@@ -1434,7 +1436,7 @@ function QuestionUsageModal({
               {/* 현재 사용 중인 시험 */}
               {trace.currentUsage && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-3">현재 사용 중</h3>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-3">{t("admin.questionManagement.usageTracking.currentlyInUse")}</h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Link
@@ -1445,7 +1447,7 @@ function QuestionUsageModal({
                       </Link>
                     </div>
                     <div className="text-sm text-blue-700">
-                      섹션: {trace.currentUsage.section.title} - 문제 {trace.currentUsage.questionNumber}번
+                      {t("admin.questionManagement.usageTracking.section")}: {trace.currentUsage.section.title} - {t("admin.questionManagement.usageTracking.questionNumber", { number: trace.currentUsage.questionNumber })}
                     </div>
                   </div>
                 </div>
@@ -1454,7 +1456,7 @@ function QuestionUsageModal({
               {/* 사용 이력 */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  사용 이력 ({trace.totalUsages}개)
+                  {t("admin.questionManagement.usageTracking.usageHistory")} ({trace.totalUsages}{t("common.count") || "개"})
                 </h3>
                 {trace.usageHistory.length > 0 ? (
                   <div className="space-y-3">
@@ -1486,18 +1488,18 @@ function QuestionUsageModal({
                                   }`}
                                 >
                                   {usage.exam.status === "published"
-                                    ? "발행됨"
+                                    ? t("admin.questionManagement.usageTracking.status.published")
                                     : usage.exam.status === "draft"
-                                    ? "초안"
-                                    : "보관됨"}
+                                    ? t("admin.questionManagement.usageTracking.status.draft")
+                                    : t("admin.questionManagement.usageTracking.status.archived")}
                                 </span>
                               )}
                             </div>
                             <div className="text-sm text-gray-600 mb-1">
-                              섹션: {usage.section.title} (순서: {usage.section.order}) - 문제 {usage.questionNumber}번
+                              {t("admin.questionManagement.usageTracking.section")}: {usage.section.title} ({t("admin.questionManagement.usageTracking.order")}: {usage.section.order}) - {t("admin.questionManagement.usageTracking.questionNumber", { number: usage.questionNumber })}
                             </div>
                             <div className="text-xs text-gray-500">
-                              사용일: {new Date(usage.usedAt).toLocaleString("ko-KR")}
+                              {t("admin.questionManagement.usageTracking.usedAt")}: {new Date(usage.usedAt).toLocaleString(locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US")}
                             </div>
                           </div>
                         </div>
@@ -1506,14 +1508,14 @@ function QuestionUsageModal({
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    사용 이력이 없습니다.
+                    {t("admin.questionManagement.usageTracking.noUsageHistory")}
                   </div>
                 )}
               </div>
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
-              사용 추적 정보를 불러올 수 없습니다.
+              {t("admin.questionManagement.usageTracking.failedToLoad")}
             </div>
           )}
         </div>

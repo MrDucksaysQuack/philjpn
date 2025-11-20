@@ -342,6 +342,30 @@
         "multipleChoice": "객관식",
         "fillBlank": "빈칸 채우기",
         "subjective": "주관식"
+      },
+      "usageTracking": {
+        "title": "사용 추적",
+        "track": "추적",
+        "modalTitle": "문제 사용 추적",
+        "loading": "사용 추적 정보를 불러오는 중...",
+        "failedToLoad": "사용 추적 정보를 불러올 수 없습니다.",
+        "questionInfo": "문제 정보",
+        "content": "내용",
+        "type": "유형",
+        "difficulty": "난이도",
+        "questionBank": "문제 은행",
+        "currentlyInUse": "현재 사용 중",
+        "section": "섹션",
+        "questionNumber": "문제 {number}번",
+        "usageHistory": "사용 이력",
+        "noUsageHistory": "사용 이력이 없습니다.",
+        "usedAt": "사용일",
+        "order": "순서",
+        "status": {
+          "published": "발행됨",
+          "draft": "초안",
+          "archived": "보관됨"
+        }
       }
     },
     "userManagement": {
