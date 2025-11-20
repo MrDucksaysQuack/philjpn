@@ -155,13 +155,25 @@ export default function SiteSettingsPage() {
       }
     }
     
+    // colorTheme이 있으면 primaryColor, secondaryColor, accentColor를 동기화 (하위 호환성)
+    let syncedData = { ...data };
+    if (data.colorTheme && typeof data.colorTheme === 'object') {
+      const theme = data.colorTheme as Partial<ColorTheme>;
+      syncedData = {
+        ...syncedData,
+        primaryColor: theme.primary || data.primaryColor?.trim() || undefined,
+        secondaryColor: theme.secondary || data.secondaryColor?.trim() || undefined,
+        accentColor: theme.accent || data.accentColor?.trim() || undefined,
+      };
+    }
+    
     return {
-      ...data,
+      ...syncedData,
       logoUrl: data.logoUrl?.trim() || undefined,
       faviconUrl: data.faviconUrl?.trim() || undefined,
-      primaryColor: data.primaryColor?.trim() || undefined,
-      secondaryColor: data.secondaryColor?.trim() || undefined,
-      accentColor: data.accentColor?.trim() || undefined,
+      primaryColor: syncedData.primaryColor?.trim() || undefined,
+      secondaryColor: syncedData.secondaryColor?.trim() || undefined,
+      accentColor: syncedData.accentColor?.trim() || undefined,
       aboutCompany: data.aboutCompany?.trim() || undefined,
       aboutTeam: data.aboutTeam?.trim() || undefined,
       serviceInfo: data.serviceInfo?.trim() || undefined,
@@ -215,11 +227,17 @@ export default function SiteSettingsPage() {
       return response.data.data;
     },
     onSuccess: (result: ColorAnalysisResult) => {
+      // colorTheme에 색상 분석 결과 저장
+      const currentColorTheme = (formData.colorTheme as Partial<ColorTheme>) || {};
+      const updatedColorTheme = {
+        ...currentColorTheme,
+        primary: result.primaryColor,
+        secondary: result.secondaryColor,
+        accent: result.accentColor,
+      };
       setFormData({
         ...formData,
-        primaryColor: result.primaryColor,
-        secondaryColor: result.secondaryColor,
-        accentColor: result.accentColor,
+        colorTheme: updatedColorTheme,
       });
       alert(`색상 분석 완료! (신뢰도: ${Math.round(result.confidence * 100)}%)`);
     },
@@ -572,6 +590,7 @@ export default function SiteSettingsPage() {
                         onClick={handleAnalyzeColors}
                         disabled={!formData.logoUrl || isAnalyzing || uploadingLogo}
                         className="px-4 py-2 bg-theme-gradient-secondary text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
+                        title="로고에서 색상을 분석하여 색상 테마 관리 탭에 적용합니다"
                       >
                         {isAnalyzing ? t("admin.siteSettings.analyzing") : t("admin.siteSettings.colorAnalysis")}
                       </button>
@@ -669,85 +688,6 @@ export default function SiteSettingsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-text-primary mb-2">
-                      Primary 색상
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="color"
-                        value={formData.primaryColor || "#667eea"}
-                        onChange={(e) =>
-                          setFormData({ ...formData, primaryColor: e.target.value })
-                        }
-                        className="h-10 w-20 border border-gray-300 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={formData.primaryColor}
-                        onChange={(e) =>
-                          setFormData({ ...formData, primaryColor: e.target.value })
-                        }
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                        placeholder="#667eea"
-                        pattern="^#[0-9A-Fa-f]{6}$"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-text-primary mb-2">
-                      Secondary 색상
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="color"
-                        value={formData.secondaryColor || "#764ba2"}
-                        onChange={(e) =>
-                          setFormData({ ...formData, secondaryColor: e.target.value })
-                        }
-                        className="h-10 w-20 border border-gray-300 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={formData.secondaryColor}
-                        onChange={(e) =>
-                          setFormData({ ...formData, secondaryColor: e.target.value })
-                        }
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                        placeholder="#764ba2"
-                        pattern="^#[0-9A-Fa-f]{6}$"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-text-primary mb-2">
-                      Accent 색상
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="color"
-                        value={formData.accentColor || "#4facfe"}
-                        onChange={(e) =>
-                          setFormData({ ...formData, accentColor: e.target.value })
-                        }
-                        className="h-10 w-20 border border-gray-300 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={formData.accentColor}
-                        onChange={(e) =>
-                          setFormData({ ...formData, accentColor: e.target.value })
-                        }
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                        placeholder="#4facfe"
-                        pattern="^#[0-9A-Fa-f]{6}$"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
