@@ -499,6 +499,10 @@
   },
   "about": {
     "title": "About Us",
+    "companyLabel": "회사 소개",
+    "teamLabel": "팀 소개",
+    "serviceLabel": "서비스 소개",
+    "contactLabel": "연락처",
     "team": {
       "hero": {
         "title": "우리 팀을 소개합니다",

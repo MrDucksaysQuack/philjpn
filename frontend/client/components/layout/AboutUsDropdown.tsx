@@ -14,10 +14,10 @@ export default function AboutUsDropdown() {
   // useMemo 제거: t() 함수 호출이 hydration mismatch를 일으킬 수 있음
   // locale이 변경되면 컴포넌트가 리렌더링되므로 자동으로 업데이트됨
   const menuItems = [
-    { href: "/about/company", label: t("about.company"), icon: "🏢" },
-    { href: "/about/team", label: t("about.team"), icon: "👥" },
-    { href: "/about/contact", label: t("about.contact"), icon: "📧" },
-    { href: "/about/service", label: t("about.service"), icon: "🚀" },
+    { href: "/about/company", label: t("about.companyLabel"), icon: "🏢" },
+    { href: "/about/team", label: t("about.teamLabel"), icon: "👥" },
+    { href: "/about/contact", label: t("about.contactLabel"), icon: "📧" },
+    { href: "/about/service", label: t("about.serviceLabel"), icon: "🚀" },
   ];
 
   // 외부 클릭 시 드롭다운 닫기

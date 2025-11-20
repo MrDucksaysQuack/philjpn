@@ -68,8 +68,10 @@ class SocketClient {
       query: { userId },
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: this.maxReconnectAttempts,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 3,
+      timeout: 10000, // 10초 타임아웃
+      forceNew: false,
     });
 
     this.badgeSocket.on("connect", () => {
@@ -81,6 +83,11 @@ class SocketClient {
     });
 
     this.badgeSocket.on("connect_error", (error) => {
+      // 타임아웃 에러는 조용히 처리 (너무 많은 로그 방지)
+      if (error.message?.includes("timeout")) {
+        // 타임아웃 시 재연결 시도하지 않음 (백엔드가 준비되지 않았을 수 있음)
+        return;
+      }
       console.error("Badge notification socket connection error:", error);
     });
 
@@ -143,8 +150,10 @@ class SocketClient {
       auth: token ? { token } : undefined,
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: this.maxReconnectAttempts,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: 3,
+      timeout: 10000, // 10초 타임아웃
+      forceNew: false,
     });
 
     this.settingsSocket.on("connect", () => {
@@ -156,6 +165,11 @@ class SocketClient {
     });
 
     this.settingsSocket.on("connect_error", (error) => {
+      // 타임아웃 에러는 조용히 처리 (너무 많은 로그 방지)
+      if (error.message?.includes("timeout")) {
+        // 타임아웃 시 재연결 시도하지 않음 (백엔드가 준비되지 않았을 수 있음)
+        return;
+      }
       console.error("Settings notification socket connection error:", error);
     });
 
