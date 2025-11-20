@@ -36,125 +36,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function AdminDashboardPage() {
-  const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
-  const [activeTab, setActiveTab] = useState("overview");
-  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  
-  // 개인화 기능 스토어
-  const { favorites, toggleFavorite, isFavorite } = useFavoriteStore();
-  const { recentMenus, addRecentMenu, clearRecentMenus } = useRecentMenuStore();
-  const { groupOrder, setGroupOrder, resetGroupOrder } = useGroupOrderStore();
-  
-  // 드래그 앤 드롭 센서
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const { data: dashboard, isLoading } = useQuery({
-    queryKey: ["admin-dashboard"],
-    queryFn: async () => {
-      const response = await adminAPI.getDashboard();
-      return response.data;
-    },
-    enabled: user?.role === "admin",
-  });
-
-  const { data: examStats } = useQuery({
-    queryKey: ["admin-exam-stats"],
-    queryFn: async () => {
-      const response = await adminAPI.getExamStatistics();
-      return response.data;
-    },
-    enabled: user?.role === "admin",
-  });
-
-  const { data: keyStats } = useQuery({
-    queryKey: ["admin-key-stats"],
-    queryFn: async () => {
-      const response = await adminAPI.getLicenseKeyStatistics();
-      return response.data;
-    },
-    enabled: user?.role === "admin",
-  });
-
-  // AI 큐 통계 조회
-  const { data: aiQueueStats } = useQuery({
-    queryKey: ["ai-queue-stats"],
-    queryFn: async () => {
-      const response = await aiAPI.getQueueStats();
-      return response.data;
-    },
-    enabled: user?.role === "admin",
-    refetchInterval: 10000, // 10초마다 자동 갱신
-  });
-
-  // AI 가용성 확인
-  const { data: aiAvailability } = useQuery({
-    queryKey: ["ai-availability"],
-    queryFn: async () => {
-      const response = await aiAPI.checkAvailability();
-      return response.data;
-    },
-    enabled: user?.role === "admin",
-    refetchInterval: 30000, // 30초마다 자동 갱신
-  });
-
-  if (authLoading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-theme-gradient-light">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="인증 확인 중..." />
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <>
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">로딩 중...</div>
-        </div>
-      </>
-    );
-  }
-
-  const tabs = [
-    { id: "overview", label: "대시보드", icon: "📊", groupId: "overview-section" },
-    { id: "content", label: "콘텐츠", icon: "📝", groupId: "content-group" },
-    { id: "users", label: "사용자", icon: "👥", groupId: "users-group" },
-    { id: "analytics", label: "분석", icon: "📈", groupId: "analytics-group" },
-    { id: "settings", label: "설정", icon: "⚙️", groupId: "settings-group" },
-  ];
-
-  const handleScrollToGroup = (groupId: string) => {
-    const element = document.getElementById(groupId);
-    if (element) {
-      const offset = 100; // 탭 높이 고려
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  // 재분류된 메뉴 구조 (인지 패턴 기반) - useMemo로 메모이제이션하여 hydration mismatch 방지
-  const allMenuGroups = useMemo(() => [
+// 재분류된 메뉴 구조 (인지 패턴 기반) - 컴포넌트 외부로 이동하여 hydration mismatch 방지
+const ALL_MENU_GROUPS = [
     {
       id: "content",
       title: "📝 콘텐츠 관리",
@@ -296,10 +179,12 @@ export default function AdminDashboardPage() {
   }, [groupOrder, allMenuGroups]);
 
   // 즐겨찾기 메뉴 추출
+  // isFavorite는 Zustand store 함수이므로 의존성 배열에서 제외
+  // favorites 배열만 의존성으로 사용
   const favoriteMenus = useMemo(() => {
-    const allItems = allMenuGroups.flatMap((group) => group.items);
-    return allItems.filter((item) => isFavorite(item.href));
-  }, [favorites, allMenuGroups, isFavorite]);
+    const allItems = ALL_MENU_GROUPS.flatMap((group) => group.items);
+    return allItems.filter((item) => favorites.includes(item.href));
+  }, [favorites]);
 
   // 드래그 앤 드롭 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
