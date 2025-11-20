@@ -149,15 +149,7 @@ export class AdminController {
         `Stack: ${errorStack || 'N/A'}\n\n`,
       );
       
-      // 서비스에서 이미 기본값을 반환하므로, 에러가 발생해도 기본값 반환
-      // 에러를 throw하지 않고 기본값 반환하여 500 에러 방지
-      return {
-        totalExams: 0,
-        activeExams: 0,
-        totalAttempts: 0,
-        averageScore: 0,
-        completionRate: 0,
-      };
+      throw error;
     }
   }
 

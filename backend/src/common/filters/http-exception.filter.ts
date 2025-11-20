@@ -15,24 +15,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const origin = request.headers.origin;
 
-    // CORS 헤더 설정 - 모든 Origin에 대해 설정 (에러 응답에도 CORS 헤더 보장)
+    // CORS 헤더 설정 (에러 응답에도 필수)
     if (origin) {
-      // Vercel 도메인 체크
-      const isVercelDomain = /^https:\/\/philjpn(-[a-z0-9-]+)*\.vercel\.app$/.test(origin);
-      const isLocalhost = origin.startsWith('http://localhost:');
-      const vercelProdDomain = 'https://philjpn.vercel.app';
-      
-      // 허용된 Origin인 경우에만 CORS 헤더 설정
-      if (isVercelDomain || origin === vercelProdDomain || isLocalhost) {
-        response.setHeader('Access-Control-Allow-Origin', origin);
-        response.setHeader('Access-Control-Allow-Credentials', 'true');
-        response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-        response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
-      } else {
-        // 차단된 Origin이더라도 CORS 헤더는 설정 (브라우저가 에러를 볼 수 있도록)
-        response.setHeader('Access-Control-Allow-Origin', origin);
-        response.setHeader('Access-Control-Allow-Credentials', 'true');
-      }
+      response.setHeader('Access-Control-Allow-Origin', origin);
+      response.setHeader('Access-Control-Allow-Credentials', 'true');
+      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
     }
 
     const status =
