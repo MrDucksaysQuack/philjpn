@@ -96,7 +96,6 @@
     "getFeedback": "피드백 확인",
     "selectAnswerFirst": "먼저 답을 선택해주세요",
     "details": "시험 상세",
-    "take": "시험 응시",
     "noExams": "시험이 없습니다",
     "searchPlaceholder": "시험 검색...",
     "filterByCategory": "카테고리별 필터",
@@ -574,10 +573,6 @@
   },
   "about": {
     "title": "About Us",
-    "company": "회사 소개",
-    "team": "팀 소개",
-    "service": "서비스 소개",
-    "contact": "연락처",
     "team": {
       "hero": {
         "title": "우리 팀을 소개합니다",
