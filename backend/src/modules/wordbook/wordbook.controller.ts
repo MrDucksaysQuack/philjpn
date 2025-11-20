@@ -35,8 +35,35 @@ export class WordBookController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 단어장 목록' })
   @ApiResponse({ status: 200, description: '단어장 목록 조회 성공' })
-  findAll(@Query() query: WordBookQueryDto, @CurrentUser() user: any) {
-    return this.wordBookService.findAll(user.id, query);
+  async findAll(@Query() query: WordBookQueryDto, @CurrentUser() user: any) {
+    try {
+      return await this.wordBookService.findAll(user.id, query);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as { code?: string })?.code;
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const context = '[findAll-WordBookController]';
+      
+      // Winston + console + stderr 병행 (Railway 환경 대응)
+      console.error(`${context}`, {
+        code: errorCode,
+        msg: errorMessage,
+        stack: errorStack,
+        userId: user?.id,
+        query,
+        time: new Date().toISOString(),
+      });
+      // Railway가 인식할 수 있도록 stderr에 직접 출력
+      process.stderr.write(
+        `[ERROR] ${context} ${errorMessage}\n` +
+        `Code: ${errorCode || 'N/A'}\n` +
+        `UserId: ${user?.id || 'N/A'}\n` +
+        `Time: ${new Date().toISOString()}\n` +
+        `Stack: ${errorStack || 'N/A'}\n\n`,
+      );
+      
+      throw error;
+    }
   }
 
   @Get(':id')
