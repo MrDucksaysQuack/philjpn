@@ -14,8 +14,8 @@ const messages: Record<Locale, Record<string, any>> = {
 };
 
 export const useTranslation = (locale: Locale = "ko") => {
-  // useMemo 제거 - locale이 변경되면 자동으로 재렌더링되므로 불필요
-  // useMemo를 사용하면 hydration mismatch가 발생할 수 있음
+  // locale을 직접 의존성으로 사용하여 안정적인 참조 보장
+  // messageSet은 locale에 따라 결정되므로 locale을 의존성으로 사용
   const messageSet = messages[locale] || messages.ko;
 
   const t = useCallback(
@@ -46,7 +46,7 @@ export const useTranslation = (locale: Locale = "ko") => {
 
       return value;
     },
-    [messageSet],
+    [locale], // messageSet 대신 locale을 직접 의존성으로 사용하여 안정적인 참조 보장
   );
 
   return { t, locale };

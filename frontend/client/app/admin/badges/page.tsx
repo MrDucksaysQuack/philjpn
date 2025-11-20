@@ -37,14 +37,14 @@ export default function AdminBadgesPage() {
     { value: 'category_master', label: t("admin.badgeManagement.types.categoryMaster") },
     { value: 'speed_demon', label: t("admin.badgeManagement.types.speedDemon") },
     { value: 'consistency', label: t("admin.badgeManagement.types.consistency") },
-  ], [t]);
+  ], [locale, t]);
 
   const RARITY_OPTIONS = useMemo(() => [
     { value: 'common', label: t("admin.badgeManagement.rarity.common"), color: 'bg-gray-200 text-gray-800' },
     { value: 'rare', label: t("admin.badgeManagement.rarity.rare"), color: 'bg-blue-200 text-blue-800' },
     { value: 'epic', label: t("admin.badgeManagement.rarity.epic"), color: 'bg-purple-200 text-purple-800' },
     { value: 'legendary', label: t("admin.badgeManagement.rarity.legendary"), color: 'bg-yellow-200 text-yellow-800' },
-  ], [t]);
+  ], [locale, t]);
 
   // 배지 목록 가져오기
   const { data: badgesResponse, isLoading } = useQuery({
@@ -444,14 +444,14 @@ function BadgeModal({
     { value: 'category_master', label: t("admin.badgeManagement.types.categoryMaster") },
     { value: 'speed_demon', label: t("admin.badgeManagement.types.speedDemon") },
     { value: 'consistency', label: t("admin.badgeManagement.types.consistency") },
-  ], [t]);
+  ], [locale, t]);
 
   const RARITY_OPTIONS = useMemo(() => [
     { value: 'common', label: t("admin.badgeManagement.rarity.common"), color: 'bg-gray-200 text-gray-800' },
     { value: 'rare', label: t("admin.badgeManagement.rarity.rare"), color: 'bg-blue-200 text-blue-800' },
     { value: 'epic', label: t("admin.badgeManagement.rarity.epic"), color: 'bg-purple-200 text-purple-800' },
     { value: 'legendary', label: t("admin.badgeManagement.rarity.legendary"), color: 'bg-yellow-200 text-yellow-800' },
-  ], [t]);
+  ], [locale, t]);
 
   const [formData, setFormData] = useState({
     badgeType: badge?.badgeType || 'exam_completed',
@@ -914,7 +914,7 @@ function BadgePreview({
     { value: 'rare', label: t("admin.badgeManagement.rarity.rare"), color: 'bg-blue-200 text-blue-800' },
     { value: 'epic', label: t("admin.badgeManagement.rarity.epic"), color: 'bg-purple-200 text-purple-800' },
     { value: 'legendary', label: t("admin.badgeManagement.rarity.legendary"), color: 'bg-yellow-200 text-yellow-800' },
-  ], [t]);
+  ], [locale, t]);
   
   const rarityOption = RARITY_OPTIONS.find(r => r.value === rarity);
   

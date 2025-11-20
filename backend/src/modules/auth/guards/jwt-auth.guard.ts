@@ -5,7 +5,7 @@ import { TokenBlacklistService } from '../services/token-blacklist.service';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private tokenBlacklistService: TokenBlacklistService) {
+  constructor(private tokenBlacklistService?: TokenBlacklistService) {
     super();
   }
 
