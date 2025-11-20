@@ -511,14 +511,21 @@ export class ExamService {
         status: true,
         createdAt: true,
         updatedAt: true,
+        examVersion: {
+          select: {
+            id: true,
+            version: true,
+            versionNumber: true,
+            questionOrder: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       } as any,
       orderBy: [
         { versionNumber: 'asc' } as any,
         { createdAt: 'asc' },
       ],
-      include: {
-        examVersion: true, // ExamVersion 정보도 함께 조회
-      },
     });
 
     return versions.map((v: any) => ({

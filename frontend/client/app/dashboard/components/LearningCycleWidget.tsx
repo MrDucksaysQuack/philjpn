@@ -6,7 +6,7 @@ import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/common/Button";
-import { emotionalToast } from "@/components/common/Toast";
+import { toast } from "@/components/common/Toast";
 import Link from "next/link";
 
 export default function LearningCycleWidget() {
@@ -30,10 +30,7 @@ export default function LearningCycleWidget() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["learning-cycle"] });
-      emotionalToast.success({
-        message: t("dashboard.learningCycle.stageUpdated"),
-        emoji: "✅",
-      } as any);
+      toast.success(t("dashboard.learningCycle.stageUpdated"));
     },
   });
 
@@ -43,10 +40,7 @@ export default function LearningCycleWidget() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["learning-cycle"] });
-      emotionalToast.success({
-        message: t("dashboard.learningCycle.cycleCompleted"),
-        emoji: "🎉",
-      } as any);
+      toast.success(t("dashboard.learningCycle.cycleCompleted"));
     },
   });
 
