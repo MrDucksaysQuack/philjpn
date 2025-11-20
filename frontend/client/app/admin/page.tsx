@@ -154,12 +154,129 @@ const ALL_MENU_GROUPS = [
         },
       ],
     },
-  ], []); // 빈 의존성 배열 - 메뉴 구조는 변하지 않음
+];
+
+export default function AdminDashboardPage() {
+  const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
+  const [activeTab, setActiveTab] = useState("overview");
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  
+  // 개인화 기능 스토어
+  const { favorites, toggleFavorite, isFavorite } = useFavoriteStore();
+  const { recentMenus, addRecentMenu, clearRecentMenus } = useRecentMenuStore();
+  const { groupOrder, setGroupOrder, resetGroupOrder } = useGroupOrderStore();
+  
+  // 드래그 앤 드롭 센서
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const { data: dashboard, isLoading } = useQuery({
+    queryKey: ["admin-dashboard"],
+    queryFn: async () => {
+      const response = await adminAPI.getDashboard();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+  });
+
+  const { data: examStats } = useQuery({
+    queryKey: ["admin-exam-stats"],
+    queryFn: async () => {
+      const response = await adminAPI.getExamStatistics();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+  });
+
+  const { data: keyStats } = useQuery({
+    queryKey: ["admin-key-stats"],
+    queryFn: async () => {
+      const response = await adminAPI.getLicenseKeyStatistics();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+  });
+
+  // AI 큐 통계 조회
+  const { data: aiQueueStats } = useQuery({
+    queryKey: ["ai-queue-stats"],
+    queryFn: async () => {
+      const response = await aiAPI.getQueueStats();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+    refetchInterval: 10000, // 10초마다 자동 갱신
+  });
+
+  // AI 가용성 확인
+  const { data: aiAvailability } = useQuery({
+    queryKey: ["ai-availability"],
+    queryFn: async () => {
+      const response = await aiAPI.checkAvailability();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+    refetchInterval: 30000, // 30초마다 자동 갱신
+  });
+
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">로딩 중...</div>
+        </div>
+      </>
+    );
+  }
+
+  const tabs = [
+    { id: "overview", label: "대시보드", icon: "📊", groupId: "overview-section" },
+    { id: "content", label: "콘텐츠", icon: "📝", groupId: "content-group" },
+    { id: "users", label: "사용자", icon: "👥", groupId: "users-group" },
+    { id: "analytics", label: "분석", icon: "📈", groupId: "analytics-group" },
+    { id: "settings", label: "설정", icon: "⚙️", groupId: "settings-group" },
+  ];
+
+  const handleScrollToGroup = (groupId: string) => {
+    const element = document.getElementById(groupId);
+    if (element) {
+      const offset = 100; // 탭 높이 고려
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
 
   // 그룹 순서에 따라 정렬된 메뉴 그룹
   const menuGroups = useMemo(() => {
-    const groupMap = new Map(allMenuGroups.map((g) => [g.id, g]));
-    const orderedGroups: typeof allMenuGroups = [];
+    const groupMap = new Map(ALL_MENU_GROUPS.map((g) => [g.id, g]));
+    const orderedGroups: typeof ALL_MENU_GROUPS = [];
     
     // 저장된 순서대로 그룹 추가
     groupOrder.forEach((id) => {
@@ -176,7 +293,7 @@ const ALL_MENU_GROUPS = [
     });
     
     return orderedGroups;
-  }, [groupOrder, allMenuGroups]);
+  }, [groupOrder]); // ALL_MENU_GROUPS는 상수이므로 의존성 배열에서 제외
 
   // 즐겨찾기 메뉴 추출
   // isFavorite는 Zustand store 함수이므로 의존성 배열에서 제외
