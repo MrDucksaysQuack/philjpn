@@ -29,6 +29,12 @@ export default function AdminLicenseKeysPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [createMode, setCreateMode] = useState<"single" | "batch">("single");
   const [filters, setFilters] = useState({
     search: "",
@@ -940,8 +946,12 @@ export default function AdminLicenseKeysPage() {
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                       {key.validFrom
                         ? key.validUntil
-                          ? `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ ${new Date(key.validUntil).toLocaleDateString("ko-KR")}`
-                          : `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ 무제한`
+                          ? isMounted
+                            ? `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ ${new Date(key.validUntil).toLocaleDateString("ko-KR")}`
+                            : `${new Date(key.validFrom).toISOString().split('T')[0]} ~ ${new Date(key.validUntil).toISOString().split('T')[0]}`
+                          : isMounted
+                            ? `${new Date(key.validFrom).toLocaleDateString("ko-KR")} ~ 무제한`
+                            : `${new Date(key.validFrom).toISOString().split('T')[0]} ~ 무제한`
                         : "-"}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
