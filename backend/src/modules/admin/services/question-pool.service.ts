@@ -189,7 +189,7 @@ export class QuestionPoolService {
       where.createdBy = userId;
     }
 
-    return this.prisma.questionPool.findMany({
+    const pools = await this.prisma.questionPool.findMany({
       where,
       include: {
         creator: {
@@ -204,6 +204,12 @@ export class QuestionPoolService {
         createdAt: 'desc',
       },
     });
+
+    // 사용 중인 Template 정보 추가
+    return pools.map((pool) => ({
+      ...pool,
+      usedByTemplates: (pool as any).usedByTemplateIds?.length || 0,
+    }));
   }
 
   /**
@@ -232,7 +238,25 @@ export class QuestionPoolService {
       throw new Error('문제 풀을 찾을 수 없습니다.');
     }
 
-    return pool;
+    // 사용 중인 Template 정보 조회
+    const usedByTemplateIds = (pool as any).usedByTemplateIds || [];
+    const usedByTemplates = usedByTemplateIds.length > 0
+      ? await this.prisma.examTemplate.findMany({
+          where: { id: { in: usedByTemplateIds } },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            createdAt: true,
+          },
+        })
+      : [];
+
+    return {
+      ...pool,
+      usedByTemplates,
+      usedByTemplatesCount: usedByTemplates.length,
+    };
   }
 
   /**
@@ -306,6 +330,29 @@ export class QuestionPoolService {
     const pool = await this.getQuestionPool(id, userId);
     if (!pool) {
       throw new Error('문제 풀을 찾을 수 없거나 삭제 권한이 없습니다.');
+    }
+
+    // 이 Pool을 사용하는 Template들에서 questionPoolIds 제거
+    const usedByTemplateIds = (pool as any).usedByTemplateIds || [];
+    if (usedByTemplateIds.length > 0) {
+      // 각 Template에서 이 Pool ID 제거
+      for (const templateId of usedByTemplateIds) {
+        const template = await this.prisma.examTemplate.findUnique({
+          where: { id: templateId },
+          select: { questionPoolIds: true },
+        });
+
+        if (template) {
+          await this.prisma.examTemplate.update({
+            where: { id: templateId },
+            data: {
+              questionPoolIds: template.questionPoolIds.filter(
+                (poolId) => poolId !== id,
+              ),
+            },
+          });
+        }
+      }
     }
 
     await this.prisma.questionPool.delete({

@@ -564,23 +564,26 @@ model ExamTemplate {
 }
 
 model QuestionPool {
-  id              String      @id @default(uuid())
-  name            String
-  description     String?
-  tags            String[]    @default([])
-  difficulty      Difficulty?
-  questionIds     String[]    @default([])
+  id                 String      @id @default(uuid())
+  name               String
+  description        String?
+  tags               String[]    @default([])
+  difficulty         Difficulty?
+  questionIds        String[]     @default([])
   // 규칙 기반 자동 선택 설정
-  autoSelectRules Json? // 자동 선택 규칙 (예: { minDifficulty: "medium", maxCount: 30, tags: ["문법"] })
-  isAutoSelect    Boolean     @default(false) // 자동 선택 활성화 여부
-  createdBy       String
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  creator         User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  autoSelectRules    Json? // 자동 선택 규칙 (예: { minDifficulty: "medium", maxCount: 30, tags: ["문법"] })
+  isAutoSelect       Boolean      @default(false) // 자동 선택 활성화 여부
+  // Template ↔ Pool 다대다 관계: 역방향 참조
+  usedByTemplateIds  String[]     @default([]) // 이 Pool을 사용하는 Template ID 목록
+  createdBy          String
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  creator            User         @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 
   @@index([createdBy])
   @@index([tags])
   @@index([difficulty])
+  @@index([usedByTemplateIds])
   @@map("question_pools")
 }
 

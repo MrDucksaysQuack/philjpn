@@ -14,15 +14,70 @@ export class TemplateService {
   ) {}
 
   /**
+   * Pool의 usedByTemplateIds 동기화 (Helper 메서드)
+   * Template 생성/수정/삭제 시 Pool의 역방향 참조를 업데이트
+   */
+  private async syncPoolTemplateReferences(
+    templateId: string,
+    oldPoolIds: string[],
+    newPoolIds: string[],
+  ) {
+    // 제거된 Pool들: oldPoolIds에만 있는 것들
+    const removedPoolIds = oldPoolIds.filter((id) => !newPoolIds.includes(id));
+    // 추가된 Pool들: newPoolIds에만 있는 것들
+    const addedPoolIds = newPoolIds.filter((id) => !oldPoolIds.includes(id));
+
+    // 제거된 Pool들에서 templateId 제거
+    for (const poolId of removedPoolIds) {
+      const pool = await this.prisma.questionPool.findUnique({
+        where: { id: poolId },
+        select: { usedByTemplateIds: true },
+      });
+
+      if (pool) {
+        const currentIds = (pool as any).usedByTemplateIds || [];
+        await this.prisma.questionPool.update({
+          where: { id: poolId },
+          data: {
+            usedByTemplateIds: currentIds.filter(
+              (id: string) => id !== templateId,
+            ),
+          } as any,
+        });
+      }
+    }
+
+    // 추가된 Pool들에 templateId 추가
+    for (const poolId of addedPoolIds) {
+      const pool = await this.prisma.questionPool.findUnique({
+        where: { id: poolId },
+        select: { usedByTemplateIds: true },
+      });
+
+      const currentIds = (pool as any).usedByTemplateIds || [];
+      if (pool && !currentIds.includes(templateId)) {
+        await this.prisma.questionPool.update({
+          where: { id: poolId },
+          data: {
+            usedByTemplateIds: [...currentIds, templateId],
+          } as any,
+        });
+      }
+    }
+  }
+
+  /**
    * 템플릿 생성
    */
   async createTemplate(userId: string, createDto: CreateTemplateDto) {
-    return this.prisma.examTemplate.create({
+    const questionPoolIds = createDto.questionPoolIds || [];
+    
+    const template = await this.prisma.examTemplate.create({
       data: {
         name: createDto.name,
         description: createDto.description,
         structure: createDto.structure as unknown as Prisma.InputJsonValue,
-        questionPoolIds: createDto.questionPoolIds || [],
+        questionPoolIds,
         createdBy: userId,
       },
       include: {
@@ -35,6 +90,13 @@ export class TemplateService {
         },
       },
     });
+
+    // Pool의 usedByTemplateIds 동기화
+    if (questionPoolIds.length > 0) {
+      await this.syncPoolTemplateReferences(template.id, [], questionPoolIds);
+    }
+
+    return template;
   }
 
   /**
@@ -142,13 +204,16 @@ export class TemplateService {
       throw new ForbiddenException('본인이 만든 템플릿만 수정할 수 있습니다.');
     }
 
-    return this.prisma.examTemplate.update({
+    const oldPoolIds = template.questionPoolIds || [];
+    const newPoolIds = updateData.questionPoolIds || oldPoolIds;
+
+    const updatedTemplate = await this.prisma.examTemplate.update({
       where: { id: templateId },
       data: {
         ...(updateData.name && { name: updateData.name }),
         ...(updateData.description !== undefined && { description: updateData.description }),
         ...(updateData.structure && { structure: updateData.structure as unknown as Prisma.InputJsonValue }),
-        ...(updateData.questionPoolIds && { questionPoolIds: updateData.questionPoolIds }),
+        ...(updateData.questionPoolIds !== undefined && { questionPoolIds: updateData.questionPoolIds }),
       },
       include: {
         creator: {
@@ -160,6 +225,13 @@ export class TemplateService {
         },
       },
     });
+
+    // Pool의 usedByTemplateIds 동기화 (변경된 경우만)
+    if (updateData.questionPoolIds !== undefined) {
+      await this.syncPoolTemplateReferences(templateId, oldPoolIds, newPoolIds);
+    }
+
+    return updatedTemplate;
   }
 
   /**
@@ -198,9 +270,17 @@ export class TemplateService {
       );
     }
 
+    const poolIds = template.questionPoolIds || [];
+
+    // 템플릿 삭제
     await this.prisma.examTemplate.delete({
       where: { id: templateId },
     });
+
+    // Pool의 usedByTemplateIds에서 templateId 제거
+    if (poolIds.length > 0) {
+      await this.syncPoolTemplateReferences(templateId, poolIds, []);
+    }
 
     return { message: '템플릿이 삭제되었습니다.' };
   }
