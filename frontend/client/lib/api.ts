@@ -230,6 +230,18 @@ export interface Exam {
   // 적응형 시험
   isAdaptive?: boolean;
   adaptiveConfig?: any;
+  // 버전 관리
+  parentExamId?: string;
+  version?: string;
+  versionNumber?: number;
+  examVersion?: {
+    id: string;
+    version: string;
+    versionNumber: number;
+    questionOrder?: Record<string, string[]>;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
   // 메타데이터
   publishedAt?: string;
   createdBy?: string;
@@ -514,6 +526,39 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// Section API
+export interface Section {
+  id: string;
+  examId: string;
+  title: string;
+  description?: string;
+  order: number;
+  timeLimit?: number;
+  questionCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateSectionDto {
+  title: string;
+  description?: string;
+  order?: number;
+  timeLimit?: number;
+}
+
+export interface UpdateSectionDto extends Partial<CreateSectionDto> {}
+
+export const sectionAPI = {
+  getSectionsByExam: (examId: string) =>
+    apiClient.get<Section[]>(`/sections/exams/${examId}`),
+  getSection: (id: string) => apiClient.get<Section>(`/sections/${id}`),
+  createSection: (examId: string, data: CreateSectionDto) =>
+    apiClient.post<Section>(`/sections/exams/${examId}`, data),
+  updateSection: (id: string, data: UpdateSectionDto) =>
+    apiClient.patch<Section>(`/sections/${id}`, data),
+  deleteSection: (id: string) => apiClient.delete(`/sections/${id}`),
+};
+
 export const examAPI = {
   getExams: (params?: { 
     page?: number; 
@@ -542,6 +587,14 @@ export const examAPI = {
       status?: string;
       createdAt: string;
       updatedAt: string;
+      examVersion?: {
+        id: string;
+        version: string;
+        versionNumber: number;
+        questionOrder?: Record<string, string[]>;
+        createdAt: string;
+        updatedAt: string;
+      } | null;
     }>>(`/exams/${id}/versions`),
   validateExam: (id: string) =>
     apiClient.get<{
@@ -606,7 +659,7 @@ export const examAPI = {
 
 export const categoryAPI = {
   getCategoryBySlug: (slug: string) =>
-    apiClient.get<{ data: Category }>(`/api/categories/slug/${slug}`),
+    apiClient.get<{ data: Category }>(`/categories/slug/${slug}`),
   // Public API
   getPublicCategories: () =>
     apiClient.get<{ data: Category[] }>("/categories/public"),
@@ -917,6 +970,20 @@ export interface DetailedFeedback {
 }
 
 // WordBook API
+export interface WordBook {
+  id: string;
+  word: string;
+  meaning: string;
+  example?: string;
+  difficulty?: "easy" | "medium" | "hard";
+  tags?: string[];
+  masteryLevel?: number;
+  reviewCount?: number;
+  lastReviewedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const wordBookAPI = {
   getWords: (params?: {
     page?: number;
@@ -924,7 +991,8 @@ export const wordBookAPI = {
     difficulty?: string;
     tags?: string[];
     masteryLevel?: number;
-  }) => apiClient.get<PaginatedResponse<unknown>>("/word-books", { params }),
+  }) => apiClient.get<PaginatedResponse<WordBook>>("/word-books", { params }),
+  getWord: (id: string) => apiClient.get<WordBook>(`/word-books/${id}`),
   createWord: (data: {
     word: string;
     meaning: string;
@@ -2186,10 +2254,12 @@ export const aiAPI = {
   // 큐 통계
   getQueueStats: () =>
     apiClient.get<{
-      queued: number;
-      processing: number;
+      waiting: number;
+      active: number;
       completed: number;
       failed: number;
+      delayed: number;
+      total: number;
     }>("/ai/queue/stats"),
   // AI 기능 활성화 확인
   checkAvailability: () =>

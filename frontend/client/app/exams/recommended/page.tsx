@@ -6,8 +6,10 @@ import Header from "@/components/layout/Header";
 import { recommendationAPI } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function RecommendedExamsPage() {
+  const { t } = useTranslation();
   const { user, isLoading: authLoading } = useRequireAuth();
 
   const { data, isLoading, error } = useQuery({
@@ -25,7 +27,7 @@ export default function RecommendedExamsPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="인증 확인 중..." />
+            <LoadingSpinner message={t("common.authenticating")} />
           </div>
         </div>
       </>
@@ -42,7 +44,7 @@ export default function RecommendedExamsPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="추천 시험을 분석하는 중..." />
+            <LoadingSpinner message={t("exam.recommended.analyzing")} />
           </div>
         </div>
       </>
@@ -63,10 +65,10 @@ export default function RecommendedExamsPage() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
-                개인 맞춤형 시험 추천
+                {t("exam.recommended.title")}
               </h1>
               <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                당신의 학습 패턴과 약점을 분석하여 최적의 시험을 추천합니다
+                {t("exam.recommended.subtitle")}
               </p>
             </div>
           </div>
@@ -78,29 +80,29 @@ export default function RecommendedExamsPage() {
             <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <div className="w-1 h-8 bg-gradient-to-b from-theme-secondary to-theme-accent rounded-full"></div>
-                학습 경로
+                {t("exam.recommended.learningPath")}
               </h2>
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex-1 bg-gradient-to-r from-theme-secondary/10 to-theme-accent/10 rounded-xl p-6 border border-theme-secondary/20">
-                  <div className="text-sm font-semibold text-theme-secondary mb-2">현재 수준</div>
+                  <div className="text-sm font-semibold text-theme-secondary mb-2">{t("exam.recommended.currentLevel")}</div>
                   <div className="text-2xl font-bold text-theme-secondary capitalize">{adaptivePath.currentLevel}</div>
                 </div>
                 <div className="text-2xl text-gray-400">→</div>
                 <div className="flex-1 bg-gradient-to-r from-theme-accent/10 to-theme-primary/10 rounded-xl p-6 border border-theme-accent/20">
-                  <div className="text-sm font-semibold text-theme-accent mb-2">다음 목표</div>
+                  <div className="text-sm font-semibold text-theme-accent mb-2">{t("exam.recommended.nextMilestone")}</div>
                   <div className="text-2xl font-bold text-theme-accent capitalize">{adaptivePath.nextMilestone}</div>
                 </div>
               </div>
               {adaptivePath?.recommendedSequence && adaptivePath.recommendedSequence.length > 0 && (
                 <div className="space-y-3">
-                  <div className="text-sm font-semibold text-gray-700 mb-3">추천 순서:</div>
+                  <div className="text-sm font-semibold text-gray-700 mb-3">{t("exam.recommended.recommendedOrder")}:</div>
                   {(adaptivePath.recommendedSequence || []).map((item: any, index: number) => (
                     <div key={item.examId} className="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
                       <div className="w-8 h-8 bg-gradient-to-br from-theme-secondary to-theme-accent rounded-full flex items-center justify-center text-white font-bold">
                         {item.order}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm text-gray-500">예상 기간: {item.estimatedWeek}주</div>
+                        <div className="text-sm text-gray-500">{t("exam.recommended.estimatedPeriod")}: {item.estimatedWeek}{t("exam.recommended.weeks")}</div>
                       </div>
                     </div>
                   ))}
@@ -111,10 +113,10 @@ export default function RecommendedExamsPage() {
 
           {/* 추천 시험 목록 */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">추천 시험</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t("exam.recommended.recommendedExams")}</h2>
             {recommendations.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl">
-                <p className="text-gray-500">추천할 시험이 없습니다. 시험을 더 응시하면 맞춤형 추천이 가능합니다.</p>
+                <p className="text-gray-500">{t("exam.recommended.noRecommendations")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -156,16 +158,16 @@ export default function RecommendedExamsPage() {
 
                         {/* 추천 이유 */}
                         <div className="bg-gradient-to-r from-theme-secondary/10 to-theme-accent/10 rounded-lg p-4 mb-4 border border-theme-secondary/20">
-                          <div className="text-sm font-semibold text-theme-secondary mb-1">💡 추천 이유</div>
+                          <div className="text-sm font-semibold text-theme-secondary mb-1">💡 {t("exam.recommended.reason")}</div>
                           <p className="text-sm text-gray-700">{rec.reason}</p>
                         </div>
 
                         {/* 예상 점수 범위 */}
                         {rec.estimatedScoreRange && (
                           <div className="mb-4">
-                            <div className="text-xs font-semibold text-gray-500 mb-1">예상 점수 범위</div>
+                            <div className="text-xs font-semibold text-gray-500 mb-1">{t("exam.recommended.estimatedScoreRange")}</div>
                             <div className="text-lg font-bold text-gray-900">
-                              {rec.estimatedScoreRange[0]} ~ {rec.estimatedScoreRange[1]}점
+                              {rec.estimatedScoreRange[0]} ~ {rec.estimatedScoreRange[1]}{t("exam.detail.points")}
                             </div>
                           </div>
                         )}
@@ -173,7 +175,7 @@ export default function RecommendedExamsPage() {
                         {/* 학습 목표 */}
                         {rec.learningGoals && rec.learningGoals.length > 0 && (
                           <div className="mb-4">
-                            <div className="text-xs font-semibold text-gray-500 mb-2">학습 목표</div>
+                            <div className="text-xs font-semibold text-gray-500 mb-2">{t("exam.recommended.learningGoals")}</div>
                             <div className="flex flex-wrap gap-2">
                               {rec.learningGoals.map((goal: string, index: number) => (
                                 <span
@@ -201,7 +203,7 @@ export default function RecommendedExamsPage() {
                                 : "bg-success/20 text-success border border-success/20"
                             }`}
                           >
-                            {rec.challengeLevel === "high" ? "🔥 도전" : rec.challengeLevel === "medium" ? "⚡ 적정" : "✅ 완화"}
+                            {rec.challengeLevel === "high" ? `🔥 ${t("exam.recommended.challenge")}` : rec.challengeLevel === "medium" ? `⚡ ${t("exam.recommended.appropriate")}` : `✅ ${t("exam.recommended.easy")}`}
                           </span>
                         </div>
                       </div>
@@ -221,7 +223,7 @@ export default function RecommendedExamsPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              전체 시험 목록 보기
+              {t("exam.recommended.viewAllExams")}
             </Link>
           </div>
         </div>

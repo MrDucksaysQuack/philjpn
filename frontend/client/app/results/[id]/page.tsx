@@ -108,9 +108,26 @@ export default function ResultDetailPage() {
     },
   });
 
+  // AI 가용성 확인
+  const checkAIAvailability = async (): Promise<boolean> => {
+    try {
+      const response = await aiAPI.checkAvailability();
+      return response.data.available;
+    } catch (error) {
+      console.error("AI 가용성 확인 실패:", error);
+      return false;
+    }
+  };
+
   // AI 해설 생성 (비동기)
   const generateExplanationMutation = useMutation({
     mutationFn: async (data: GenerateExplanationPayload & { questionId: string }) => {
+      // AI 가용성 확인
+      const isAvailable = await checkAIAvailability();
+      if (!isAvailable) {
+        throw new Error("AI 기능이 현재 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+      }
+
       const response = await aiAPI.generateExplanationAsync({
         questionId: data.questionId,
         userAnswer: data.userAnswer,
@@ -125,7 +142,9 @@ export default function ResultDetailPage() {
       // 작업 상태 폴링 시작
       pollJobStatus(data.jobId, data.questionId);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = error?.message || error?.response?.data?.message || "AI 해설 생성에 실패했습니다.";
+      toast.error(errorMessage);
       emotionalToast.error(error);
     },
   });
@@ -175,6 +194,12 @@ export default function ResultDetailPage() {
   // AI 약점 진단 (비동기)
   const diagnoseWeaknessMutation = useMutation({
     mutationFn: async () => {
+      // AI 가용성 확인
+      const isAvailable = await checkAIAvailability();
+      if (!isAvailable) {
+        throw new Error("AI 기능이 현재 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+      }
+
       const response = await aiAPI.diagnoseWeaknessAsync(resultId);
       return response.data;
     },

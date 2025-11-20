@@ -15,6 +15,7 @@ import WordBookSummaryWidget from "./components/WordBookSummaryWidget";
 import QuickActions from "./components/QuickActions";
 import ScoreTrendWidget from "./components/ScoreTrendWidget";
 import BadgesWidget from "./components/BadgesWidget";
+import LearningCycleWidget from "./components/LearningCycleWidget";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 import { useOnboarding } from "@/lib/hooks/useOnboarding";
 
@@ -76,6 +77,11 @@ export default function DashboardPage() {
           {/* 목표 진행 상황 위젯 (최상단, 가장 중요) */}
           <div className="mb-8">
             <GoalProgressWidget />
+          </div>
+
+          {/* 학습 사이클 위젯 */}
+          <div className="mb-8">
+            <LearningCycleWidget />
           </div>
 
           {/* 메인 콘텐츠 그리드 */}

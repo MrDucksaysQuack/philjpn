@@ -17,7 +17,18 @@ export class ContactController {
   @ApiResponse({ status: 429, description: '요청 한도 초과' })
   @HttpCode(HttpStatus.CREATED)
   async submitContact(@Body() dto: SubmitContactDto) {
-    return this.contactService.submitContact(dto);
+    try {
+      return await this.contactService.submitContact(dto);
+    } catch (error: any) {
+      console.error('❌ submitContact 컨트롤러 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 }
 

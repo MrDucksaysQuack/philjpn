@@ -65,7 +65,8 @@ export class GoalService {
    * 목표 진행 상황 조회
    */
   async getGoalProgress(userId: string) {
-    const goals = await this.prisma.userGoal.findMany({
+    try {
+      const goals = await this.prisma.userGoal.findMany({
       where: {
         userId,
         status: 'active',
@@ -211,10 +212,21 @@ export class GoalService {
     // 배지 조회
     const achievements = await this.badgeService.getUserBadges(userId);
 
-    return {
-      activeGoals,
-      achievements,
-    };
+      return {
+        activeGoals,
+        achievements,
+      };
+    } catch (error: any) {
+      console.error('❌ getGoalProgress 서비스 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   /**

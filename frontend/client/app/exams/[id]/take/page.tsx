@@ -7,7 +7,7 @@ import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/common/Button";
-import { sessionAPI, NextQuestionResponse, questionAPI, Question } from "@/lib/api";
+import { sessionAPI, sessionFeedbackAPI, NextQuestionResponse, questionAPI, Question } from "@/lib/api";
 import { socketClient } from "@/lib/socket";
 import { useAuthStore } from "@/lib/store";
 import { emotionalToast } from "@/components/common/Toast";
@@ -33,6 +33,9 @@ export default function TakeExamPage() {
   const [targetDifficulty, setTargetDifficulty] = useState<string | null>(null);
   const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Set<string>>(new Set());
   const [showQuestionList, setShowQuestionList] = useState(false);
+  const [questionFeedback, setQuestionFeedback] = useState<Record<string, any>>({});
+  const [showFeedback, setShowFeedback] = useState<Record<string, boolean>>({});
+  const [questionStartTime, setQuestionStartTime] = useState<Record<string, number>>({});
   const socketConnectedRef = useRef(false);
 
   const { data: session, isLoading } = useQuery({
@@ -79,7 +82,7 @@ export default function TakeExamPage() {
         setCurrentQuestionNumber(questions[0].questionNumber);
       }
     } catch (error) {
-      console.error("섹션 문제 로드 실패:", error);
+      console.error(t("exam.take.loadSectionError"), error);
     }
   };
 
@@ -94,7 +97,7 @@ export default function TakeExamPage() {
       setTargetDifficulty(response.data.targetDifficulty);
       setCurrentQuestionNumber(response.data.order);
     } catch (error: any) {
-      console.error("다음 문제 가져오기 실패:", error);
+      console.error(t("exam.take.loadNextError"), error);
       if (error.response?.status === 400) {
         // 적응형 시험이 아니거나 오류
         setIsAdaptive(false);
@@ -175,6 +178,39 @@ export default function TakeExamPage() {
     },
   });
 
+  // 실시간 피드백 요청
+  const feedbackMutation = useMutation({
+    mutationFn: async ({
+      questionId,
+      answer,
+    }: {
+      questionId: string;
+      answer: string;
+    }) => {
+      const timeSpent = questionStartTime[questionId]
+        ? Math.floor((Date.now() - questionStartTime[questionId]) / 1000)
+        : undefined;
+      
+      const response = await sessionFeedbackAPI.submitQuestion(sessionId, {
+        questionId,
+        answer,
+        timeSpent,
+        confidence: 0.5, // 기본값, 나중에 사용자 입력으로 받을 수 있음
+      });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      setQuestionFeedback((prev) => ({
+        ...prev,
+        [variables.questionId]: data,
+      }));
+      setShowFeedback((prev) => ({
+        ...prev,
+        [variables.questionId]: true,
+      }));
+    },
+  });
+
   const submitMutation = useMutation({
     mutationFn: async () => {
       const response = await sessionAPI.submitExam(sessionId);
@@ -190,8 +226,40 @@ export default function TakeExamPage() {
     setAnswers({ ...answers, [questionId]: answer });
     // 적응형 시험이 아닌 경우에만 자동 저장
     if (!isAdaptive && sessionId) {
-    saveAnswerMutation.mutate({ questionId, answer });
+      saveAnswerMutation.mutate({ questionId, answer });
     }
+    // 피드백 숨기기 (새 답변 선택 시)
+    setShowFeedback((prev) => ({
+      ...prev,
+      [questionId]: false,
+    }));
+  };
+
+  // 문제 시작 시간 기록
+  useEffect(() => {
+    const questionId = isAdaptive 
+      ? currentQuestion?.question.id 
+      : currentRegularQuestion?.id;
+    
+    if (questionId && !questionStartTime[questionId]) {
+      setQuestionStartTime((prev) => ({
+        ...prev,
+        [questionId]: Date.now(),
+      }));
+    }
+  }, [currentQuestion, currentRegularQuestion, isAdaptive]);
+
+  // 피드백 요청 핸들러
+  const handleGetFeedback = (questionId: string) => {
+    const answer = answers[questionId];
+    if (!answer) {
+      emotionalToast.error({
+        message: t("exam.selectAnswerFirst"),
+        emoji: "⚠️",
+      } as any);
+      return;
+    }
+    feedbackMutation.mutate({ questionId, answer });
   };
 
   // 다음 문제로 이동 (적응형/일반 시험 모두 처리)
@@ -330,12 +398,12 @@ export default function TakeExamPage() {
                   <span className="text-sm font-semibold text-theme-secondary">🎯 {t("exam.adaptive")}</span>
                   {ability !== null && (
                     <span className="text-sm text-gray-600">
-                      능력 추정: <span className="font-semibold">{ability.toFixed(2)}</span>
+                      {t("exam.take.abilityEstimate")}: <span className="font-semibold">{ability.toFixed(2)}</span>
                     </span>
                   )}
                   {targetDifficulty && (
                     <span className="text-sm text-gray-600">
-                      현재 난이도: <span className="font-semibold">{targetDifficulty}</span>
+                      {t("exam.take.currentDifficulty")}: <span className="font-semibold">{targetDifficulty}</span>
                     </span>
                   )}
                 </div>
@@ -355,8 +423,8 @@ export default function TakeExamPage() {
             {/* 진행 상황 격려 메시지 */}
             {answeredCount > 0 && (
               <p className="text-center text-sm text-gray-600 mt-2">
-                ✅ {answeredCount}개 문제 답변 완료
-                {answeredCount >= currentTotal * 0.8 && " 💪 거의 다 했어요!"}
+                ✅ {t("exam.take.answeredCount", { count: answeredCount })}
+                {answeredCount >= currentTotal * 0.8 && ` 💪 ${t("exam.take.almostDone")}`}
               </p>
             )}
           </div>
@@ -367,15 +435,15 @@ export default function TakeExamPage() {
               <div className="bg-white border-2 border-purple-200 rounded-lg p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="text-sm text-gray-500">문제 {currentQuestion.order}</div>
+                    <div className="text-sm text-gray-500">{t("exam.question")} {currentQuestion.order}</div>
                     {currentQuestion.question.difficulty && (
                       <span className={`px-2 py-1 text-xs rounded ${
                         currentQuestion.question.difficulty === 'hard' ? 'bg-error/20 text-error' :
                         currentQuestion.question.difficulty === 'medium' ? 'bg-warning/20 text-warning' :
                         'bg-success/20 text-success'
                       }`}>
-                        {currentQuestion.question.difficulty === 'hard' ? '어려움' :
-                         currentQuestion.question.difficulty === 'medium' ? '중급' : '쉬움'}
+                        {currentQuestion.question.difficulty === 'hard' ? t("exam.take.difficulty.hard") :
+                         currentQuestion.question.difficulty === 'medium' ? t("exam.take.difficulty.medium") : t("exam.take.difficulty.easy")}
                       </span>
                     )}
                   </div>
@@ -386,7 +454,7 @@ export default function TakeExamPage() {
                         ? "bg-warning/20 text-warning"
                         : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                     }`}
-                    aria-label="북마크 토글"
+                    aria-label={t("exam.bookmark")}
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
@@ -409,7 +477,7 @@ export default function TakeExamPage() {
                   <div className="mb-4 flex justify-center">
                     <img
                       src={currentQuestion.question.imageUrl}
-                      alt="문제 이미지"
+                      alt={t("exam.take.questionImage")}
                       className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
                       style={{ maxHeight: "400px" }}
                     />
@@ -435,21 +503,75 @@ export default function TakeExamPage() {
                     ))}
                   </div>
                 )}
+                
+                {/* 피드백 버튼 및 표시 영역 */}
+                {answers[currentQuestion.question.id] && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={() => handleGetFeedback(currentQuestion.question.id)}
+                      variant="secondary"
+                      size="sm"
+                      isLoading={feedbackMutation.isPending}
+                      disabled={feedbackMutation.isPending}
+                    >
+                      {t("exam.getFeedback")}
+                    </Button>
+                    
+                    {showFeedback[currentQuestion.question.id] && questionFeedback[currentQuestion.question.id] && (
+                      <div className={`mt-4 p-4 rounded-lg border-2 ${
+                        questionFeedback[currentQuestion.question.id].isCorrect
+                          ? 'bg-success/10 border-success/30'
+                          : 'bg-error/10 border-error/30'
+                      }`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`text-2xl ${
+                            questionFeedback[currentQuestion.question.id].isCorrect ? 'text-success' : 'text-error'
+                          }`}>
+                            {questionFeedback[currentQuestion.question.id].isCorrect ? '✓' : '✗'}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`font-semibold mb-2 ${
+                              questionFeedback[currentQuestion.question.id].isCorrect ? 'text-success' : 'text-error'
+                            }`}>
+                              {questionFeedback[currentQuestion.question.id].feedback.immediate}
+                            </div>
+                            <div className="text-sm text-gray-700 mb-2">
+                              {questionFeedback[currentQuestion.question.id].feedback.explanation}
+                            </div>
+                            {questionFeedback[currentQuestion.question.id].feedback.tips && 
+                             questionFeedback[currentQuestion.question.id].feedback.tips.length > 0 && (
+                              <div className="mt-2">
+                                {questionFeedback[currentQuestion.question.id].feedback.tips.map((tip: string, idx: number) => (
+                                  <div key={idx} className="text-sm text-gray-600 mb-1">💡 {tip}</div>
+                                ))}
+                              </div>
+                            )}
+                            {questionFeedback[currentQuestion.question.id].performanceHint?.timeManagement && (
+                              <div className="mt-2 text-sm text-gray-600">
+                                ⏱️ {questionFeedback[currentQuestion.question.id].performanceHint.timeManagement}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               currentRegularQuestion ? (
                 <div className="bg-white border-2 border-theme-primary/20 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="text-sm text-gray-500">문제 {currentRegularQuestion.questionNumber}</div>
+                      <div className="text-sm text-gray-500">{t("exam.question")} {currentRegularQuestion.questionNumber}</div>
                       {currentRegularQuestion.difficulty && (
                         <span className={`px-2 py-1 text-xs rounded ${
                           currentRegularQuestion.difficulty === 'hard' ? 'bg-error/20 text-error' :
                           currentRegularQuestion.difficulty === 'medium' ? 'bg-warning/20 text-warning' :
                           'bg-success/20 text-success'
                         }`}>
-                          {currentRegularQuestion.difficulty === 'hard' ? '어려움' :
-                           currentRegularQuestion.difficulty === 'medium' ? '중급' : '쉬움'}
+                          {currentRegularQuestion.difficulty === 'hard' ? t("exam.take.difficulty.hard") :
+                           currentRegularQuestion.difficulty === 'medium' ? t("exam.take.difficulty.medium") : t("exam.take.difficulty.easy")}
                         </span>
                       )}
                     </div>
@@ -460,7 +582,7 @@ export default function TakeExamPage() {
                           ? "bg-warning/20 text-warning"
                           : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                       }`}
-                      aria-label="북마크 토글"
+                      aria-label={t("exam.bookmark")}
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
@@ -483,7 +605,7 @@ export default function TakeExamPage() {
                     <div className="mb-4 flex justify-center">
                       <img
                         src={currentRegularQuestion.imageUrl}
-                        alt="문제 이미지"
+                        alt={t("exam.take.questionImage")}
                         className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
                         style={{ maxHeight: "400px" }}
                       />
@@ -514,11 +636,65 @@ export default function TakeExamPage() {
                       })()}
                     </div>
                   )}
+                  
+                  {/* 피드백 버튼 및 표시 영역 */}
+                  {answers[currentRegularQuestion.id] && (
+                    <div className="mt-4">
+                      <Button
+                        onClick={() => handleGetFeedback(currentRegularQuestion.id)}
+                        variant="secondary"
+                        size="sm"
+                        isLoading={feedbackMutation.isPending}
+                        disabled={feedbackMutation.isPending}
+                      >
+                        {t("exam.getFeedback")}
+                      </Button>
+                      
+                      {showFeedback[currentRegularQuestion.id] && questionFeedback[currentRegularQuestion.id] && (
+                        <div className={`mt-4 p-4 rounded-lg border-2 ${
+                          questionFeedback[currentRegularQuestion.id].isCorrect
+                            ? 'bg-success/10 border-success/30'
+                            : 'bg-error/10 border-error/30'
+                        }`}>
+                          <div className="flex items-start gap-3">
+                            <div className={`text-2xl ${
+                              questionFeedback[currentRegularQuestion.id].isCorrect ? 'text-success' : 'text-error'
+                            }`}>
+                              {questionFeedback[currentRegularQuestion.id].isCorrect ? '✓' : '✗'}
+                            </div>
+                            <div className="flex-1">
+                              <div className={`font-semibold mb-2 ${
+                                questionFeedback[currentRegularQuestion.id].isCorrect ? 'text-success' : 'text-error'
+                              }`}>
+                                {questionFeedback[currentRegularQuestion.id].feedback.immediate}
+                              </div>
+                              <div className="text-sm text-gray-700 mb-2">
+                                {questionFeedback[currentRegularQuestion.id].feedback.explanation}
+                              </div>
+                              {questionFeedback[currentRegularQuestion.id].feedback.tips && 
+                               questionFeedback[currentRegularQuestion.id].feedback.tips.length > 0 && (
+                                <div className="mt-2">
+                                  {questionFeedback[currentRegularQuestion.id].feedback.tips.map((tip: string, idx: number) => (
+                                    <div key={idx} className="text-sm text-gray-600 mb-1">💡 {tip}</div>
+                                  ))}
+                                </div>
+                              )}
+                              {questionFeedback[currentRegularQuestion.id].performanceHint?.timeManagement && (
+                                <div className="mt-2 text-sm text-gray-600">
+                                  ⏱️ {questionFeedback[currentRegularQuestion.id].performanceHint.timeManagement}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
             <div className="bg-gray-50 p-6 rounded-lg">
                   <div className="text-center text-gray-500">
-                    문제를 불러오는 중...
+                    {t("exam.take.loadingQuestion")}
                   </div>
             </div>
               )
@@ -569,7 +745,7 @@ export default function TakeExamPage() {
               <button
                 onClick={() => setShowQuestionList(false)}
                 className="p-1 rounded hover:bg-gray-100"
-                aria-label="목록 닫기"
+                aria-label={t("exam.take.closeList")}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -594,7 +770,7 @@ export default function TakeExamPage() {
                         ? "bg-success/20 text-success hover:bg-success/30"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     } ${isBookmarked ? "ring-2 ring-warning/40" : ""}`}
-                    title={`문제 ${num}${isBookmarked ? " (북마크됨)" : ""}${hasAnswer ? " (답변 완료)" : ""}`}
+                    title={`${t("exam.question")} ${num}${isBookmarked ? ` (${t("exam.bookmarked")})` : ""}${hasAnswer ? ` (${t("exam.take.answered")})` : ""}`}
                   >
                     <div className="flex items-center justify-center gap-1">
                       <span>{num}</span>
@@ -611,7 +787,7 @@ export default function TakeExamPage() {
             {bookmarkedQuestions.size > 0 && (
               <div className="mt-4 pt-4 border-t">
                 <p className="text-xs text-gray-500 mb-2">
-                  북마크된 문제: {bookmarkedQuestions.size}개
+                  {t("exam.take.bookmarkedQuestions", { count: bookmarkedQuestions.size })}
                 </p>
               </div>
             )}

@@ -10,7 +10,8 @@ export class ResultService {
    * 내 시험 결과 목록 조회
    */
   async findAll(userId: string, query: ResultQueryDto) {
-    const { page = 1, limit = 10, examId, status } = query;
+    try {
+      const { page = 1, limit = 10, examId, status } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -38,26 +39,37 @@ export class ResultService {
       this.prisma.examResult.count({ where }),
     ]);
 
-    return {
-      data: data.map((result) => ({
-        id: result.id,
-        examId: result.examId,
-        examTitle: result.exam.title,
-        status: result.status,
-        totalScore: result.totalScore,
-        maxScore: result.maxScore,
-        percentage: result.percentage,
-        timeSpent: result.timeSpent,
-        startedAt: result.startedAt,
-        submittedAt: result.submittedAt,
-      })),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+      return {
+        data: data.map((result) => ({
+          id: result.id,
+          examId: result.examId,
+          examTitle: result.exam?.title || '알 수 없음',
+          status: result.status,
+          totalScore: result.totalScore,
+          maxScore: result.maxScore,
+          percentage: result.percentage,
+          timeSpent: result.timeSpent,
+          startedAt: result.startedAt,
+          submittedAt: result.submittedAt,
+        })),
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error: any) {
+      console.error('❌ findAll (ResultService) 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   /**

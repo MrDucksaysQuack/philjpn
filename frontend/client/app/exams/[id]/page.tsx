@@ -9,8 +9,10 @@ import { examAPI, sessionAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { emotionalToast, toast } from "@/components/common/Toast";
 import { getContextualError } from "@/lib/messages";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ExamDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const examId = params.id as string;
@@ -48,7 +50,7 @@ export default function ExamDetailPage() {
 
   const handleStartExam = async () => {
     if (!licenseKey.trim()) {
-      setError("라이선스 키를 입력해주세요.");
+      setError(t("exam.detail.licenseKeyRequired"));
       return;
     }
 
@@ -78,7 +80,7 @@ export default function ExamDetailPage() {
       <>
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">로딩 중...</div>
+          <div className="text-center">{t("common.loading")}</div>
         </div>
       </>
     );
@@ -90,7 +92,7 @@ export default function ExamDetailPage() {
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center text-red-600">
-            시험을 찾을 수 없습니다.
+            {t("exam.detail.notFound")}
           </div>
         </div>
       </>
@@ -110,24 +112,52 @@ export default function ExamDetailPage() {
             <p className="text-gray-600 mb-6">{exam.description}</p>
           )}
 
+          {/* 버전 정보 표시 */}
+          {(exam.version || exam.versionNumber || exam.parentExamId) && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-blue-900">
+                  {t("exam.detail.versionInfo")}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-4 text-sm text-blue-700">
+                {exam.version && (
+                  <span>
+                    {t("exam.detail.version")}: <strong>{exam.version}</strong>
+                  </span>
+                )}
+                {exam.versionNumber && (
+                  <span>
+                    {t("exam.detail.versionNumber")}: <strong>#{exam.versionNumber}</strong>
+                  </span>
+                )}
+                {exam.parentExamId && (
+                  <span className="text-blue-600">
+                    {t("exam.detail.isVersion")}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-500">시험 유형</div>
+              <div className="text-sm text-gray-500">{t("exam.detail.examType")}</div>
               <div className="text-lg font-semibold">{exam.examType}</div>
             </div>
             {exam.estimatedTime && (
               <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-500">예상 소요 시간</div>
+                <div className="text-sm text-gray-500">{t("exam.detail.estimatedTime")}</div>
                 <div className="text-lg font-semibold">
-                  {exam.estimatedTime}분
+                  {exam.estimatedTime}{t("exam.minutes")}
                 </div>
               </div>
             )}
             {exam.passingScore && (
               <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm text-gray-500">합격 점수</div>
+                <div className="text-sm text-gray-500">{t("exam.detail.passingScore")}</div>
                 <div className="text-lg font-semibold">
-                  {exam.passingScore}점
+                  {exam.passingScore}{t("exam.detail.points")}
                 </div>
               </div>
             )}
@@ -135,7 +165,7 @@ export default function ExamDetailPage() {
 
           {sections && sections.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">섹션 구성</h2>
+              <h2 className="text-xl font-semibold mb-4">{t("exam.detail.sectionStructure")}</h2>
               <div className="space-y-2">
                 {sections.map((section: { id: string; title: string; description?: string; questionCount?: number }) => (
                   <div
@@ -151,7 +181,7 @@ export default function ExamDetailPage() {
                       )}
                     </div>
                     <span className="text-sm text-gray-600">
-                      {section.questionCount}문제
+                      {section.questionCount}{t("exam.questions")}
                     </span>
                   </div>
                 ))}
@@ -160,10 +190,10 @@ export default function ExamDetailPage() {
           )}
 
           <div className="border-t pt-6">
-            <h2 className="text-xl font-semibold mb-4">시험 시작</h2>
+            <h2 className="text-xl font-semibold mb-4">{t("exam.detail.startExam")}</h2>
             {!user ? (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4">
-                시험을 시작하려면 로그인이 필요합니다.
+                {t("exam.detail.loginRequired")}
               </div>
             ) : (
               <>
@@ -172,7 +202,7 @@ export default function ExamDetailPage() {
                     htmlFor="licenseKey"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    라이선스 키 <span className="text-red-500">*</span>
+                    {t("exam.detail.licenseKey")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="licenseKey"
@@ -194,7 +224,7 @@ export default function ExamDetailPage() {
                   />
                   <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
                     <span>💡</span>
-                    <span>라이선스 키는 관리자에게 문의하거나 이메일로 발급받을 수 있습니다.</span>
+                    <span>{t("exam.detail.licenseKeyHint")}</span>
                   </p>
                 </div>
                 {error && (
@@ -209,7 +239,7 @@ export default function ExamDetailPage() {
                   fullWidth
                   className="font-medium"
                 >
-                  시험 시작
+                  {t("exam.start")}
                 </Button>
               </>
             )}

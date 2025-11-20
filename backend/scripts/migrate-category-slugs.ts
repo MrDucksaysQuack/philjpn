@@ -34,8 +34,9 @@ async function generateUniqueSlug(name: string, excludeId?: string): Promise<str
   let counter = 1;
 
   while (true) {
+    // slug는 @unique이므로 findUnique에서 사용 가능하지만, 타입 정의 문제로 인해 타입 단언 사용
     const existing = await prisma.category.findUnique({
-      where: { slug },
+      where: { slug } as any,
       select: { id: true },
     });
 
@@ -54,19 +55,17 @@ async function main() {
   console.log('🚀 카테고리 slug 마이그레이션 시작...\n');
 
   try {
-    // slug가 없는 모든 카테고리 조회
+    // slug가 없는 모든 카테고리 조회 (빈 문자열만 체크, slug는 null이 될 수 없음)
+    // 타입 정의 문제로 인해 타입 단언 사용
     const categories = await prisma.category.findMany({
       where: {
-        OR: [
-          { slug: { equals: null } as any },
-          { slug: '' },
-        ],
-      },
+        slug: '',
+      } as any,
       select: {
         id: true,
         name: true,
         slug: true,
-      },
+      } as any,
     });
 
     if (categories.length === 0) {
@@ -81,14 +80,16 @@ async function main() {
 
     for (const category of categories) {
       try {
-        const slug = await generateUniqueSlug(category.name, category.id);
+        // category 타입이 배열로 추론되는 문제를 해결하기 위해 타입 단언 사용
+        const categoryData = category as unknown as { id: string; name: string; slug: string | null };
+        const slug = await generateUniqueSlug(categoryData.name, categoryData.id);
         
         await prisma.category.update({
-          where: { id: category.id },
-          data: { slug },
+          where: { id: categoryData.id },
+          data: { slug } as any,
         });
 
-        console.log(`✅ ${category.name} → ${slug}`);
+        console.log(`✅ ${categoryData.name} → ${slug}`);
         successCount++;
       } catch (error) {
         console.error(`❌ ${category.name} 처리 실패:`, error);
@@ -100,14 +101,11 @@ async function main() {
     console.log(`   ✅ 성공: ${successCount}개`);
     console.log(`   ❌ 실패: ${errorCount}개`);
 
-    // 최종 검증
+    // 최종 검증 (빈 문자열만 체크)
     const remaining = await prisma.category.count({
       where: {
-        OR: [
-          { slug: { equals: null } as any },
-          { slug: '' },
-        ],
-      },
+        slug: '',
+      } as any,
     });
 
     if (remaining === 0) {

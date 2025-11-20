@@ -9,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/common/Button";
-import { apiClient, Exam, examAPI, adminAPI } from "@/lib/api";
+import { apiClient, Exam, examAPI, adminAPI, sectionAPI, Section } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import AutocompleteSelect from "@/components/admin/AutocompleteSelect";
 import { toast } from "@/components/common/Toast";
@@ -48,6 +48,9 @@ export default function EditExamPage() {
   const [showDifficultyBalanceModal, setShowDifficultyBalanceModal] = useState(false);
   const [showWorkflowModal, setShowWorkflowModal] = useState(false);
   const [showVersionHistoryModal, setShowVersionHistoryModal] = useState(false);
+  const [showSectionDetailModal, setShowSectionDetailModal] = useState(false);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [showCreateSectionModal, setShowCreateSectionModal] = useState(false);
 
   // 기존 시험 목록 조회 (과목 자동완성용)
   const { data: examsResponse } = useQuery({
@@ -72,6 +75,16 @@ export default function EditExamPage() {
     queryKey: ["exam", examId],
     queryFn: async (): Promise<Exam> => {
       const response = await apiClient.get(`/exams/${examId}`);
+      return response.data;
+    },
+    enabled: !!examId && user?.role === "admin",
+  });
+
+  // 섹션 목록 조회
+  const { data: sections, isLoading: isLoadingSections } = useQuery<Section[]>({
+    queryKey: ["exam-sections", examId],
+    queryFn: async (): Promise<Section[]> => {
+      const response = await sectionAPI.getSectionsByExam(examId);
       return response.data;
     },
     enabled: !!examId && user?.role === "admin",
@@ -238,9 +251,31 @@ export default function EditExamPage() {
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            시험 수정
-          </h1>
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              시험 수정
+            </h1>
+            {/* 버전 정보 표시 */}
+            {(exam.version || exam.versionNumber || exam.parentExamId) && (
+              <div className="mt-2 flex items-center gap-3 text-sm">
+                {exam.version && (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-semibold">
+                    버전 {exam.version}
+                  </span>
+                )}
+                {exam.versionNumber && (
+                  <span className="text-gray-600">
+                    버전 번호: #{exam.versionNumber}
+                  </span>
+                )}
+                {exam.parentExamId && (
+                  <span className="text-gray-500">
+                    (원본 시험의 버전)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowValidationModal(true)}
@@ -632,6 +667,74 @@ export default function EditExamPage() {
           </div>
         </form>
 
+        {/* ExamVersion 정보 섹션 */}
+        {exam && (exam.version || exam.versionNumber || exam.parentExamId) && (
+          <div className="mt-8 bg-white rounded-lg shadow p-6 sm:p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">버전 정보</h2>
+            <ExamVersionInfo examId={examId} exam={exam} />
+          </div>
+        )}
+
+        {/* 섹션 관리 섹션 */}
+        <div className="mt-8 bg-white rounded-lg shadow p-6 sm:p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900">섹션 관리</h2>
+            <Button
+              onClick={() => setShowCreateSectionModal(true)}
+              variant="primary"
+              size="sm"
+            >
+              섹션 추가
+            </Button>
+          </div>
+
+          {isLoadingSections ? (
+            <div className="text-center py-8">섹션 목록을 불러오는 중...</div>
+          ) : sections && sections.length > 0 ? (
+            <div className="space-y-4">
+              {sections.map((section) => (
+                <div
+                  key={section.id}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    setSelectedSectionId(section.id);
+                    setShowSectionDetailModal(true);
+                  }}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">{section.title}</h3>
+                      {section.description && (
+                        <p className="text-sm text-gray-600 mb-2">{section.description}</p>
+                      )}
+                      <div className="flex gap-4 text-sm text-gray-500">
+                        <span>순서: {section.order}</span>
+                        {section.timeLimit && <span>시간 제한: {section.timeLimit}분</span>}
+                        {section.questionCount !== undefined && (
+                          <span>문제 수: {section.questionCount}개</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/admin/exams/${examId}/sections/${section.id}/questions`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+                      >
+                        문제 관리
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              등록된 섹션이 없습니다. 섹션을 추가해주세요.
+            </div>
+          )}
+        </div>
+
         {/* 검증 모달 */}
         {showValidationModal && examId && (
           <ExamValidationModal
@@ -664,10 +767,99 @@ export default function EditExamPage() {
                   onClose={() => setShowVersionHistoryModal(false)}
                 />
               )}
+
+              {/* 섹션 상세 모달 */}
+              {showSectionDetailModal && selectedSectionId && (
+                <SectionDetailModal
+                  sectionId={selectedSectionId}
+                  examId={examId}
+                  onClose={() => {
+                    setShowSectionDetailModal(false);
+                    setSelectedSectionId(null);
+                  }}
+                />
+              )}
+
+              {/* 섹션 생성 모달 */}
+              {showCreateSectionModal && examId && (
+                <CreateSectionModal
+                  examId={examId}
+                  onClose={() => setShowCreateSectionModal(false)}
+                />
+              )}
             </div>
           </>
         );
       }
+
+// ExamVersion 정보 컴포넌트
+function ExamVersionInfo({ examId, exam }: { examId: string; exam: Exam }) {
+  if (!exam.version && !exam.versionNumber && !exam.parentExamId) {
+    return null;
+  }
+
+  const examVersion = exam.examVersion;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {exam.version && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="text-sm text-purple-700 font-medium mb-1">버전 식별자</div>
+            <div className="text-2xl font-bold text-purple-900">{exam.version}</div>
+          </div>
+        )}
+        {exam.versionNumber && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="text-sm text-blue-700 font-medium mb-1">버전 번호</div>
+            <div className="text-2xl font-bold text-blue-900">#{exam.versionNumber}</div>
+          </div>
+        )}
+        {exam.parentExamId && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="text-sm text-gray-700 font-medium mb-1">원본 시험 ID</div>
+            <div className="text-sm font-mono text-gray-900 break-all">{exam.parentExamId}</div>
+          </div>
+        )}
+      </div>
+
+      {examVersion && examVersion.questionOrder && (
+        <div className="mt-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">버전별 문제 순서</h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="text-sm text-gray-600 mb-2">
+              {Object.keys(examVersion.questionOrder).length}개의 섹션에 대한 문제 순서가 저장되어 있습니다.
+            </div>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-700">
+                상세 정보 보기
+              </summary>
+              <div className="mt-2 space-y-2">
+                {Object.entries(examVersion.questionOrder as Record<string, string[]>).map(([sectionId, questionIds]) => (
+                  <div key={sectionId} className="text-xs font-mono bg-white p-2 rounded border">
+                    <div className="font-semibold mb-1">섹션: {sectionId.substring(0, 8)}...</div>
+                    <div className="text-gray-600">
+                      문제 수: {questionIds.length}개
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
+        </div>
+      )}
+
+      {examVersion && (
+        <div className="mt-4 text-sm text-gray-600">
+          <div className="flex gap-4">
+            <span>생성일: {new Date(examVersion.createdAt).toLocaleString('ko-KR')}</span>
+            <span>수정일: {new Date(examVersion.updatedAt).toLocaleString('ko-KR')}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // 시험 검증 모달 컴포넌트
 function ExamValidationModal({
@@ -1283,9 +1475,10 @@ function WorkflowModal({
 }) {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  const [actionType, setActionType] = useState<'submit' | 'approve' | 'reject' | null>(null);
+  const [actionType, setActionType] = useState<'submit' | 'approve' | 'reject' | 'assign-reviewer' | null>(null);
   const [comment, setComment] = useState('');
   const [reason, setReason] = useState('');
+  const [selectedReviewerId, setSelectedReviewerId] = useState<string>('');
 
   // 워크플로우 상태 조회
   const { data: workflowStatus, isLoading, refetch } = useQuery({
@@ -1404,6 +1597,42 @@ function WorkflowModal({
     },
   });
 
+  // 역할 기반 권한 체크
+  const userRole = user?.role || '';
+  const isAdmin = userRole === 'admin';
+  const isCreator = userRole === 'creator';
+  const isReviewer = userRole === 'reviewer';
+  const isApprover = userRole === 'approver';
+
+  // 검수자 목록 조회 (reviewer 역할을 가진 사용자)
+  const { data: reviewersList } = useQuery({
+    queryKey: ['reviewers'],
+    queryFn: async () => {
+      const response = await adminAPI.getUsers({ role: 'reviewer', isActive: true, limit: 100 });
+      return response.data;
+    },
+    enabled: isAdmin && workflowStatus?.status === 'review',
+  });
+
+  // 검수자 할당
+  const assignReviewerMutation = useMutation({
+    mutationFn: async (reviewerId: string) => {
+      const response = await examAPI.assignReviewer(examId, reviewerId);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('검수자가 할당되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['exam', examId] });
+      queryClient.invalidateQueries({ queryKey: ['exam-workflow', examId] });
+      refetch();
+      setActionType(null);
+      setSelectedReviewerId('');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || '검수자 할당에 실패했습니다.');
+    },
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
@@ -1442,15 +1671,9 @@ function WorkflowModal({
     }
   };
 
-  // 역할 기반 권한 체크
-  const userRole = user?.role || '';
-  const isAdmin = userRole === 'admin';
-  const isCreator = userRole === 'creator';
-  const isReviewer = userRole === 'reviewer';
-  const isApprover = userRole === 'approver';
-
   // 상태 및 역할 기반 권한 체크
   const canSubmitForReview = workflowStatus?.status === 'draft' && (isAdmin || isCreator);
+  const canAssignReviewer = workflowStatus?.status === 'review' && isAdmin && !workflowStatus.reviewerId;
   const canApprove = workflowStatus?.status === 'review' && (isAdmin || isApprover);
   const canReject = workflowStatus?.status === 'review' && (isAdmin || isReviewer);
   const canPublish = workflowStatus?.status === 'approved' && (isAdmin || isApprover);
@@ -1574,6 +1797,16 @@ function WorkflowModal({
                       검수 요청
                     </Button>
                   )}
+                  {canAssignReviewer && (
+                    <Button
+                      onClick={() => setActionType('assign-reviewer')}
+                      variant="secondary"
+                      fullWidth
+                      className="text-left"
+                    >
+                      검수자 할당
+                    </Button>
+                  )}
                   {canApprove && (
                     <Button
                       onClick={() => setActionType('approve')}
@@ -1693,6 +1926,55 @@ function WorkflowModal({
                       취소
                     </button>
                   </div>
+                </div>
+              )}
+
+              {actionType === 'assign-reviewer' && (
+                <div className="border border-purple-200 rounded-lg p-6 bg-purple-50">
+                  <h4 className="text-lg font-semibold text-purple-900 mb-4">검수자 할당</h4>
+                  {reviewersList?.data && reviewersList.data.length > 0 ? (
+                    <>
+                      <select
+                        value={selectedReviewerId}
+                        onChange={(e) => setSelectedReviewerId(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-md mb-4"
+                      >
+                        <option value="">검수자를 선택하세요</option>
+                        {reviewersList.data.map((reviewer: any) => (
+                          <option key={reviewer.id} value={reviewer.id}>
+                            {reviewer.name} ({reviewer.email})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            if (selectedReviewerId) {
+                              assignReviewerMutation.mutate(selectedReviewerId);
+                            }
+                          }}
+                          disabled={assignReviewerMutation.isPending || !selectedReviewerId}
+                          isLoading={assignReviewerMutation.isPending}
+                          variant="secondary"
+                        >
+                          할당
+                        </Button>
+                        <button
+                          onClick={() => {
+                            setActionType(null);
+                            setSelectedReviewerId('');
+                          }}
+                          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-gray-600 mb-4">
+                      검수자 역할을 가진 사용자가 없습니다.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2054,6 +2336,416 @@ function VersionHistoryModal({
             닫기
           </Button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// 섹션 상세 모달 컴포넌트
+function SectionDetailModal({
+  sectionId,
+  examId,
+  onClose,
+}: {
+  sectionId: string;
+  examId: string;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<{ title: string; description: string; timeLimit?: number }>({
+    title: "",
+    description: "",
+    timeLimit: undefined,
+  });
+
+  const { data: section, isLoading } = useQuery<Section>({
+    queryKey: ["section", sectionId],
+    queryFn: async (): Promise<Section> => {
+      const response = await sectionAPI.getSection(sectionId);
+      return response.data;
+    },
+  });
+
+  useEffect(() => {
+    if (section) {
+      setEditData({
+        title: section.title,
+        description: section.description || "",
+        timeLimit: section.timeLimit,
+      });
+    }
+  }, [section]);
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: { title?: string; description?: string; timeLimit?: number }) => {
+      await sectionAPI.updateSection(sectionId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["section", sectionId] });
+      queryClient.invalidateQueries({ queryKey: ["exam-sections", examId] });
+      toast.success("섹션이 수정되었습니다.");
+      setIsEditing(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "섹션 수정에 실패했습니다.");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await sectionAPI.deleteSection(sectionId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exam-sections", examId] });
+      toast.success("섹션이 삭제되었습니다.");
+      onClose();
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "섹션 삭제에 실패했습니다.");
+    },
+  });
+
+  const handleUpdate = () => {
+    updateMutation.mutate(editData);
+  };
+
+  const handleDelete = () => {
+    if (confirm("이 섹션을 삭제하시겠습니까? 섹션 내의 모든 문제도 함께 삭제됩니다.")) {
+      deleteMutation.mutate();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-2xl w-full">
+          <div className="text-center py-8">섹션 정보를 불러오는 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!section) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-2xl w-full">
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">섹션을 찾을 수 없습니다.</p>
+            <Button onClick={onClose} variant="outline">
+              닫기
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">섹션 상세 정보</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          >
+            ×
+          </button>
+        </div>
+
+        {isEditing ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                섹션 제목 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={editData.title}
+                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                설명
+              </label>
+              <textarea
+                value={editData.description}
+                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시간 제한 (분)
+              </label>
+              <input
+                type="number"
+                value={editData.timeLimit || ""}
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    timeLimit: e.target.value ? parseInt(e.target.value) : undefined,
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                min="0"
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleUpdate}
+                variant="primary"
+                isLoading={updateMutation.isPending}
+                className="flex-1"
+              >
+                저장
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsEditing(false);
+                  if (section) {
+                    setEditData({
+                      title: section.title,
+                      description: section.description || "",
+                      timeLimit: section.timeLimit,
+                    });
+                  }
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                취소
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 mb-2">섹션 제목</h3>
+              <p className="text-lg text-gray-900 font-medium">{section.title}</p>
+            </div>
+            {section.description && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 mb-2">설명</h3>
+                <p className="text-gray-700">{section.description}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 mb-2">순서</h3>
+                <p className="text-gray-700">{section.order}</p>
+              </div>
+              {section.timeLimit && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-2">시간 제한</h3>
+                  <p className="text-gray-700">{section.timeLimit}분</p>
+                </div>
+              )}
+              {section.questionCount !== undefined && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-2">문제 수</h3>
+                  <p className="text-gray-700">{section.questionCount}개</p>
+                </div>
+              )}
+              {section.createdAt && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-2">생성일</h3>
+                  <p className="text-gray-700">
+                    {new Date(section.createdAt).toLocaleDateString("ko-KR")}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <Link
+                href={`/admin/exams/${examId}/sections/${sectionId}/questions`}
+                className="flex-1"
+              >
+                <Button variant="primary" className="w-full">
+                  문제 관리
+                </Button>
+              </Link>
+              <Button
+                onClick={() => setIsEditing(true)}
+                variant="outline"
+                className="flex-1"
+              >
+                수정
+              </Button>
+              <Button
+                onClick={handleDelete}
+                variant="error"
+                isLoading={deleteMutation.isPending}
+                className="flex-1"
+              >
+                삭제
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// 섹션 생성 모달 컴포넌트
+function CreateSectionModal({
+  examId,
+  onClose,
+}: {
+  examId: string;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState<{ title: string; description: string; timeLimit?: number; order?: number }>({
+    title: "",
+    description: "",
+    timeLimit: undefined,
+    order: undefined,
+  });
+
+  const { data: sections } = useQuery<Section[]>({
+    queryKey: ["exam-sections", examId],
+    queryFn: async (): Promise<Section[]> => {
+      const response = await sectionAPI.getSectionsByExam(examId);
+      return response.data;
+    },
+  });
+
+  // 다음 순서 자동 계산
+  useEffect(() => {
+    if (sections && sections.length > 0) {
+      const maxOrder = Math.max(...sections.map(s => s.order));
+      setFormData(prev => ({ ...prev, order: maxOrder + 1 }));
+    } else {
+      setFormData(prev => ({ ...prev, order: 1 }));
+    }
+  }, [sections]);
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { title: string; description?: string; timeLimit?: number; order?: number }) => {
+      await sectionAPI.createSection(examId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exam-sections", examId] });
+      toast.success("섹션이 생성되었습니다.");
+      onClose();
+      setFormData({ title: "", description: "", timeLimit: undefined, order: undefined });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "섹션 생성에 실패했습니다.");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim()) {
+      toast.error("섹션 제목을 입력해주세요.");
+      return;
+    }
+    createMutation.mutate(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl p-8 max-w-2xl w-full">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">새 섹션 생성</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          >
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              섹션 제목 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+              placeholder="예: 듣기, 읽기, 문법"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              설명
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={3}
+              placeholder="섹션에 대한 설명을 입력하세요 (선택사항)"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                순서
+              </label>
+              <input
+                type="number"
+                value={formData.order || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    order: e.target.value ? parseInt(e.target.value) : undefined,
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                min="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시간 제한 (분)
+              </label>
+              <input
+                type="number"
+                value={formData.timeLimit || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    timeLimit: e.target.value ? parseInt(e.target.value) : undefined,
+                  })
+                }
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                min="0"
+                placeholder="선택사항"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={createMutation.isPending}
+              className="flex-1"
+            >
+              생성
+            </Button>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="outline"
+              className="flex-1"
+            >
+              취소
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -101,6 +101,7 @@ export class ExamService {
           email: true,
         },
       },
+      examVersion: true, // ExamVersion 정보 포함
     };
 
     const exam = await this.prisma.exam.findFirst({
@@ -447,14 +448,14 @@ export class ExamService {
       },
     });
 
-    // 버전별 문제 순서 저장 (버전 생성 시)
+      // 버전별 문제 순서 저장 (버전 생성 시)
     if (createVersion && clonedExam.sections.length > 0) {
       const questionOrder: Record<string, string[]> = {};
       clonedExam.sections.forEach((section) => {
         questionOrder[section.id] = section.questions.map((q) => q.id);
       });
 
-      await (this.prisma as any).examVersion.create({
+      await this.prisma.examVersion.create({
         data: {
           examId: clonedExam.id,
           version: versionIdentifier!,
@@ -515,9 +516,28 @@ export class ExamService {
         { versionNumber: 'asc' } as any,
         { createdAt: 'asc' },
       ],
+      include: {
+        examVersion: true, // ExamVersion 정보도 함께 조회
+      },
     });
 
-    return versions;
+    return versions.map((v: any) => ({
+      id: v.id,
+      title: v.title,
+      version: v.version,
+      versionNumber: v.versionNumber,
+      status: v.status,
+      createdAt: v.createdAt,
+      updatedAt: v.updatedAt,
+      examVersion: v.examVersion ? {
+        id: v.examVersion.id,
+        version: v.examVersion.version,
+        versionNumber: v.examVersion.versionNumber,
+        questionOrder: v.examVersion.questionOrder,
+        createdAt: v.examVersion.createdAt,
+        updatedAt: v.examVersion.updatedAt,
+      } : null,
+    }));
   }
 }
 

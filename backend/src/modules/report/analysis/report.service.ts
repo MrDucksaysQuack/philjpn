@@ -515,51 +515,58 @@ export class ReportService {
    * 사용자 통계 조회
    */
   async getUserStatistics(userId: string, examId?: string, period?: string) {
-    const where: any = {
-      userId,
-      status: 'completed',
-    };
+    try {
+      const where: any = {
+        userId,
+        status: 'completed',
+      };
 
-    if (examId) {
-      where.examId = examId;
-    }
-
-    // 기간 필터
-    if (period) {
-      const now = new Date();
-      let dateFrom: Date;
-      switch (period) {
-        case 'week':
-          dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'month':
-          dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        case 'year':
-          dateFrom = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-          break;
-        default:
-          dateFrom = new Date(0);
+      if (examId) {
+        where.examId = examId;
       }
-      where.startedAt = { gte: dateFrom };
-    }
 
-    const examResults = await this.prisma.examResult.findMany({
-      where,
-      include: {
-        exam: {
-          include: {
-            sections: true,
+      // 기간 필터
+      if (period) {
+        const now = new Date();
+        let dateFrom: Date;
+        switch (period) {
+          case 'week':
+            dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'month':
+            dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case 'year':
+            dateFrom = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+            break;
+          default:
+            dateFrom = new Date(0);
+        }
+        where.startedAt = { gte: dateFrom };
+      }
+
+      const examResults = await this.prisma.examResult.findMany({
+        where,
+        include: {
+          exam: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+          sectionResults: {
+            include: {
+              section: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
           },
         },
-        sectionResults: {
-          include: {
-            section: true,
-          },
-        },
-      },
-      orderBy: { startedAt: 'asc' },
-    });
+        orderBy: { startedAt: 'asc' },
+      });
 
     if (examResults.length === 0) {
       return {
@@ -638,21 +645,34 @@ export class ReportService {
       },
     );
 
-    return {
-      totalExams,
-      averageScore,
-      bestScore,
-      improvementTrend,
-      sectionPerformance,
-    };
+      return {
+        totalExams,
+        averageScore,
+        bestScore,
+        improvementTrend,
+        sectionPerformance,
+      };
+    } catch (error: any) {
+      console.error('❌ getUserStatistics 서비스 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+      // 에러를 다시 throw하여 컨트롤러에서 처리
+      throw error;
+    }
   }
 
   /**
    * 학습 패턴 분석
    */
   async getLearningPatterns(userId: string) {
-    // 시험 결과에서 학습 패턴 추출
-    const examResults = await this.prisma.examResult.findMany({
+    try {
+      // 시험 결과에서 학습 패턴 추출
+      const examResults = await this.prisma.examResult.findMany({
       where: {
         userId,
         status: 'completed',
@@ -793,13 +813,25 @@ export class ReportService {
         challengeAcceptance: 0.65,
       },
     };
+    } catch (error: any) {
+      console.error('❌ getLearningPatterns 서비스 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   /**
    * 약점 심층 분석
    */
   async getWeaknessAnalysis(userId: string) {
-    const examResults = await this.prisma.examResult.findMany({
+    try {
+      const examResults = await this.prisma.examResult.findMany({
       where: {
         userId,
         status: 'completed',
@@ -958,23 +990,35 @@ export class ReportService {
       .sort((a, b) => a.correctRate - b.correctRate)
       .slice(0, 5);
 
-    const knowledgeGaps = tagStatsArray.map((area) => ({
-      concept: area.tag,
-      understandingLevel: area.correctRate / 100,
-      practiceNeeded: Math.ceil(area.total * 2),
-    }));
+      const knowledgeGaps = tagStatsArray.map((area) => ({
+        concept: area.tag,
+        understandingLevel: area.correctRate / 100,
+        practiceNeeded: Math.ceil(area.total * 2),
+      }));
 
-    return {
-      weaknessAreas: weaknessAreas.slice(0, 10),
-      knowledgeGaps,
-    };
+      return {
+        weaknessAreas: weaknessAreas.slice(0, 10),
+        knowledgeGaps,
+      };
+    } catch (error: any) {
+      console.error('❌ getWeaknessAnalysis 서비스 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   /**
    * 학습 효율성 지표
    */
   async getEfficiencyMetrics(userId: string) {
-    const examResults = await this.prisma.examResult.findMany({
+    try {
+      const examResults = await this.prisma.examResult.findMany({
       where: {
         userId,
         status: 'completed',
@@ -1050,17 +1094,28 @@ export class ReportService {
     // 동료 비교 - 실제 동료 점수와 비교
     const vsPeers = await this.calculatePeerComparison(userId, lastScore);
 
-    return {
-      learningVelocity: Math.round(learningVelocity * 10) / 10,
-      retentionRate: Math.round(retentionRate * 100) / 100,
-      practiceEfficiency: Math.round(practiceEfficiency * 100) / 100,
-      weaknessRecoveryRate: Math.round(weaknessRecoveryRate * 100) / 100,
-      comparison: {
-        vsPeers,
-        vsPersonalBest:
-          vsPersonalBest >= 0 ? `+${Math.round(vsPersonalBest)}점` : `${Math.round(vsPersonalBest)}점`,
-      },
-    };
+      return {
+        learningVelocity: Math.round(learningVelocity * 10) / 10,
+        retentionRate: Math.round(retentionRate * 100) / 100,
+        practiceEfficiency: Math.round(practiceEfficiency * 100) / 100,
+        weaknessRecoveryRate: Math.round(weaknessRecoveryRate * 100) / 100,
+        comparison: {
+          vsPeers,
+          vsPersonalBest:
+            vsPersonalBest >= 0 ? `+${Math.round(vsPersonalBest)}점` : `${Math.round(vsPersonalBest)}점`,
+        },
+      };
+    } catch (error: any) {
+      console.error('❌ getEfficiencyMetrics 서비스 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   /**

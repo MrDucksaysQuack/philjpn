@@ -7,8 +7,10 @@ import Header from "@/components/layout/Header";
 import { resultAPI, ExamResult } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ResultsPage() {
+  const { t } = useTranslation();
   const { user, isLoading: authLoading } = useRequireAuth();
   const [filters, setFilters] = useState({
     status: "" as "" | "completed" | "in_progress" | "pending",
@@ -35,7 +37,7 @@ export default function ResultsPage() {
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="인증 확인 중..." />
+            <LoadingSpinner message={t("common.authenticating")} />
           </div>
         </div>
       </>
@@ -54,7 +56,7 @@ export default function ResultsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex flex-col items-center justify-center py-20">
               <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-gray-600 font-medium">결과를 불러오는 중...</p>
+              <p className="text-gray-600 font-medium">{t("results.list.loading")}</p>
             </div>
           </div>
         </div>
@@ -74,8 +76,8 @@ export default function ResultsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <p className="text-xl font-semibold text-red-600 mb-2">결과를 불러오는데 실패했습니다</p>
-              <p className="text-gray-500">잠시 후 다시 시도해주세요</p>
+              <p className="text-xl font-semibold text-red-600 mb-2">{t("results.list.loadingError")}</p>
+              <p className="text-gray-500">{t("results.list.retry")}</p>
             </div>
           </div>
         </div>
@@ -135,10 +137,10 @@ export default function ResultsPage() {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center text-white">
               <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 animate-fade-in">
-                내 시험 결과
+                {t("results.list.title")}
               </h1>
               <p className="text-xl text-green-100 max-w-2xl mx-auto">
-                지난 시험 결과를 확인하고 학습 진척도를 파악하세요
+                {t("results.list.subtitle")}
               </p>
             </div>
           </div>
@@ -148,42 +150,42 @@ export default function ResultsPage() {
           {/* 필터 섹션 */}
           <div className="mb-6 bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">필터</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t("results.list.filter")}</h2>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >
-                {showFilters ? "필터 숨기기" : "필터 보기"}
+                {showFilters ? t("results.list.hideFilters") : t("results.list.showFilters")}
               </button>
             </div>
             
             {showFilters && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">검색</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("results.list.search")}</label>
                   <input
                     type="text"
                     value={filters.search}
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                    placeholder="시험 ID 검색..."
+                    placeholder={t("results.list.searchPlaceholder")}
                     className="w-full px-3 py-2 border rounded-md text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("results.list.status")}</label>
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters({ ...filters, status: e.target.value as any })}
                     className="w-full px-3 py-2 border rounded-md text-sm"
                   >
-                    <option value="">전체</option>
-                    <option value="completed">완료</option>
-                    <option value="in_progress">진행중</option>
-                    <option value="pending">대기중</option>
+                    <option value="">{t("results.list.all")}</option>
+                    <option value="completed">{t("results.list.completed")}</option>
+                    <option value="in_progress">{t("results.list.inProgress")}</option>
+                    <option value="pending">{t("results.list.pending")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">시작일 (부터)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("results.list.dateFrom")}</label>
                   <input
                     type="date"
                     value={filters.dateFrom}
@@ -192,7 +194,7 @@ export default function ResultsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">종료일 (까지)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("results.list.dateTo")}</label>
                   <input
                     type="date"
                     value={filters.dateTo}
@@ -201,7 +203,7 @@ export default function ResultsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">최소 점수</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("results.list.minScore")}</label>
                   <input
                     type="number"
                     value={filters.minScore}
@@ -211,7 +213,7 @@ export default function ResultsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">최대 점수</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("results.list.maxScore")}</label>
                   <input
                     type="number"
                     value={filters.maxScore}
@@ -235,7 +237,7 @@ export default function ResultsPage() {
                 })}
                 className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >
-                필터 초기화
+                {t("results.list.resetFilters")}
               </button>
             </div>
           </div>
@@ -243,7 +245,7 @@ export default function ResultsPage() {
           {/* 필터링된 결과 */}
           <>
             <div className="mb-4 text-sm text-gray-600">
-              총 {filteredData.length}개의 결과가 표시됩니다
+              {t("results.list.showingResults", { count: filteredData.length })}
             </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredData.map((result: ExamResult) => (
@@ -266,7 +268,7 @@ export default function ResultsPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:bg-gradient-to-r group-hover:from-success group-hover:to-success group-hover:bg-clip-text group-hover:text-transparent transition-all">
-                          시험 #{result.id.slice(0, 8)}
+                          {t("results.list.examPrefix")}{result.id.slice(0, 8)}
                         </h2>
                         <p className="text-sm text-gray-500 flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -315,10 +317,12 @@ export default function ResultsPage() {
                             }`}
                           >
                             {result.status === "completed"
-                              ? "완료"
+                              ? t("results.list.completed")
                               : result.status === "in_progress"
-                                ? "진행중"
-                                : result.status}
+                                ? t("results.list.inProgress")
+                                : result.status === "pending"
+                                  ? t("results.list.pending")
+                                  : result.status}
                           </span>
                         </div>
                       </div>
@@ -331,7 +335,7 @@ export default function ResultsPage() {
                 
                 {filteredData.length === 0 && data && data.length > 0 && (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">필터 조건에 맞는 결과가 없습니다.</p>
+                    <p className="text-gray-500">{t("results.list.noFilteredResults")}</p>
                   </div>
                 )}
           </>
@@ -344,14 +348,14 @@ export default function ResultsPage() {
                 </svg>
               </div>
               <p className="text-xl font-semibold text-gray-700 mb-2">
-                아직 시험 결과가 없습니다
+                {t("results.list.noResults")}
               </p>
-              <p className="text-gray-500 mb-6">시험을 응시하면 결과가 여기에 표시됩니다</p>
+              <p className="text-gray-500 mb-6">{t("results.list.noResultsDesc")}</p>
               <Link
                 href="/exams"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-theme-gradient-primary text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                시험 시작하기
+                {t("results.list.startExam")}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

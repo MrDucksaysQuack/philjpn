@@ -41,8 +41,21 @@ export class ReportController {
   @ApiOperation({ summary: '시험 결과 리포트' })
   @ApiResponse({ status: 200, description: '시험 결과 리포트 조회 성공' })
   @ApiResponse({ status: 404, description: '시험 결과를 찾을 수 없음' })
-  generateReport(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.reportService.generateReport(id, user.id);
+  async generateReport(@Param('id') id: string, @CurrentUser() user: any) {
+    try {
+      return await this.reportService.generateReport(id, user.id);
+    } catch (error: any) {
+      console.error('❌ generateReport 컨트롤러 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId: user?.id,
+        resultId: id,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   @Get('results/:id/feedback')
@@ -51,8 +64,21 @@ export class ReportController {
   @ApiOperation({ summary: '다층적 피드백 조회' })
   @ApiResponse({ status: 200, description: '상세 피드백 조회 성공' })
   @ApiResponse({ status: 404, description: '시험 결과를 찾을 수 없음' })
-  getDetailedFeedback(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.reportService.generateDetailedFeedback(id, user.id);
+  async getDetailedFeedback(@Param('id') id: string, @CurrentUser() user: any) {
+    try {
+      return await this.reportService.generateDetailedFeedback(id, user.id);
+    } catch (error: any) {
+      console.error('❌ getDetailedFeedback 컨트롤러 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId: user?.id,
+        resultId: id,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   @Get('users/me/statistics')
@@ -60,12 +86,27 @@ export class ReportController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '사용자 통계 조회' })
   @ApiResponse({ status: 200, description: '사용자 통계 조회 성공' })
-  getUserStatistics(
+  async getUserStatistics(
     @Query('examId') examId?: string,
     @Query('period') period?: string,
     @CurrentUser() user?: any,
   ) {
-    return this.reportService.getUserStatistics(user.id, examId, period);
+    try {
+      return await this.reportService.getUserStatistics(user.id, examId, period);
+    } catch (error: any) {
+      console.error('❌ getUserStatistics 컨트롤러 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId: user?.id,
+        examId,
+        period,
+        timestamp: new Date().toISOString(),
+      });
+      // 에러를 다시 throw하여 NestJS 예외 필터가 처리
+      throw error;
+    }
   }
 
   @Get('users/me/learning-patterns')
@@ -73,8 +114,17 @@ export class ReportController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '학습 패턴 분석' })
   @ApiResponse({ status: 200, description: '학습 패턴 분석 조회 성공' })
-  getLearningPatterns(@CurrentUser() user: any) {
-    return this.reportService.getLearningPatterns(user.id);
+  async getLearningPatterns(@CurrentUser() user: any) {
+    try {
+      return await this.reportService.getLearningPatterns(user.id);
+    } catch (error: any) {
+      console.error('❌ getLearningPatterns 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        userId: user?.id,
+      });
+      throw error;
+    }
   }
 
   @Get('users/me/weakness-analysis')
@@ -82,8 +132,17 @@ export class ReportController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '약점 심층 분석' })
   @ApiResponse({ status: 200, description: '약점 심층 분석 조회 성공' })
-  getWeaknessAnalysis(@CurrentUser() user: any) {
-    return this.reportService.getWeaknessAnalysis(user.id);
+  async getWeaknessAnalysis(@CurrentUser() user: any) {
+    try {
+      return await this.reportService.getWeaknessAnalysis(user.id);
+    } catch (error: any) {
+      console.error('❌ getWeaknessAnalysis 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        userId: user?.id,
+      });
+      throw error;
+    }
   }
 
   @Get('users/me/efficiency-metrics')
@@ -91,8 +150,17 @@ export class ReportController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '학습 효율성 지표' })
   @ApiResponse({ status: 200, description: '학습 효율성 지표 조회 성공' })
-  getEfficiencyMetrics(@CurrentUser() user: any) {
-    return this.reportService.getEfficiencyMetrics(user.id);
+  async getEfficiencyMetrics(@CurrentUser() user: any) {
+    try {
+      return await this.reportService.getEfficiencyMetrics(user.id);
+    } catch (error: any) {
+      console.error('❌ getEfficiencyMetrics 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        userId: user?.id,
+      });
+      throw error;
+    }
   }
 
   // 목표 관리 API
@@ -119,8 +187,20 @@ export class ReportController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '목표 진행 상황 조회' })
   @ApiResponse({ status: 200, description: '목표 진행 상황 조회 성공' })
-  getGoalProgress(@CurrentUser() user: any) {
-    return this.goalService.getGoalProgress(user.id);
+  async getGoalProgress(@CurrentUser() user: any) {
+    try {
+      return await this.goalService.getGoalProgress(user.id);
+    } catch (error: any) {
+      console.error('❌ getGoalProgress 컨트롤러 에러:', {
+        message: error?.message,
+        stack: error?.stack,
+        code: error?.code,
+        name: error?.name,
+        userId: user?.id,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   }
 
   @Get('users/me/goals/:id')

@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState, useRef, useMemo } from "react";
 import Header from "@/components/layout/Header";
-import { adminAPI } from "@/lib/api";
+import { adminAPI, aiAPI } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TrendChartWidget from "./components/TrendChartWidget";
@@ -79,6 +79,28 @@ export default function AdminDashboardPage() {
       return response.data;
     },
     enabled: user?.role === "admin",
+  });
+
+  // AI 큐 통계 조회
+  const { data: aiQueueStats } = useQuery({
+    queryKey: ["ai-queue-stats"],
+    queryFn: async () => {
+      const response = await aiAPI.getQueueStats();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+    refetchInterval: 10000, // 10초마다 자동 갱신
+  });
+
+  // AI 가용성 확인
+  const { data: aiAvailability } = useQuery({
+    queryKey: ["ai-availability"],
+    queryFn: async () => {
+      const response = await aiAPI.checkAvailability();
+      return response.data;
+    },
+    enabled: user?.role === "admin",
+    refetchInterval: 30000, // 30초마다 자동 갱신
   });
 
   if (authLoading) {
@@ -528,6 +550,68 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         )}
+
+        {/* AI 큐 통계 */}
+        <div className="bg-surface rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">AI 큐 통계</h2>
+          {aiQueueStats ? (
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+              <div>
+                <div className="text-sm text-text-muted">대기 중</div>
+                <div className="text-lg font-semibold text-blue-600">
+                  {aiQueueStats.waiting || 0}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-muted">처리 중</div>
+                <div className="text-lg font-semibold text-yellow-600">
+                  {aiQueueStats.active || 0}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-muted">완료</div>
+                <div className="text-lg font-semibold text-green-600">
+                  {aiQueueStats.completed || 0}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-muted">실패</div>
+                <div className="text-lg font-semibold text-red-600">
+                  {aiQueueStats.failed || 0}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-muted">지연</div>
+                <div className="text-lg font-semibold text-orange-600">
+                  {aiQueueStats.delayed || 0}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-text-muted">전체</div>
+                <div className="text-lg font-semibold">
+                  {aiQueueStats.total || 0}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-text-muted">로딩 중...</div>
+          )}
+          {aiAvailability && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${aiAvailability.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-sm text-text-muted">
+                  AI 기능 상태: {aiAvailability.available ? '활성화' : '비활성화'}
+                </span>
+              </div>
+              {aiAvailability.message && (
+                <div className="text-xs text-text-muted mt-1 ml-5">
+                  {aiAvailability.message}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 트렌드 차트 */}
         <TrendChartWidget />

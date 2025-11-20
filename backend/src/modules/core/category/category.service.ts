@@ -31,8 +31,9 @@ export class CategoryService {
     let counter = 1;
 
     while (true) {
+      // slug는 @unique이므로 findUnique에서 사용 가능하지만, 타입 정의 문제로 인해 타입 단언 사용
       const existing = await this.prisma.category.findUnique({
-        where: { slug },
+        where: { slug } as any,
         select: { id: true },
       });
 
@@ -56,7 +57,7 @@ export class CategoryService {
       data: {
         ...data,
         slug,
-      },
+      } as any,
       include: {
         subcategories: {
           where: { isActive: true },
@@ -70,8 +71,9 @@ export class CategoryService {
    * Slug로 카테고리 조회
    */
   async findCategoryBySlug(slug: string) {
+    // slug는 @unique이므로 findUnique에서 사용 가능하지만, 타입 정의 문제로 인해 타입 단언 사용
     const category = await this.prisma.category.findUnique({
-      where: { slug },
+      where: { slug } as any,
       include: {
         subcategories: {
           where: { isActive: true },
@@ -298,8 +300,11 @@ export class CategoryService {
         })
       );
       
-      // slug가 null이 아닌 카테고리만 필터링 (데이터베이스에 null이 있을 수 있음)
-      const filteredCategories = categoriesWithCount.filter(category => category.slug !== null && category.slug !== '');
+      // slug가 빈 문자열이 아닌 카테고리만 필터링 (slug는 String이므로 null이 될 수 없음)
+      // 타입 단언 사용 (Prisma Client 타입 정의 문제로 인한 임시 조치)
+      const filteredCategories = categoriesWithCount.filter((category: any) => 
+        category.slug && typeof category.slug === 'string' && category.slug.trim() !== ''
+      );
       
       console.log(`[CategoryService] Found ${categories.length} categories, ${filteredCategories.length} after filtering`);
       
