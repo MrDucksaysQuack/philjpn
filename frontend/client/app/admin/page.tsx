@@ -153,8 +153,8 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 재분류된 메뉴 구조 (인지 패턴 기반)
-  const allMenuGroups = [
+  // 재분류된 메뉴 구조 (인지 패턴 기반) - useMemo로 메모이제이션하여 hydration mismatch 방지
+  const allMenuGroups = useMemo(() => [
     {
       id: "content",
       title: "📝 콘텐츠 관리",
@@ -271,7 +271,7 @@ export default function AdminDashboardPage() {
         },
       ],
     },
-  ];
+  ], []); // 빈 의존성 배열 - 메뉴 구조는 변하지 않음
 
   // 그룹 순서에 따라 정렬된 메뉴 그룹
   const menuGroups = useMemo(() => {
@@ -293,13 +293,13 @@ export default function AdminDashboardPage() {
     });
     
     return orderedGroups;
-  }, [groupOrder]);
+  }, [groupOrder, allMenuGroups]);
 
   // 즐겨찾기 메뉴 추출
   const favoriteMenus = useMemo(() => {
     const allItems = allMenuGroups.flatMap((group) => group.items);
     return allItems.filter((item) => isFavorite(item.href));
-  }, [favorites, allMenuGroups]);
+  }, [favorites, allMenuGroups, isFavorite]);
 
   // 드래그 앤 드롭 핸들러
   const handleDragEnd = (event: DragEndEvent) => {

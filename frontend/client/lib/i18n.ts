@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useCallback } from "react";
 import koMessages from "../messages/ko.json";
 import enMessages from "../messages/en.json";
 import jaMessages from "../messages/ja.json";
@@ -14,7 +14,9 @@ const messages: Record<Locale, Record<string, any>> = {
 };
 
 export const useTranslation = (locale: Locale = "ko") => {
-  const messageSet = useMemo(() => messages[locale] || messages.ko, [locale]);
+  // useMemo 제거 - locale이 변경되면 자동으로 재렌더링되므로 불필요
+  // useMemo를 사용하면 hydration mismatch가 발생할 수 있음
+  const messageSet = messages[locale] || messages.ko;
 
   const t = useCallback(
     (key: string, params?: Record<string, string | number>) => {
