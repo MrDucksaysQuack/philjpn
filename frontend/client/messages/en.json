@@ -521,6 +521,11 @@
     }
   },
   "about": {
+    "title": "About Us",
+    "company": "Company",
+    "team": "Team",
+    "service": "Service",
+    "contact": "Contact",
     "team": {
       "hero": {
         "title": "Meet Our Team",
@@ -789,6 +794,8 @@
     "allExams": "All Exams",
     "language": "Language",
     "nameSuffix": "",
+    "defaultCompanyName": "Exam Platform",
+    "navigateToCategory": "Navigate to category",
     "menu": {
       "dashboard": "Dashboard",
       "profile": "Profile",

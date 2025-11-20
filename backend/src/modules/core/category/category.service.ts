@@ -70,7 +70,7 @@ export class CategoryService {
   /**
    * Slug로 카테고리 조회
    */
-  async findCategoryBySlug(slug: string) {
+  async findCategoryBySlug(slug: string, locale: string = 'ko') {
     // slug는 @unique이므로 findUnique에서 사용 가능하지만, 타입 정의 문제로 인해 타입 단언 사용
     const category = await this.prisma.category.findUnique({
       where: { slug } as any,
@@ -93,7 +93,18 @@ export class CategoryService {
       throw new NotFoundException(`Category with slug "${slug}" not found`);
     }
 
-    return category;
+    // 언어별 이름 적용
+    const localizedName = this.getLocalizedName(category, locale);
+    const localizedSubcategories = (category as any).subcategories.map((sub: any) => ({
+      ...sub,
+      name: this.getLocalizedName(sub, locale),
+    }));
+
+    return {
+      ...category,
+      name: localizedName,
+      subcategories: localizedSubcategories,
+    };
   }
 
   async findAllCategories(includeInactive = false) {
@@ -192,13 +203,13 @@ export class CategoryService {
     });
   }
 
-  async findAllSubcategories(categoryId?: string) {
+  async findAllSubcategories(categoryId?: string, locale: string = 'ko') {
     const where: any = { isActive: true };
     if (categoryId) {
       where.categoryId = categoryId;
     }
 
-    return this.prisma.subcategory.findMany({
+    const subcategories = await this.prisma.subcategory.findMany({
       where,
       include: {
         category: true,
@@ -212,6 +223,12 @@ export class CategoryService {
       },
       orderBy: { order: 'asc' },
     });
+
+    // 언어별 이름 적용
+    return subcategories.map((sub: any) => ({
+      ...sub,
+      name: this.getLocalizedName(sub, locale),
+    }));
   }
 
   async findSubcategoryById(id: string) {
@@ -255,7 +272,7 @@ export class CategoryService {
   }
 
   // Public API (활성화된 카테고리만)
-  async getPublicCategories() {
+  async getPublicCategories(locale: string = 'ko') {
     try {
       // 단계별로 쿼리 실행하여 에러 위치 파악
       const categories = await this.prisma.category.findMany({
@@ -273,7 +290,7 @@ export class CategoryService {
       
       // _count는 별도로 계산 (에러 발생 가능성 있음)
       const categoriesWithCount = await Promise.all(
-        categories.map(async (category) => {
+        categories.map(async (category: any) => {
           try {
             const examCount = await this.prisma.exam.count({
               where: {
@@ -282,8 +299,20 @@ export class CategoryService {
                 isPublic: true,
               },
             });
+
+            // 언어별 이름 선택 (우선순위: 언어별 필드 > 기본 name)
+            const localizedName = this.getLocalizedName(category, locale);
+
+            // 서브카테고리도 언어별 이름 적용
+            const localizedSubcategories = category.subcategories.map((sub: any) => ({
+              ...sub,
+              name: this.getLocalizedName(sub, locale),
+            }));
+
             return {
               ...category,
+              name: localizedName, // 언어별 이름으로 교체
+              subcategories: localizedSubcategories,
               _count: {
                 exams: examCount,
               },
@@ -292,6 +321,7 @@ export class CategoryService {
             console.error(`Error counting exams for category ${category.id}:`, error);
             return {
               ...category,
+              name: this.getLocalizedName(category, locale),
               _count: {
                 exams: 0,
               },
@@ -316,6 +346,22 @@ export class CategoryService {
       console.error('Error name:', error?.name);
       // 에러 발생 시 빈 배열 반환 (애플리케이션이 크래시되지 않도록)
       return [];
+    }
+  }
+
+  /**
+   * 언어별 이름 반환 (우선순위: 언어별 필드 > 기본 name)
+   */
+  private getLocalizedName(item: any, locale: string): string {
+    switch (locale) {
+      case 'ko':
+        return item.nameKo || item.name;
+      case 'en':
+        return item.nameEn || item.name;
+      case 'ja':
+        return item.nameJa || item.name;
+      default:
+        return item.name;
     }
   }
 

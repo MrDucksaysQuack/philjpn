@@ -21,9 +21,9 @@ export default function CategoryPage() {
 
   // 카테고리 정보 조회 (slug 기반)
   const { data: categoryResponse, isLoading: categoryLoading } = useQuery({
-    queryKey: ["category-by-slug", slug],
+    queryKey: ["category-by-slug", slug, locale],
     queryFn: async () => {
-      const response = await categoryAPI.getCategoryBySlug(slug);
+      const response = await categoryAPI.getCategoryBySlug(slug, locale);
       return response.data;
     },
     enabled: !!slug,
@@ -33,9 +33,9 @@ export default function CategoryPage() {
 
   // 서브카테고리 목록 조회
   const { data: subcategoriesResponse } = useQuery({
-    queryKey: ["subcategories", category?.id],
+    queryKey: ["subcategories", category?.id, locale],
     queryFn: async () => {
-      const response = await categoryAPI.getSubcategories(category?.id);
+      const response = await categoryAPI.getSubcategories(category?.id, locale);
       return response.data;
     },
     enabled: !!category?.id,

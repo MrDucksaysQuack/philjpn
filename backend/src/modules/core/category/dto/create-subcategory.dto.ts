@@ -6,10 +6,28 @@ export class CreateSubcategoryDto {
   @IsUUID()
   categoryId: string;
 
-  @ApiProperty({ description: '서브카테고리 이름', example: 'JLPT' })
+  @ApiProperty({ description: '서브카테고리 이름 (기본)', example: 'JLPT' })
   @IsString()
   @MaxLength(100)
   name: string;
+
+  @ApiPropertyOptional({ description: '한국어 이름', example: 'JLPT' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  nameKo?: string;
+
+  @ApiPropertyOptional({ description: '영어 이름', example: 'JLPT' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  nameEn?: string;
+
+  @ApiPropertyOptional({ description: '일본어 이름', example: 'JLPT' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  nameJa?: string;
 
   @ApiPropertyOptional({ description: '서브카테고리 설명' })
   @IsOptional()

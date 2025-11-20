@@ -30,9 +30,9 @@ function ExamsPageContent() {
 
   // 카테고리 목록 가져오기
   const { data: categoriesResponse } = useQuery({
-    queryKey: ["categories-public"],
+    queryKey: ["categories-public", locale],
     queryFn: async () => {
-      const response = await categoryAPI.getPublicCategories();
+      const response = await categoryAPI.getPublicCategories(locale);
       return response.data;
     },
   });
@@ -46,9 +46,9 @@ function ExamsPageContent() {
 
   // 서브카테고리 목록 가져오기 (카테고리가 선택된 경우)
   const { data: subcategoriesResponse } = useQuery({
-    queryKey: ["subcategories", categoryId],
+    queryKey: ["subcategories", categoryId, locale],
     queryFn: async () => {
-      const response = await categoryAPI.getSubcategories(categoryId);
+      const response = await categoryAPI.getSubcategories(categoryId, locale);
       return response.data;
     },
     enabled: !!categoryId,
@@ -457,16 +457,13 @@ function ExamsPageContent() {
 }
 
 export default function ExamsPage() {
-  const { locale } = useLocaleStore();
-  const { t } = useTranslation(locale);
-
   return (
     <Suspense fallback={
       <>
         <Header />
         <div className="min-h-screen bg-theme-gradient-light">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message={t("exam.loadingList")} />
+            <LoadingSpinner message="로딩 중..." />
           </div>
         </div>
       </>

@@ -40,18 +40,27 @@ export class ResultService {
     ]);
 
       return {
-        data: data.map((result) => ({
-          id: result.id,
-          examId: result.examId,
-          examTitle: result.exam?.title || '알 수 없음',
-          status: result.status,
-          totalScore: result.totalScore,
-          maxScore: result.maxScore,
-          percentage: result.percentage,
-          timeSpent: result.timeSpent,
-          startedAt: result.startedAt,
-          submittedAt: result.submittedAt,
-        })),
+        data: data.map((result) => {
+          // 안전한 데이터 변환
+          const examTitle = result.exam?.title || null;
+          const totalScore = result.totalScore ?? null;
+          const maxScore = result.maxScore ?? null;
+          const percentage = result.percentage ?? null;
+          const timeSpent = result.timeSpent ?? null;
+
+          return {
+            id: result.id,
+            examId: result.examId,
+            examTitle: examTitle || '알 수 없음',
+            status: result.status,
+            totalScore,
+            maxScore,
+            percentage,
+            timeSpent,
+            startedAt: result.startedAt,
+            submittedAt: result.submittedAt,
+          };
+        }),
         meta: {
           page,
           limit,

@@ -39,16 +39,16 @@ export default function Header() {
 
   // 카테고리 목록 가져오기 (헤더용)
   const { data: categoriesResponse } = useQuery<{ data: Category[] }>({
-    queryKey: ["categories-public"],
+    queryKey: ["categories-public", locale],
     queryFn: async () => {
-      const response = await categoryAPI.getPublicCategories();
+      const response = await categoryAPI.getPublicCategories(locale);
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const settings = settingsResponse?.data;
-  const companyName = settings?.companyName || "Exam Platform";
+  const companyName = settings?.companyName || t("header.defaultCompanyName");
   const logoUrl = settings?.logoUrl;
   const [logoError, setLogoError] = useState(false);
   const categories = categoriesResponse?.data || [];
@@ -155,7 +155,7 @@ export default function Header() {
                     key={category.id}
                     href={`/exams?categoryId=${category.id}`}
                     className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:text-text-primary hover:bg-surface-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 flex items-center gap-2"
-                    aria-label={`${category.name} 카테고리로 이동`}
+                    aria-label={`${category.name} ${t("header.navigateToCategory")}`}
                   >
                     {category.icon && <span>{category.icon}</span>}
                     <span>{category.name}</span>

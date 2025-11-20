@@ -658,14 +658,21 @@ export const examAPI = {
 // Category와 Subcategory 인터페이스는 위에서 이미 정의됨
 
 export const categoryAPI = {
-  getCategoryBySlug: (slug: string) =>
-    apiClient.get<{ data: Category }>(`/categories/slug/${slug}`),
+  getCategoryBySlug: (slug: string, locale?: string) =>
+    apiClient.get<{ data: Category }>(`/categories/slug/${slug}`, {
+      params: locale ? { locale } : undefined,
+    }),
   // Public API
-  getPublicCategories: () =>
-    apiClient.get<{ data: Category[] }>("/categories/public"),
-  getSubcategories: (categoryId?: string) =>
+  getPublicCategories: (locale?: string) =>
+    apiClient.get<{ data: Category[] }>("/categories/public", {
+      params: locale ? { locale } : undefined,
+    }),
+  getSubcategories: (categoryId?: string, locale?: string) =>
     apiClient.get<{ data: Subcategory[] }>("/categories/subcategories/all", {
-      params: categoryId ? { categoryId } : undefined,
+      params: {
+        ...(categoryId ? { categoryId } : {}),
+        ...(locale ? { locale } : {}),
+      },
     }),
   getSubcategory: (id: string) =>
     apiClient.get<{ data: Subcategory }>(`/categories/subcategories/${id}`),

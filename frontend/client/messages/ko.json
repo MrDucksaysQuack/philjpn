@@ -499,6 +499,11 @@
     }
   },
   "about": {
+    "title": "About Us",
+    "company": "회사 소개",
+    "team": "팀 소개",
+    "service": "서비스 소개",
+    "contact": "연락처",
     "team": {
       "hero": {
         "title": "우리 팀을 소개합니다",
@@ -767,6 +772,8 @@
     "allExams": "전체 시험 목록",
     "language": "언어 선택",
     "nameSuffix": "님",
+    "defaultCompanyName": "Exam Platform",
+    "navigateToCategory": "카테고리로 이동",
     "menu": {
       "dashboard": "대시보드",
       "profile": "프로필",

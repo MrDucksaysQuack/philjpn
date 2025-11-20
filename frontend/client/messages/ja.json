@@ -640,6 +640,11 @@
     }
   },
   "about": {
+    "title": "About Us",
+    "company": "会社紹介",
+    "team": "チーム紹介",
+    "service": "サービス紹介",
+    "contact": "連絡先",
     "team": {
       "hero": {
         "title": "私たちのチームを紹介します",
@@ -908,6 +913,8 @@
     "allExams": "すべての試験",
     "language": "言語選択",
     "nameSuffix": "さん",
+    "defaultCompanyName": "Exam Platform",
+    "navigateToCategory": "カテゴリーへ移動",
     "menu": {
       "dashboard": "ダッシュボード",
       "profile": "プロフィール",

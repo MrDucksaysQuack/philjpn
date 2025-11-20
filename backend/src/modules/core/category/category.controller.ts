@@ -31,9 +31,9 @@ export class CategoryController {
   @Get('public')
   @ApiOperation({ summary: '활성화된 카테고리 목록 조회 (공개)' })
   @ApiResponse({ status: 200, description: '카테고리 목록 조회 성공' })
-  async getPublicCategories() {
+  async getPublicCategories(@Query('locale') locale?: string) {
     try {
-      const categories = await this.categoryService.getPublicCategories();
+      const categories = await this.categoryService.getPublicCategories(locale || 'ko');
       return {
         data: categories,
       };
@@ -52,9 +52,9 @@ export class CategoryController {
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Slug로 카테고리 조회 (공개)' })
   @ApiResponse({ status: 200, description: '카테고리 조회 성공' })
-  async getCategoryBySlug(@Param('slug') slug: string) {
+  async getCategoryBySlug(@Param('slug') slug: string, @Query('locale') locale?: string) {
     return {
-      data: await this.categoryService.findCategoryBySlug(slug),
+      data: await this.categoryService.findCategoryBySlug(slug, locale || 'ko'),
     };
   }
 
@@ -137,9 +137,9 @@ export class CategoryController {
   @Get('subcategories/all')
   @ApiOperation({ summary: '서브카테고리 목록 조회 (공개)' })
   @ApiResponse({ status: 200, description: '서브카테고리 목록 조회 성공' })
-  async findAllSubcategories(@Query('categoryId') categoryId?: string) {
+  async findAllSubcategories(@Query('categoryId') categoryId?: string, @Query('locale') locale?: string) {
     return {
-      data: await this.categoryService.findAllSubcategories(categoryId),
+      data: await this.categoryService.findAllSubcategories(categoryId, locale || 'ko'),
     };
   }
 
