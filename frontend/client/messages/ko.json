@@ -320,6 +320,8 @@
       "filterByDifficulty": "난이도별 필터",
       "allTypes": "전체 유형",
       "allDifficulties": "전체 난이도",
+      "allDifficulty": "전체 난이도",
+      "allExams": "전체 시험",
       "multipleChoice": "객관식",
       "fillBlank": "빈칸 채우기",
       "subjective": "주관식",

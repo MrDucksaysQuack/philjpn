@@ -342,6 +342,8 @@
       "filterByDifficulty": "Filter by Difficulty",
       "allTypes": "All Types",
       "allDifficulties": "All Difficulties",
+      "allDifficulty": "All Difficulties",
+      "allExams": "All Exams",
       "multipleChoice": "Multiple Choice",
       "fillBlank": "Fill in the Blank",
       "subjective": "Subjective",
