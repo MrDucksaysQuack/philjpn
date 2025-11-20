@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Header from "@/components/layout/Header";
 import { adminAPI, aiAPI } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
@@ -257,15 +257,17 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const tabs = [
+  // tabs 배열을 useMemo로 메모이제이션 (hydration mismatch 방지)
+  const tabs = useMemo(() => [
     { id: "overview", label: "대시보드", icon: "📊", groupId: "overview-section" },
     { id: "content", label: "콘텐츠", icon: "📝", groupId: "content-group" },
     { id: "users", label: "사용자", icon: "👥", groupId: "users-group" },
     { id: "analytics", label: "분석", icon: "📈", groupId: "analytics-group" },
     { id: "settings", label: "설정", icon: "⚙️", groupId: "settings-group" },
-  ];
+  ], []);
 
-  const handleScrollToGroup = (groupId: string) => {
+  const handleScrollToGroup = useCallback((groupId: string) => {
+    if (typeof window === 'undefined') return;
     const element = document.getElementById(groupId);
     if (element) {
       const offset = 100; // 탭 높이 고려
@@ -277,7 +279,7 @@ export default function AdminDashboardPage() {
         behavior: "smooth",
       });
     }
-  };
+  }, []);
 
   // 그룹 순서에 따라 정렬된 메뉴 그룹
   // 클라이언트에서만 실행하여 hydration mismatch 방지
