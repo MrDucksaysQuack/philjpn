@@ -123,24 +123,23 @@ async function bootstrap() {
       }
     }
     
-    // 허용되지 않은 Origin인 경우 차단 (에러 응답에도 CORS 헤더 설정)
-    if (origin && !isAllowed) {
-      console.warn(`❌ CORS 차단: ${origin}`);
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      return res.status(403).json({ 
-        message: 'CORS policy: Origin not allowed',
-        origin 
-      });
-    }
-    
-    // 일반 요청에도 CORS 헤더 즉시 설정
-    if (origin && isAllowed) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
-      console.log(`✅ CORS 헤더 설정: ${origin}`);
+    // 일반 요청에도 CORS 헤더 즉시 설정 (허용 여부와 관계없이 항상 설정)
+    if (origin) {
+      if (isAllowed) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
+        console.log(`✅ CORS 헤더 설정: ${origin}`);
+      } else {
+        // 차단된 Origin이더라도 CORS 헤더는 설정 (브라우저가 에러를 볼 수 있도록)
+        console.warn(`❌ CORS 차단: ${origin}`);
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-License-Key');
+        // 차단된 경우 403 반환하지 않고 계속 진행 (실제 차단은 다른 곳에서 처리)
+      }
     }
     
     // 응답 전송 전 최종 확인 (요청 abort 방지 및 에러 응답에도 CORS 헤더 보장)
