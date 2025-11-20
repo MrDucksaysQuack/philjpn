@@ -1369,6 +1369,12 @@ function QuestionUsageModal({
   const { locale } = useLocaleStore();
   const { t } = useTranslation(locale);
   const [isMounted, setIsMounted] = useState(false);
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { data: usageResponse, isLoading } = useQuery({
     queryKey: ["question-usage", questionId],
     queryFn: async () => {
@@ -1376,11 +1382,6 @@ function QuestionUsageModal({
       return response.data;
     },
   });
-
-  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
     queryKey: ["question-usage", questionId],
     queryFn: async () => {
       const response = await adminAPI.getQuestionUsage(questionId);
