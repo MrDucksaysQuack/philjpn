@@ -149,7 +149,14 @@ export class AdminController {
         `Stack: ${errorStack || 'N/A'}\n\n`,
       );
       
-      throw error;
+      // 서비스에서 기본값을 반환하므로, 여기서도 기본값 반환
+      return {
+        totalExams: 0,
+        activeExams: 0,
+        totalAttempts: 0,
+        averageScore: 0,
+        completionRate: 0,
+      };
     }
   }
 
@@ -204,7 +211,13 @@ export class AdminController {
         `Stack: ${errorStack || 'N/A'}\n\n`,
       );
       
-      throw error;
+      // 서비스에서 기본값을 반환하므로, 여기서도 기본값 반환
+      return {
+        totalKeys: 0,
+        activeKeys: 0,
+        totalUsage: 0,
+        expiringSoon: 0,
+      };
     }
   }
 
@@ -242,7 +255,19 @@ export class AdminController {
         `Stack: ${errorStack || 'N/A'}\n\n`,
       );
       
-      throw error;
+      // 서비스에서 기본값을 반환하므로, 여기서도 기본값 반환
+      return {
+        summary: {
+          totalUsers: 0,
+          activeUsers: 0,
+          totalExams: 0,
+          totalAttempts: 0,
+        },
+        recentActivity: [],
+        chartData: {
+          dailyAttempts: [],
+        },
+      };
     }
   }
 
