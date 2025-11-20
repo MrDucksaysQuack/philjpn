@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import Link from "next/link";
 import { resultAPI } from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
@@ -22,7 +23,43 @@ export default function RecentActivityWidget() {
     return <LoadingSkeleton type="card" />;
   }
 
-  const recentResults = (data || []).slice(0, 3);
+  // recentResults와 계산된 값들을 useMemo로 메모이제이션
+  const processedResults = useMemo(() => {
+    const recentResults = (data || []).slice(0, 3);
+    
+    return recentResults.map((result: any, index: number) => {
+      const percentage = result.percentage
+        ? parseFloat(result.percentage.toString())
+        : result.totalScore !== null && result.maxScore !== null && result.maxScore > 0
+        ? (result.totalScore / result.maxScore) * 100
+        : null;
+
+      // 이전 결과와 비교하여 개선 추이 계산
+      const previousResult = index < recentResults.length - 1 ? recentResults[index + 1] : null;
+      const previousPercentage = previousResult?.percentage
+        ? parseFloat(previousResult.percentage.toString())
+        : previousResult &&
+          previousResult.totalScore !== null &&
+          previousResult.totalScore !== undefined &&
+          previousResult.maxScore !== null &&
+          previousResult.maxScore !== undefined &&
+          previousResult.maxScore > 0
+        ? (previousResult.totalScore / previousResult.maxScore) * 100
+        : null;
+
+      const improvement = percentage !== null && previousPercentage !== null
+        ? percentage - previousPercentage
+        : null;
+
+      return {
+        ...result,
+        percentage,
+        improvement,
+      };
+    });
+  }, [data]);
+
+  const recentResults = processedResults;
 
   return (
     <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light">
@@ -46,29 +83,8 @@ export default function RecentActivityWidget() {
 
       {recentResults.length > 0 ? (
         <div className="space-y-4">
-          {recentResults.map((result: any, index: number) => {
-            const percentage = result.percentage
-              ? parseFloat(result.percentage.toString())
-              : result.totalScore !== null && result.maxScore !== null && result.maxScore > 0
-              ? (result.totalScore / result.maxScore) * 100
-              : null;
-
-            // 이전 결과와 비교하여 개선 추이 계산
-            const previousResult = index < recentResults.length - 1 ? recentResults[index + 1] : null;
-            const previousPercentage = previousResult?.percentage
-              ? parseFloat(previousResult.percentage.toString())
-              : previousResult &&
-                previousResult.totalScore !== null &&
-                previousResult.totalScore !== undefined &&
-                previousResult.maxScore !== null &&
-                previousResult.maxScore !== undefined &&
-                previousResult.maxScore > 0
-              ? (previousResult.totalScore / previousResult.maxScore) * 100
-              : null;
-
-            const improvement = percentage !== null && previousPercentage !== null
-              ? percentage - previousPercentage
-              : null;
+          {recentResults.map((result: any) => {
+            const { percentage, improvement } = result;
 
             return (
               <Link

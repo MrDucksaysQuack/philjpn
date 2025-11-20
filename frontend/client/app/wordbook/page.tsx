@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { wordBookAPI, recommendationAPI, examAPI } from "@/lib/api";
@@ -158,19 +158,20 @@ export default function WordBookPage() {
     },
   });
 
-  const handleAddWord = (e: React.FormEvent) => {
+  // 핸들러 함수들을 useCallback으로 메모이제이션하여 불필요한 재생성 방지
+  const handleAddWord = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     addWordMutation.mutate(newWord);
-  };
+  }, [newWord, addWordMutation]);
 
-  const handleEditWord = (word: any) => {
+  const handleEditWord = useCallback((word: any) => {
     setEditingWord({
       ...word,
       tags: word.tags ? word.tags.join(", ") : "",
     });
-  };
+  }, []);
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!editingWord) return;
     const data: any = {
@@ -183,42 +184,45 @@ export default function WordBookPage() {
       data.tags = editingWord.tags.split(",").map((t: string) => t.trim()).filter(Boolean);
     }
     updateWordMutation.mutate({ id: editingWord.id, data });
-  };
+  }, [editingWord, updateWordMutation]);
 
-  const handleDeleteWord = (id: string) => {
+  const handleDeleteWord = useCallback((id: string) => {
     if (window.confirm(t("wordbook.confirmDelete"))) {
       deleteWordMutation.mutate(id);
     }
-  };
+  }, [t, deleteWordMutation]);
 
-  const handleStartQuiz = () => {
+  const handleStartQuiz = useCallback(() => {
     const tags = tagsFilter ? tagsFilter.split(",").map((t) => t.trim()).filter(Boolean) : undefined;
     quizMutation.mutate({
       count: 10,
       tags,
       difficulty: difficultyFilter || undefined,
     });
-  };
+  }, [tagsFilter, difficultyFilter, quizMutation]);
 
-  const handleQuizAnswer = (selectedIndex: number) => {
-    const newAnswers = [...quizAnswers, selectedIndex];
-    setQuizAnswers(newAnswers);
+  const handleQuizAnswer = useCallback((selectedIndex: number) => {
+    setQuizAnswers(prev => [...prev, selectedIndex]);
     
-    if (currentQuizIndex < (quizData?.questions?.length || 0) - 1) {
-      setCurrentQuizIndex(currentQuizIndex + 1);
-    } else {
-      // 퀴즈 완료
-      setShowQuizResult(true);
-    }
-  };
+    setCurrentQuizIndex(prev => {
+      const nextIndex = prev + 1;
+      if (nextIndex < (quizData?.questions?.length || 0)) {
+        return nextIndex;
+      } else {
+        // 퀴즈 완료
+        setShowQuizResult(true);
+        return prev;
+      }
+    });
+  }, [quizData?.questions?.length]);
 
-  const handleQuizRestart = () => {
+  const handleQuizRestart = useCallback(() => {
     setShowQuiz(false);
     setQuizData(null);
     setCurrentQuizIndex(0);
     setQuizAnswers([]);
     setShowQuizResult(false);
-  };
+  }, []);
 
   // 검색 필터링된 단어 목록
   const filteredWords = useMemo(() => {

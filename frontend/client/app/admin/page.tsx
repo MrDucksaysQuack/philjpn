@@ -331,7 +331,8 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const getColorClasses = (color: string) => {
+  // getColorClasses와 getPriorityBadge를 useCallback으로 메모이제이션하여 불필요한 재생성 방지
+  const getColorClasses = useCallback((color: string) => {
     const colors: Record<string, string> = {
       blue: "border-blue-200 bg-blue-50 hover:bg-blue-100",
       green: "border-green-200 bg-green-50 hover:bg-green-100",
@@ -339,9 +340,9 @@ export default function AdminDashboardPage() {
       gray: "border-border bg-surface-hover hover:bg-surface-hover",
     };
     return colors[color] || colors.gray;
-  };
+  }, []);
 
-  const getPriorityBadge = (priority: string) => {
+  const getPriorityBadge = useCallback((priority: string) => {
     if (priority === "high") {
       return (
         <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-error/20 text-error rounded-full">
@@ -350,7 +351,7 @@ export default function AdminDashboardPage() {
       );
     }
     return null;
-  };
+  }, []);
 
   return (
     <>

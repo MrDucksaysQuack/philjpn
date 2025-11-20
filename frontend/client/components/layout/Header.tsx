@@ -111,7 +111,8 @@ export default function Header() {
     };
   }, [isMobileMenuOpen]);
 
-  const menuItems = [
+  // menuItems 배열을 useMemo로 메모이제이션하여 불필요한 재생성 방지
+  const menuItems = useMemo(() => [
     { href: "/dashboard", labelKey: "header.menu.dashboard", icon: "📊", isPrimary: true },
     { href: "/profile", labelKey: "header.menu.profile", icon: "👤", isPrimary: false },
     { href: "/badges", labelKey: "header.menu.badges", icon: "🏆", isPrimary: false },
@@ -119,7 +120,7 @@ export default function Header() {
     { href: "/wordbook", labelKey: "header.menu.wordbook", icon: "📖" },
     { href: "/statistics", labelKey: "header.menu.statistics", icon: "📈" },
     { href: "/analysis", labelKey: "header.menu.analysis", icon: "🔍" },
-  ];
+  ], []);
 
   return (
     <header className="bg-surface/95 backdrop-blur-sm shadow-md border-b border-border-light sticky top-0 z-50">
