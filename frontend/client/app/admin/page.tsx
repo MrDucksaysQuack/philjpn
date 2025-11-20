@@ -229,34 +229,7 @@ export default function AdminDashboardPage() {
     refetchInterval: 30000, // 30초마다 자동 갱신
   });
 
-  if (authLoading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-theme-gradient-light">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <LoadingSpinner message="인증 확인 중..." />
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <>
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">로딩 중...</div>
-        </div>
-      </>
-    );
-  }
-
+  // ⚠️ 중요: 모든 hooks는 early return 전에 호출되어야 함 (React Hooks 규칙)
   // tabs 배열을 useMemo로 메모이제이션 (hydration mismatch 방지)
   const tabs = useMemo(() => [
     { id: "overview", label: "대시보드", icon: "📊", groupId: "overview-section" },
@@ -321,7 +294,7 @@ export default function AdminDashboardPage() {
   }, [isMounted, favorites]);
 
   // 드래그 앤 드롭 핸들러
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
       const oldIndex = groupOrder.indexOf(active.id as string);
@@ -329,7 +302,7 @@ export default function AdminDashboardPage() {
       const newOrder = arrayMove(groupOrder, oldIndex, newIndex);
       setGroupOrder(newOrder);
     }
-  };
+  }, [groupOrder, setGroupOrder]);
 
   // getColorClasses와 getPriorityBadge를 useCallback으로 메모이제이션하여 불필요한 재생성 방지
   const getColorClasses = useCallback((color: string) => {
@@ -352,6 +325,35 @@ export default function AdminDashboardPage() {
     }
     return null;
   }, []);
+
+  // Early return은 모든 hooks 호출 후에 수행
+  if (authLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-theme-gradient-light">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <LoadingSpinner message="인증 확인 중..." />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">로딩 중...</div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
