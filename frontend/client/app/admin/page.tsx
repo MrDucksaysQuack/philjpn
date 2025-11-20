@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { adminAPI, aiAPI } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
@@ -154,17 +154,23 @@ const ALL_MENU_GROUPS = [
         },
       ],
     },
-];
+  ];
 
 export default function AdminDashboardPage() {
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const [activeTab, setActiveTab] = useState("overview");
+  const [isMounted, setIsMounted] = useState(false);
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   // 개인화 기능 스토어
   const { favorites, toggleFavorite, isFavorite } = useFavoriteStore();
   const { recentMenus, addRecentMenu, clearRecentMenus } = useRecentMenuStore();
   const { groupOrder, setGroupOrder, resetGroupOrder } = useGroupOrderStore();
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // 드래그 앤 드롭 센서
   const sensors = useSensors(
@@ -274,7 +280,13 @@ export default function AdminDashboardPage() {
   };
 
   // 그룹 순서에 따라 정렬된 메뉴 그룹
+  // 클라이언트에서만 실행하여 hydration mismatch 방지
   const menuGroups = useMemo(() => {
+    if (!isMounted) {
+      // 서버 렌더링 시 기본 순서 사용
+      return ALL_MENU_GROUPS;
+    }
+    
     const groupMap = new Map(ALL_MENU_GROUPS.map((g) => [g.id, g]));
     const orderedGroups: typeof ALL_MENU_GROUPS = [];
     
@@ -293,15 +305,18 @@ export default function AdminDashboardPage() {
     });
     
     return orderedGroups;
-  }, [groupOrder]); // ALL_MENU_GROUPS는 상수이므로 의존성 배열에서 제외
+  }, [isMounted, groupOrder]); // isMounted를 의존성에 추가하여 클라이언트에서만 실행
 
   // 즐겨찾기 메뉴 추출
-  // isFavorite는 Zustand store 함수이므로 의존성 배열에서 제외
-  // favorites 배열만 의존성으로 사용
+  // 클라이언트에서만 실행하여 hydration mismatch 방지
   const favoriteMenus = useMemo(() => {
+    if (!isMounted) {
+      // 서버 렌더링 시 빈 배열 반환
+      return [];
+    }
     const allItems = ALL_MENU_GROUPS.flatMap((group) => group.items);
     return allItems.filter((item) => favorites.includes(item.href));
-  }, [favorites]);
+  }, [isMounted, favorites]);
 
   // 드래그 앤 드롭 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
