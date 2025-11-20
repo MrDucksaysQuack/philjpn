@@ -96,7 +96,6 @@
     "getFeedback": "Get Feedback",
     "selectAnswerFirst": "Please select an answer first",
     "details": "Exam Details",
-    "take": "Take Exam",
     "noExams": "No exams available",
     "searchPlaceholder": "Search exams...",
     "filterByCategory": "Filter by Category",
@@ -522,10 +521,10 @@
   },
   "about": {
     "title": "About Us",
-    "company": "Company",
-    "team": "Team",
-    "service": "Service",
-    "contact": "Contact",
+    "companyLabel": "Company",
+    "teamLabel": "Team",
+    "serviceLabel": "Service",
+    "contactLabel": "Contact",
     "team": {
       "hero": {
         "title": "Meet Our Team",
