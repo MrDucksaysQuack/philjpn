@@ -1,12 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useMemo } from "react";
 import { adminAPI } from "@/lib/api";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from "recharts";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { chartColors } from "@/lib/chart-colors";
 
 export default function TrendChartWidget() {
+  const [isMounted, setIsMounted] = useState(false);
+  
   const { data: examResults, isLoading } = useQuery({
     queryKey: ["admin-exam-results-trend"],
     queryFn: async () => {
@@ -14,6 +17,11 @@ export default function TrendChartWidget() {
       return response.data.data || [];
     },
   });
+
+  // 클라이언트에서만 마운트됨을 표시 (hydration mismatch 방지)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (isLoading) {
     return (
@@ -23,62 +31,72 @@ export default function TrendChartWidget() {
     );
   }
 
-  // 최근 30일간 일별 응시 수 계산
-  const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (29 - i));
-    date.setHours(0, 0, 0, 0);
-    return date;
-  });
+  // 클라이언트에서만 날짜 계산 (hydration mismatch 방지)
+  const { dailyAttempts, dailyScores } = useMemo(() => {
+    if (!isMounted) {
+      // 서버 렌더링 시 빈 배열 반환
+      return { dailyAttempts: [], dailyScores: [] };
+    }
 
-  const dailyAttempts = last30Days.map((date) => {
-    const count = (examResults || []).filter((result: any) => {
-      const startedAt = new Date(result.startedAt);
-      startedAt.setHours(0, 0, 0, 0);
-      return startedAt.getTime() === date.getTime();
-    }).length;
-
-    return {
-      date: date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" }),
-      attempts: count,
-      fullDate: date.toLocaleDateString("ko-KR"),
-    };
-  });
-
-  // 최근 7일간 일별 평균 점수 계산
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - i));
-    date.setHours(0, 0, 0, 0);
-    return date;
-  });
-
-  const dailyScores = last7Days.map((date) => {
-    const dayResults = (examResults || []).filter((result: any) => {
-      if (result.status !== "completed" || result.totalScore === null || result.maxScore === null) {
-        return false;
-      }
-      const startedAt = new Date(result.startedAt);
-      startedAt.setHours(0, 0, 0, 0);
-      return startedAt.getTime() === date.getTime();
+    // 최근 30일간 일별 응시 수 계산
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (29 - i));
+      date.setHours(0, 0, 0, 0);
+      return date;
     });
 
-    const avgScore = dayResults.length > 0
-      ? dayResults.reduce((sum: number, r: any) => {
-          const percentage = r.percentage
-            ? parseFloat(r.percentage.toString())
-            : (r.totalScore / r.maxScore) * 100;
-          return sum + percentage;
-        }, 0) / dayResults.length
-      : 0;
+    const attempts = last30Days.map((date) => {
+      const count = (examResults || []).filter((result: any) => {
+        const startedAt = new Date(result.startedAt);
+        startedAt.setHours(0, 0, 0, 0);
+        return startedAt.getTime() === date.getTime();
+      }).length;
 
-    return {
-      date: date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" }),
-      avgScore: Math.round(avgScore),
-      count: dayResults.length,
-      fullDate: date.toLocaleDateString("ko-KR"),
-    };
-  });
+      return {
+        date: date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" }),
+        attempts: count,
+        fullDate: date.toLocaleDateString("ko-KR"),
+      };
+    });
+
+    // 최근 7일간 일별 평균 점수 계산
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      date.setHours(0, 0, 0, 0);
+      return date;
+    });
+
+    const scores = last7Days.map((date) => {
+      const dayResults = (examResults || []).filter((result: any) => {
+        if (result.status !== "completed" || result.totalScore === null || result.maxScore === null) {
+          return false;
+        }
+        const startedAt = new Date(result.startedAt);
+        startedAt.setHours(0, 0, 0, 0);
+        return startedAt.getTime() === date.getTime();
+      });
+
+      const avgScore = dayResults.length > 0
+        ? dayResults.reduce((sum: number, r: any) => {
+            const percentage = r.percentage
+              ? parseFloat(r.percentage.toString())
+              : (r.totalScore / r.maxScore) * 100;
+            return sum + percentage;
+          }, 0) / dayResults.length
+        : 0;
+
+      return {
+        date: date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" }),
+        avgScore: Math.round(avgScore),
+        count: dayResults.length,
+        fullDate: date.toLocaleDateString("ko-KR"),
+      };
+    });
+
+    return { dailyAttempts: attempts, dailyScores: scores };
+  }, [isMounted, examResults]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
