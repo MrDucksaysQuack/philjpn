@@ -89,7 +89,7 @@ function LoginContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-theme-gradient-light py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="bg-surface rounded-2xl shadow-xl p-8 border border-border-light">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-theme-gradient-primary rounded-2xl mb-4">
                 <svg
@@ -106,10 +106,10 @@ function LoginContent() {
                   />
                 </svg>
               </div>
-              <h2 className="text-3xl font-extrabold text-gray-900">
+              <h2 className="text-3xl font-extrabold text-text-primary">
                 {t("auth.loginTitle")}
               </h2>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-text-secondary">
                 {t("common.or")}{" "}
                 <Link
                   href="/register"
@@ -121,13 +121,13 @@ function LoginContent() {
             </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded">
                 {error}
               </div>
             )}
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-2">
                   {t("auth.email")}
                 </label>
                 <input
@@ -136,14 +136,14 @@ function LoginContent() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
+                  className="appearance-none relative block w-full px-4 py-3 border border-border placeholder-text-muted text-text-primary bg-surface rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
                   placeholder={t("auth.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-2">
                   {t("auth.password")}
                 </label>
                 <input
@@ -152,7 +152,7 @@ function LoginContent() {
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
+                  className="appearance-none relative block w-full px-4 py-3 border border-border placeholder-text-muted text-text-primary bg-surface rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent transition-all"
                   placeholder={t("auth.passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -200,10 +200,10 @@ function LoginContent() {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">
+                  <span className="px-2 bg-surface text-text-muted">
                     {t("auth.socialLogin.divider")}
                   </span>
                 </div>
@@ -216,7 +216,7 @@ function LoginContent() {
                   onClick={() => {
                     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/google`;
                   }}
-                  className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-border rounded-lg shadow-sm bg-surface text-sm font-medium text-text-primary hover:bg-surface-hover transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -244,7 +244,7 @@ function LoginContent() {
                   onClick={() => {
                     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/facebook`;
                   }}
-                  className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-border rounded-lg shadow-sm bg-surface text-sm font-medium text-text-primary hover:bg-surface-hover transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />

@@ -261,7 +261,7 @@
         "team": "Team Introduction",
         "service": "Service Introduction",
         "contact": "Contact",
-        "content": "Content by Language",
+        "home": "Home Page",
         "preview": "Preview",
         "versions": "Version History",
         "colorTheme": "Color Theme"
@@ -288,6 +288,7 @@
         "aboutCompanyDescription": "This content is displayed in the \"Company Introduction\" section of the /about/company page.",
         "companyStats": "Company Statistics",
         "companyStatsDescription": "Statistics cards displayed at the top of the company introduction page.",
+        "companyStatsGuide": "Company Statistics Guide",
         "icon": "Icon",
         "value": "Value",
         "suffix": "Suffix",
@@ -300,7 +301,10 @@
         "titlePlaceholder": "Title (e.g., Mission, Vision, Values)",
         "description": "Description",
         "addValue": "+ Add Value",
-        "delete": "Delete"
+        "delete": "Delete",
+        "heroSection": "Hero Section",
+        "heroSectionDescription": "Hero section displayed at the top of the page.",
+        "heroSubtitle": "Hero Subtitle"
       },
       "team": {
         "title": "Team Introduction Page Management",
@@ -311,6 +315,7 @@
         "aboutTeamDescription": "This content is displayed in the \"Team Introduction\" section of the /about/team page.",
         "teamMembers": "Team Members",
         "teamMembersDescription": "Displayed in the \"Team Members\" section of the team introduction page.",
+        "teamMembersGuide": "Team Member Card Guide",
         "name": "Name",
         "role": "Role",
         "description": "Description",
@@ -322,7 +327,11 @@
         "addMember": "+ Add Member",
         "teamCulture": "Team Culture",
         "teamCultureDescription": "Displayed in the \"Team Culture\" section of the team introduction page.",
-        "addCulture": "+ Add Culture"
+        "addCulture": "+ Add Culture",
+        "heroSection": "Hero Section",
+        "heroSectionDescription": "Hero section displayed at the top of the page.",
+        "heroTitle": "Hero Title",
+        "heroSubtitle": "Hero Subtitle"
       },
       "service": {
         "title": "Service Introduction Page Management",
@@ -341,7 +350,11 @@
         "serviceProcess": "Service Process",
         "serviceProcessDescription": "Displayed in the \"How to Use\" section of the service introduction page.",
         "step": "Step",
-        "addStep": "+ Add Step"
+        "addStep": "+ Add Step",
+        "heroSection": "Hero Section",
+        "heroSectionDescription": "Hero section displayed at the top of the page.",
+        "heroTitle": "Hero Title",
+        "heroSubtitle": "Hero Subtitle"
       },
       "contact": {
         "title": "Contact Page Management",
@@ -357,25 +370,22 @@
         "facebook": "Facebook",
         "twitter": "Twitter",
         "instagram": "Instagram",
-        "linkedin": "LinkedIn"
+        "linkedin": "LinkedIn",
+        "selectLanguage": "Select Language to Edit",
+        "heroSection": "Hero Section",
+        "heroSectionDescription": "Hero section displayed at the top of the page.",
+        "heroTitle": "Hero Title",
+        "heroSubtitle": "Hero Subtitle"
       },
-      "content": {
-        "title": "Content Editing by Language",
-        "description": "You can edit language-specific content for the main page and About page.",
+      "home": {
+        "title": "Home Page Content Editing",
+        "description": "You can edit language-specific content for the main page.",
         "selectLanguage": "Select Language to Edit",
         "homePage": "Main Page (Home)",
         "heroTitle": "Hero Title",
         "heroSubtitle": "Hero Subtitle",
         "featuresSectionTitle": "Features Section Title",
-        "featuresSectionSubtitle": "Features Section Subtitle",
-        "aboutPage": "About Page",
-        "team": "Team Introduction (Team)",
-        "company": "Company Introduction (Company)",
-        "service": "Service Introduction (Service)",
-        "contact": "Contact (Contact)",
-        "pageSelection": "Page Selection:",
-        "homePageOption": "Home Page",
-        "aboutPageOption": "About Page"
+        "featuresSectionSubtitle": "Features Section Subtitle"
       },
       "colorTheme": {
         "title": "Color Theme Management",
@@ -409,6 +419,49 @@
         "cancel": "Cancel",
         "create": "Create",
         "confirmRollback": "Roll back to version {version}? Current settings will be automatically backed up."
+      },
+      "markdownEditor": {
+        "edit": "Edit",
+        "preview": "Preview",
+        "split": "Split View",
+        "placeholder": "Enter markdown format...",
+        "noPreview": "No preview content available.",
+        "markdownSyntax": "Markdown Syntax",
+        "bold": "Bold",
+        "italic": "Italic",
+        "heading": "Heading",
+        "heading1": "Heading 1",
+        "heading2": "Heading 2",
+        "heading3": "Heading 3",
+        "link": "Link",
+        "image": "Image",
+        "list": "List",
+        "code": "Inline Code",
+        "codeBlock": "Code Block"
+      },
+      "fileUploader": {
+        "image": "Image",
+        "audio": "Audio",
+        "video": "Video",
+        "preview": "Preview",
+        "remove": "Remove",
+        "change": "Change",
+        "uploading": "Uploading",
+        "dropHere": "Drop file here",
+        "dragOrClick": "Drag and drop or click to upload",
+        "maxSize": "Max {maxSize}MB",
+        "imageFormats": "JPG, PNG, GIF, WEBP, SVG",
+        "audioFormats": "MP3, WAV, OGG",
+        "videoFormats": "MP4, WebM, MOV",
+        "fileTooLarge": "File size must be less than {maxSize}MB.",
+        "imageOnly": "Only image files are allowed.",
+        "audioOnly": "Only audio files are allowed.",
+        "videoOnly": "Only video files are allowed.",
+        "uploadSuccess": "File uploaded successfully.",
+        "uploadFailed": "File upload failed.",
+        "audioFile": "Audio File",
+        "videoFile": "Video File",
+        "uploaded": "Uploaded"
       }
     },
     "categoryManagement": {

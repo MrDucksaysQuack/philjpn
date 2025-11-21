@@ -625,9 +625,9 @@ export default function AdminDashboardPage() {
             <div className="text-text-muted">로딩 중...</div>
           )}
           {aiAvailability && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${aiAvailability.available ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <div className={`w-3 h-3 rounded-full ${aiAvailability.available ? 'bg-success' : 'bg-error'}`}></div>
                 <span className="text-sm text-text-muted">
                   AI 기능 상태: {aiAvailability.available ? '활성화' : '비활성화'}
                 </span>
@@ -732,10 +732,10 @@ export default function AdminDashboardPage() {
         {/* 재분류된 메뉴 그룹 */}
         <div className="space-y-8 mt-12">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">메뉴 그룹</h2>
+            <h2 className="text-xl font-bold text-text-primary">메뉴 그룹</h2>
             <button
               onClick={resetGroupOrder}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-text-muted hover:text-text-primary"
               title="그룹 순서 초기화"
             >
               순서 초기화
@@ -781,8 +781,8 @@ export default function AdminDashboardPage() {
         {dashboard &&
           dashboard.recentActivity &&
           dashboard.recentActivity.length > 0 && (
-            <div className="mt-8 bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">최근 활동</h2>
+            <div className="mt-8 bg-surface rounded-lg shadow p-6 border border-border-light">
+              <h2 className="text-xl font-semibold mb-4 text-text-primary">최근 활동</h2>
               <div className="space-y-2">
                 {dashboard.recentActivity
                   .slice(0, 5)

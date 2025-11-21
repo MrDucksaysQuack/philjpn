@@ -9,7 +9,7 @@ import { questionAPI, CreateQuestionDto, Question } from "@/lib/api";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { toast } from "@/components/common/Toast";
-import MediaUploader from "@/components/admin/MediaUploader";
+import FileUploader from "@/components/admin/FileUploader";
 
 export default function QuestionsPage() {
   const params = useParams();
@@ -349,17 +349,24 @@ function QuestionModal({
 
           {/* 미디어 첨부 */}
           <div className="grid grid-cols-2 gap-4">
-            <MediaUploader
+            <FileUploader
               type="image"
               currentUrl={formData.imageUrl}
               onUploadComplete={(url) => setFormData({ ...formData, imageUrl: url })}
               onRemove={() => setFormData({ ...formData, imageUrl: undefined })}
+              label="문제 이미지"
+              maxSize={5}
+              accept="image/*"
+              aspectRatio="auto"
             />
-            <MediaUploader
+            <FileUploader
               type="audio"
               currentUrl={formData.audioUrl}
               onUploadComplete={(url) => setFormData({ ...formData, audioUrl: url })}
               onRemove={() => setFormData({ ...formData, audioUrl: undefined })}
+              label="문제 오디오"
+              maxSize={10}
+              accept="audio/*"
             />
           </div>
 

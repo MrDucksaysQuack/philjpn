@@ -58,22 +58,22 @@ export default function HomePage() {
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Floating Orbs - Multiple layers with different animations */}
-          <div className="absolute top-10 left-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl animate-float-slow"></div>
-          <div className="absolute top-20 right-20 w-80 h-80 bg-purple-400 opacity-8 rounded-full blur-3xl animate-float-medium"></div>
-          <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-blue-400 opacity-8 rounded-full blur-3xl animate-float-fast"></div>
-          <div className="absolute bottom-10 right-1/3 w-72 h-72 bg-pink-400 opacity-10 rounded-full blur-3xl animate-float-slow delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div className="absolute top-10 left-10 w-64 h-64 bg-text-inverse opacity-10 rounded-full blur-3xl animate-float-slow"></div>
+          <div className="absolute top-20 right-20 w-80 h-80 bg-theme-secondary opacity-8 rounded-full blur-3xl animate-float-medium"></div>
+          <div className="absolute bottom-20 left-1/4 w-96 h-96 bg-theme-primary opacity-8 rounded-full blur-3xl animate-float-fast"></div>
+          <div className="absolute bottom-10 right-1/3 w-72 h-72 bg-theme-accent opacity-10 rounded-full blur-3xl animate-float-slow delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-text-inverse opacity-5 rounded-full blur-3xl animate-pulse-slow"></div>
           
           {/* Rotating Gradient Circles */}
           <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-gradient-to-br from-theme-secondary to-theme-accent opacity-15 rounded-full blur-2xl animate-spin-slow"></div>
           <div className="absolute bottom-1/3 left-1/4 w-56 h-56 bg-gradient-to-br from-theme-primary to-theme-accent opacity-15 rounded-full blur-2xl animate-spin-reverse-slow"></div>
           
           {/* Floating Particles */}
-          <div className="absolute top-1/4 left-1/5 w-3 h-3 bg-white opacity-30 rounded-full animate-float-particle-1"></div>
-          <div className="absolute top-1/3 right-1/5 w-2 h-2 bg-purple-300 opacity-40 rounded-full animate-float-particle-2"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-4 h-4 bg-blue-300 opacity-25 rounded-full animate-float-particle-3"></div>
-          <div className="absolute bottom-1/3 right-1/4 w-2.5 h-2.5 bg-pink-300 opacity-35 rounded-full animate-float-particle-4"></div>
-          <div className="absolute top-2/3 left-2/5 w-3.5 h-3.5 bg-white opacity-20 rounded-full animate-float-particle-5"></div>
+          <div className="absolute top-1/4 left-1/5 w-3 h-3 bg-text-inverse opacity-30 rounded-full animate-float-particle-1"></div>
+          <div className="absolute top-1/3 right-1/5 w-2 h-2 bg-theme-secondary opacity-40 rounded-full animate-float-particle-2"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-4 h-4 bg-theme-primary opacity-25 rounded-full animate-float-particle-3"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-2.5 h-2.5 bg-theme-accent opacity-35 rounded-full animate-float-particle-4"></div>
+          <div className="absolute top-2/3 left-2/5 w-3.5 h-3.5 bg-text-inverse opacity-20 rounded-full animate-float-particle-5"></div>
           
           {/* Animated Grid Pattern */}
           <div className="absolute inset-0 opacity-5">
@@ -98,7 +98,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="group w-full sm:w-auto bg-white text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                    className="group w-full sm:w-auto bg-surface text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
                     <span className="flex items-center justify-center gap-2">
                       <span className="text-xl">📊</span>
@@ -120,7 +120,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/exams"
-                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
+                    className="w-full sm:w-auto bg-transparent text-text-inverse border-2 border-text-inverse px-8 py-4 rounded-lg text-lg font-semibold hover:bg-surface hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
                   >
                     {t("home.hero.startExamButton")}
                   </Link>
@@ -129,7 +129,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/exams"
-                    className="group w-full sm:w-auto bg-white text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                    className="group w-full sm:w-auto bg-surface text-theme-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-theme-primary-light transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                   >
                     <span className="flex items-center justify-center gap-2">
                       {t("home.hero.startExamButton")}
@@ -150,7 +150,7 @@ export default function HomePage() {
                   </Link>
                   <Link
                     href="/register"
-                    className="w-full sm:w-auto bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
+                    className="w-full sm:w-auto bg-transparent text-text-inverse border-2 border-text-inverse px-8 py-4 rounded-lg text-lg font-semibold hover:bg-surface hover:text-theme-primary transition-all duration-300 transform hover:scale-105"
                   >
                     {t("home.hero.registerButton")}
                   </Link>

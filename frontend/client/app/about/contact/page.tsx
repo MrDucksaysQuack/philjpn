@@ -75,7 +75,7 @@ export default function ContactPage() {
         subtitle={heroContent.subtitle}
       />
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         {/* 연락처 정보 및 문의 폼 섹션 */}
         <section className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,12 +87,12 @@ export default function ContactPage() {
                 {contactInfo ? (
                   <div className="space-y-6">
                     {contactInfo.email && (
-                      <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 hover:border-theme-primary hover:shadow-lg transition-all">
+                      <div className="flex items-start gap-4 p-6 bg-surface rounded-xl border border-border-light hover:border-theme-primary hover:shadow-lg transition-all">
                         <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-theme-primary-light text-theme-primary flex items-center justify-center">
                           <MailIcon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">{labels.email}</div>
+                          <div className="text-sm font-semibold text-text-secondary mb-1">{labels.email}</div>
                           <a
                             href={`mailto:${contactInfo.email}`}
                             className="text-theme-primary hover:opacity-80 font-medium"
@@ -104,12 +104,12 @@ export default function ContactPage() {
                     )}
 
                     {contactInfo.phone && (
-                      <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 hover:border-theme-primary hover:shadow-lg transition-all">
+                      <div className="flex items-start gap-4 p-6 bg-surface rounded-xl border border-border-light hover:border-theme-primary hover:shadow-lg transition-all">
                         <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-theme-secondary-light text-theme-secondary flex items-center justify-center">
                           <PhoneIcon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">{labels.phone}</div>
+                          <div className="text-sm font-semibold text-text-secondary mb-1">{labels.phone}</div>
                           <a
                             href={`tel:${contactInfo.phone}`}
                             className="text-theme-secondary hover:opacity-80 font-medium"
@@ -121,13 +121,13 @@ export default function ContactPage() {
                     )}
 
                     {contactInfo.address && (
-                      <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 hover:border-theme-primary hover:shadow-lg transition-all">
+                      <div className="flex items-start gap-4 p-6 bg-surface rounded-xl border border-border-light hover:border-theme-primary hover:shadow-lg transition-all">
                         <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-theme-accent-light text-theme-accent flex items-center justify-center">
                           <MapPinIcon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-700 mb-1">{labels.address}</div>
-                          <div className="text-gray-700">{contactInfo.address}</div>
+                          <div className="text-sm font-semibold text-text-secondary mb-1">{labels.address}</div>
+                          <div className="text-text-secondary">{contactInfo.address}</div>
                         </div>
                       </div>
                     )}
@@ -135,14 +135,14 @@ export default function ContactPage() {
                     {/* 소셜 미디어 */}
                     {contactInfo.socialMedia && (
                       <div className="pt-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">소셜 미디어</h3>
+                        <h3 className="text-lg font-bold text-text-primary mb-4">소셜 미디어</h3>
                         <div className="flex flex-wrap gap-3">
                           {contactInfo.socialMedia.website && (
                             <a
                               href={contactInfo.socialMedia.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center transition-colors"
+                              className="w-12 h-12 rounded-xl bg-surface-hover hover:bg-surface text-text-primary flex items-center justify-center transition-colors"
                               aria-label="웹사이트"
                             >
                               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -168,7 +168,7 @@ export default function ContactPage() {
                               href={contactInfo.socialMedia.twitter}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-12 h-12 rounded-xl bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center transition-colors"
+                              className="w-12 h-12 rounded-xl bg-info hover:opacity-90 text-white flex items-center justify-center transition-colors"
                               aria-label="Twitter"
                             >
                               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -207,7 +207,7 @@ export default function ContactPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-100">
+                  <div className="text-center py-12 text-text-muted bg-surface rounded-xl border border-border-light">
                     연락처 정보가 아직 등록되지 않았습니다.
                   </div>
                 )}
@@ -215,7 +215,7 @@ export default function ContactPage() {
 
               {/* 오른쪽: 문의 폼 */}
               <div>
-                <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
+                <div className="bg-surface rounded-2xl shadow-lg p-8 md:p-10 border border-border-light">
                   <SectionTitle title={formSection.title} className="text-left mb-8" />
                   <ContactForm />
                 </div>

@@ -18,8 +18,8 @@ export default function FeatureCard({
   return (
     <div
       className={`
-        group relative bg-white rounded-2xl p-6 md:p-8 
-        shadow-lg border border-gray-100 
+        group relative bg-surface rounded-2xl p-6 md:p-8 
+        shadow-lg border border-border-light 
         hover:shadow-xl hover:-translate-y-2 
         transition-all duration-300
         ${className}
@@ -33,12 +33,12 @@ export default function FeatureCard({
       )}
 
       {/* 제목 */}
-      <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
+      <h3 className="text-xl md:text-2xl font-bold text-text-primary mb-3">
         {title}
       </h3>
 
       {/* 설명 */}
-      <p className="text-gray-600 leading-relaxed">{description}</p>
+      <p className="text-text-secondary leading-relaxed">{description}</p>
 
       {/* 호버 시 테마 색상 테두리 */}
       <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-theme-primary transition-colors duration-300 pointer-events-none" />

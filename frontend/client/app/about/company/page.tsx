@@ -73,7 +73,7 @@ export default function CompanyPage() {
         subtitle={heroContent.subtitle}
       />
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         {/* 통계 섹션 */}
         {stats.length > 0 && (
           <section className="py-16 md:py-24">
@@ -96,7 +96,7 @@ export default function CompanyPage() {
 
         {/* 미션/비전/가치 섹션 */}
         {companyValues.length > 0 && (
-          <section className="py-16 md:py-24 bg-gray-50">
+          <section className="py-16 md:py-24 bg-surface-hover">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
                 title={valuesSection.title}
@@ -120,12 +120,12 @@ export default function CompanyPage() {
         <section className="py-16 md:py-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionTitle title={introSection.title} />
-            <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
+            <div className="bg-surface rounded-2xl shadow-lg p-8 md:p-12 border border-border-light">
               <div className="prose prose-lg max-w-none">
                 {content.includes("#") || content.includes("*") || content.includes("`") ? (
                   <ReactMarkdown>{content}</ReactMarkdown>
                 ) : (
-                  <div className="text-gray-700 leading-relaxed whitespace-pre-line">{content}</div>
+                  <div className="text-text-secondary leading-relaxed whitespace-pre-line">{content}</div>
                 )}
               </div>
             </div>

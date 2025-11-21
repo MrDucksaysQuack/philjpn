@@ -140,7 +140,7 @@ export default function AdminExamsPage() {
           <div className="flex gap-2">
             <Link
               href="/admin"
-              className="text-blue-600 hover:text-blue-700 px-4 py-2 rounded-md border border-blue-600"
+              className="text-theme-primary hover:text-theme-primary/80 px-4 py-2 rounded-md border border-theme-primary"
             >
               ← {t("admin.dashboard")}
             </Link>
@@ -257,9 +257,9 @@ export default function AdminExamsPage() {
                         <span
                           className={`px-2 py-1 text-xs rounded ${
                             exam.status === "published"
-                              ? "bg-blue-100 text-blue-800"
+                              ? "bg-info/20 text-info"
                               : exam.status === "draft"
-                              ? "bg-yellow-100 text-yellow-800"
+                              ? "bg-warning/20 text-warning"
                               : "bg-surface-hover text-text-primary"
                           }`}
                         >
@@ -274,7 +274,7 @@ export default function AdminExamsPage() {
                         <span
                           className={`px-2 py-1 text-xs rounded ${
                             exam.isActive
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-success/20 text-success"
                               : "bg-surface-hover text-text-primary"
                           }`}
                         >
@@ -306,7 +306,7 @@ export default function AdminExamsPage() {
                     {exam.examType}
                   </span> 
                   {exam.subject && (
-                    <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">
+                    <span className="px-2 py-1 text-xs bg-theme-secondary/20 text-theme-secondary rounded">
                       {exam.subject}
                     </span>
                   )}
@@ -406,7 +406,7 @@ export default function AdminExamsPage() {
                           setVersion("");
                         }
                       }}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-theme-primary rounded focus:ring-theme-primary"
                     />
                     <label htmlFor="createVersion" className="text-sm font-semibold text-text-primary">
                       버전으로 생성 (A/B/C 버전 관리)
@@ -416,18 +416,18 @@ export default function AdminExamsPage() {
                   {createVersion && (
                     <div className="space-y-3 ml-8">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-text-secondary mb-1">
                           버전 식별자 (선택사항)
                         </label>
                         <input
                           type="text"
                           value={version}
                           onChange={(e) => setVersion(e.target.value.toUpperCase())}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface text-text-primary"
                           placeholder="예: A, B, C (자동 생성 시 비워두세요)"
                           maxLength={10}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-text-muted mt-1">
                           비워두면 자동으로 A, B, C 순서로 생성됩니다.
                         </p>
                       </div>
@@ -440,30 +440,30 @@ export default function AdminExamsPage() {
                       id="shuffleQuestions"
                       checked={shuffleQuestions}
                       onChange={(e) => setShuffleQuestions(e.target.checked)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-theme-primary rounded focus:ring-theme-primary"
                     />
-                    <label htmlFor="shuffleQuestions" className="text-sm font-medium text-gray-700">
+                    <label htmlFor="shuffleQuestions" className="text-sm font-medium text-text-secondary">
                       문제 순서 섞기 (버전별로 다른 순서)
                     </label>
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-info/10 border border-info/20 rounded-lg p-4">
+                  <p className="text-sm text-info">
                     <strong>복제되는 내용:</strong>
                   </p>
-                  <ul className="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                  <ul className="text-sm text-info/80 mt-2 space-y-1 list-disc list-inside">
                     <li>시험 기본 정보 (설명, 유형, 과목 등)</li>
                     <li>시험 설정 (ExamConfig)</li>
                     <li>모든 섹션</li>
                     <li>모든 문제 (새 ID로 복제)</li>
                     {createVersion && (
-                      <li className="font-semibold text-purple-700">
+                      <li className="font-semibold text-theme-secondary">
                         버전 관리: 원본 시험과 연결되어 버전으로 관리됩니다.
                       </li>
                     )}
                     {shuffleQuestions && (
-                      <li className="font-semibold text-orange-700">
+                      <li className="font-semibold text-warning">
                         문제 순서가 섞여서 생성됩니다.
                       </li>
                     )}
@@ -477,7 +477,7 @@ export default function AdminExamsPage() {
                     setSelectedExam(null);
                     setCloneTitle("");
                   }}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="px-6 py-2 border border-border text-text-primary rounded-lg hover:bg-surface-hover"
                 >
                   취소
                 </button>
@@ -496,7 +496,7 @@ export default function AdminExamsPage() {
                     });
                   }}
                   disabled={cloneMutation.isPending || !cloneTitle.trim()}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-success text-white rounded-lg hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {cloneMutation.isPending 
                     ? (createVersion ? "버전 생성 중..." : "복제 중...") 
@@ -510,15 +510,15 @@ export default function AdminExamsPage() {
         {/* 버전 목록 모달 */}
         {showVersionsModal && versionsExamId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">시험 버전 관리</h2>
+            <div className="bg-surface rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-border-light">
+              <div className="sticky top-0 bg-surface border-b border-border p-6 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-text-primary">시험 버전 관리</h2>
                 <button
                   onClick={() => {
                     setShowVersionsModal(false);
                     setVersionsExamId(null);
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                  className="text-text-muted hover:text-text-primary text-2xl font-bold"
                 >
                   ×
                 </button>
@@ -530,20 +530,20 @@ export default function AdminExamsPage() {
                     {versionsData.map((v) => (
                       <div
                         key={v.id}
-                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-surface-hover"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <span className="text-lg font-semibold text-gray-900">
+                            <span className="text-lg font-semibold text-text-primary">
                               {v.title}
                             </span>
                             {v.version && (
-                              <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded font-semibold">
+                              <span className="px-2 py-1 text-xs bg-theme-secondary/20 text-theme-secondary rounded font-semibold">
                                 버전 {v.version}
                               </span>
                             )}
                             {!v.version && (
-                              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                              <span className="px-2 py-1 text-xs bg-surface-hover text-text-secondary rounded">
                                 원본
                               </span>
                             )}
@@ -551,9 +551,9 @@ export default function AdminExamsPage() {
                               <span
                                 className={`px-2 py-1 text-xs rounded ${
                                   v.status === "published"
-                                    ? "bg-blue-100 text-blue-800"
+                                    ? "bg-info/20 text-info"
                                     : v.status === "draft"
-                                    ? "bg-yellow-100 text-yellow-800"
+                                    ? "bg-warning/20 text-warning"
                                     : "bg-surface-hover text-text-primary"
                                 }`}
                               >
@@ -565,7 +565,7 @@ export default function AdminExamsPage() {
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="text-sm text-text-muted mt-1">
                             생성일: {new Date(v.createdAt).toLocaleDateString("ko-KR")}
                           </div>
                         </div>
@@ -581,13 +581,13 @@ export default function AdminExamsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-text-muted">
                     버전이 없습니다. 시험을 복제할 때 "버전으로 생성" 옵션을 선택하세요.
                   </div>
                 )}
               </div>
 
-              <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex justify-end">
+              <div className="sticky bottom-0 bg-surface border-t border-border p-6 flex justify-end">
                 <Button
                   onClick={() => {
                     setShowVersionsModal(false);

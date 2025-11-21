@@ -49,8 +49,8 @@ export default function StatCard({
   return (
     <div
       className={`
-        bg-white rounded-2xl p-6 md:p-8 
-        shadow-lg border border-gray-100 
+        bg-surface rounded-2xl p-6 md:p-8 
+        shadow-lg border border-border-light 
         hover:shadow-xl hover:-translate-y-1 
         transition-all duration-300
         text-center
@@ -70,14 +70,14 @@ export default function StatCard({
           {displayValue}
         </span>
         {suffix && (
-          <span className="text-2xl md:text-3xl font-bold text-gray-600 ml-1">
+          <span className="text-2xl md:text-3xl font-bold text-text-secondary ml-1">
             {suffix}
           </span>
         )}
       </div>
 
       {/* 라벨 */}
-      <p className="text-gray-600 font-medium">{label}</p>
+      <p className="text-text-secondary font-medium">{label}</p>
     </div>
   );
 }

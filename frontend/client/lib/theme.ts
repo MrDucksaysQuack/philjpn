@@ -211,6 +211,19 @@ function applyColorTheme(theme: ColorTheme) {
       `linear-gradient(to right, ${theme.secondary}, ${theme.accent})`
     );
   }
+
+  // 대각선 그라데이션 (히어로 섹션용)
+  if (theme.primary && theme.secondary && theme.accent) {
+    root.style.setProperty(
+      "--gradient-diagonal",
+      `linear-gradient(to bottom right, ${theme.primary}, ${theme.secondary}, ${theme.accent})`
+    );
+  } else if (theme.primary && theme.secondary) {
+    root.style.setProperty(
+      "--gradient-diagonal",
+      `linear-gradient(to bottom right, ${theme.primary}, ${theme.secondary})`
+    );
+  }
 }
 
 /**

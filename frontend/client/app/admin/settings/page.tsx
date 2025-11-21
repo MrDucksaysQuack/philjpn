@@ -16,7 +16,7 @@ import CompanyTab from "./components/CompanyTab";
 import TeamTab from "./components/TeamTab";
 import ServiceTab from "./components/ServiceTab";
 import ContactTab from "./components/ContactTab";
-import ContentTab from "./components/ContentTab";
+import HomeTab from "./components/HomeTab";
 import PreviewTab from "./components/PreviewTab";
 import ColorThemeTab from "./components/ColorThemeTab";
 import VersionHistoryTab from "./components/VersionHistoryTab";
@@ -26,7 +26,7 @@ export default function SiteSettingsPage() {
   const { t } = useTranslation(locale);
   const { user, isLoading: authLoading } = useRequireAuth({ requireRole: "admin" });
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "content" | "preview" | "versions" | "colorTheme">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "company" | "team" | "service" | "contact" | "home" | "preview" | "versions" | "colorTheme">("basic");
   const [contentLocale, setContentLocale] = useState<"ko" | "en" | "ja">("ko");
   const [markdownLocale, setMarkdownLocale] = useState<"ko" | "en" | "ja">("ko");
   const [structuredLocale, setStructuredLocale] = useState<"ko" | "en" | "ja">("ko");
@@ -451,14 +451,14 @@ export default function SiteSettingsPage() {
                   {t("admin.siteSettings.tabs.contact")}
                 </button>
                 <button
-                  onClick={() => setActiveTab("content")}
+                  onClick={() => setActiveTab("home")}
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === "content"
+                    activeTab === "home"
                       ? "border-theme-primary text-theme-primary"
                       : "border-transparent text-text-muted hover:text-text-primary hover:border-border"
                   }`}
                 >
-                  {t("admin.siteSettings.tabs.content")}
+                  {t("admin.siteSettings.tabs.home")}
                 </button>
                 <button
                   onClick={() => setActiveTab("preview")}
@@ -627,12 +627,14 @@ export default function SiteSettingsPage() {
               <ContactTab
                 formData={formData}
                 setFormData={setFormData}
+                structuredLocale={structuredLocale}
+                setStructuredLocale={setStructuredLocale}
               />
             )}
 
-            {/* 언어별 콘텐츠 탭 */}
-            {activeTab === "content" && (
-              <ContentTab
+            {/* 메인 페이지 탭 */}
+            {activeTab === "home" && (
+              <HomeTab
                 formData={formData}
                 setFormData={setFormData}
                 contentLocale={contentLocale}
@@ -664,18 +666,6 @@ export default function SiteSettingsPage() {
             {activeTab === "versions" && (
               <VersionHistoryTab />
             )}
-
-            {/* 저장 버튼 */}
-            {activeTab === "colorTheme" && (
-              <ColorThemeTab
-                formData={formData}
-                setFormData={setFormData}
-                t={t}
-              />
-            )}
-
-            {/* 버전 히스토리 탭 */}
-            {activeTab === "versions" && <VersionHistoryTab />}
 
             {/* 저장 버튼 */}
             <div className="mt-8 flex justify-between items-center">

@@ -256,7 +256,7 @@
         "team": "チーム紹介",
         "service": "サービス紹介",
         "contact": "連絡先",
-        "content": "言語別コンテンツ",
+        "home": "メインページ",
         "preview": "プレビュー",
         "versions": "バージョン履歴",
         "colorTheme": "カラーテーマ"
@@ -283,6 +283,7 @@
         "aboutCompanyDescription": "この内容は /about/company ページの「会社紹介」セクションに表示されます。",
         "companyStats": "会社統計",
         "companyStatsDescription": "会社紹介ページの上部に表示される統計カードです。",
+        "companyStatsGuide": "会社統計作成ガイド",
         "icon": "アイコン",
         "value": "値",
         "suffix": "接尾辞",
@@ -295,7 +296,10 @@
         "titlePlaceholder": "タイトル（例: ミッション、ビジョン、価値）",
         "description": "説明",
         "addValue": "+ 価値を追加",
-        "delete": "削除"
+        "delete": "削除",
+        "heroSection": "Heroセクション",
+        "heroSectionDescription": "ページ上部に表示されるHeroセクションです。",
+        "heroSubtitle": "Heroサブタイトル"
       },
       "team": {
         "title": "チーム紹介ページ管理",
@@ -306,6 +310,7 @@
         "aboutTeamDescription": "この内容は /about/team ページの「チーム紹介」セクションに表示されます。",
         "teamMembers": "チームメンバー",
         "teamMembersDescription": "チーム紹介ページの「チームメンバー」セクションに表示されます。",
+        "teamMembersGuide": "チームメンバーカード作成ガイド",
         "name": "名前",
         "role": "役割",
         "description": "説明",
@@ -317,7 +322,11 @@
         "addMember": "+ メンバーを追加",
         "teamCulture": "チーム文化",
         "teamCultureDescription": "チーム紹介ページの「チーム文化」セクションに表示されます。",
-        "addCulture": "+ 文化を追加"
+        "addCulture": "+ 文化を追加",
+        "heroSection": "Heroセクション",
+        "heroSectionDescription": "ページ上部に表示されるHeroセクションです。",
+        "heroTitle": "Heroタイトル",
+        "heroSubtitle": "Heroサブタイトル"
       },
       "service": {
         "title": "サービス紹介ページ管理",
@@ -336,7 +345,11 @@
         "serviceProcess": "サービスプロセス",
         "serviceProcessDescription": "サービス紹介ページの「使用方法」セクションに表示されます。",
         "step": "ステップ",
-        "addStep": "+ ステップを追加"
+        "addStep": "+ ステップを追加",
+        "heroSection": "Heroセクション",
+        "heroSectionDescription": "ページ上部に表示されるHeroセクションです。",
+        "heroTitle": "Heroタイトル",
+        "heroSubtitle": "Heroサブタイトル"
       },
       "contact": {
         "title": "連絡先ページ管理",
@@ -352,25 +365,22 @@
         "facebook": "Facebook",
         "twitter": "Twitter",
         "instagram": "Instagram",
-        "linkedin": "LinkedIn"
+        "linkedin": "LinkedIn",
+        "selectLanguage": "編集する言語を選択",
+        "heroSection": "Heroセクション",
+        "heroSectionDescription": "ページ上部に表示されるHeroセクションです。",
+        "heroTitle": "Heroタイトル",
+        "heroSubtitle": "Heroサブタイトル"
       },
-      "content": {
-        "title": "言語別コンテンツ編集",
-        "description": "メインページとAboutページの言語別コンテンツを編集できます。",
+      "home": {
+        "title": "メインページコンテンツ編集",
+        "description": "メインページの言語別コンテンツを編集できます。",
         "selectLanguage": "編集する言語を選択",
         "homePage": "メインページ（Home）",
         "heroTitle": "Heroタイトル",
         "heroSubtitle": "Heroサブタイトル",
         "featuresSectionTitle": "機能セクションタイトル",
-        "featuresSectionSubtitle": "機能セクションサブタイトル",
-        "aboutPage": "Aboutページ",
-        "team": "チーム紹介（Team）",
-        "company": "会社紹介（Company）",
-        "service": "サービス紹介（Service）",
-        "contact": "連絡先（Contact）",
-        "pageSelection": "ページ選択:",
-        "homePageOption": "ホームページ",
-        "aboutPageOption": "Aboutページ"
+        "featuresSectionSubtitle": "機能セクションサブタイトル"
       },
       "colorTheme": {
         "title": "カラーテーマ管理",
@@ -404,6 +414,49 @@
         "cancel": "キャンセル",
         "create": "作成",
         "confirmRollback": "バージョン {version} にロールバックしますか？現在の設定は自動的にバックアップされます。"
+      },
+      "markdownEditor": {
+        "edit": "編集",
+        "preview": "プレビュー",
+        "split": "分割表示",
+        "placeholder": "Markdown形式で入力してください...",
+        "noPreview": "プレビュー内容がありません。",
+        "markdownSyntax": "Markdown構文",
+        "bold": "太字",
+        "italic": "斜体",
+        "heading": "見出し",
+        "heading1": "見出し1",
+        "heading2": "見出し2",
+        "heading3": "見出し3",
+        "link": "リンク",
+        "image": "画像",
+        "list": "リスト",
+        "code": "インラインコード",
+        "codeBlock": "コードブロック"
+      },
+      "fileUploader": {
+        "image": "画像",
+        "audio": "オーディオ",
+        "video": "動画",
+        "preview": "プレビュー",
+        "remove": "削除",
+        "change": "変更",
+        "uploading": "アップロード中",
+        "dropHere": "ここにファイルをドロップ",
+        "dragOrClick": "ドラッグ＆ドロップまたはクリックしてアップロード",
+        "maxSize": "最大 {maxSize}MB",
+        "imageFormats": "JPG, PNG, GIF, WEBP, SVG",
+        "audioFormats": "MP3, WAV, OGG",
+        "videoFormats": "MP4, WebM, MOV",
+        "fileTooLarge": "ファイルサイズは {maxSize}MB 以下である必要があります。",
+        "imageOnly": "画像ファイルのみアップロード可能です。",
+        "audioOnly": "オーディオファイルのみアップロード可能です。",
+        "videoOnly": "動画ファイルのみアップロード可能です。",
+        "uploadSuccess": "ファイルが正常にアップロードされました。",
+        "uploadFailed": "ファイルのアップロードに失敗しました。",
+        "audioFile": "オーディオファイル",
+        "videoFile": "動画ファイル",
+        "uploaded": "アップロード完了"
       }
     },
     "categoryManagement": {

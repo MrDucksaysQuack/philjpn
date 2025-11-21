@@ -20,7 +20,7 @@ export default function TeamMemberCard({
   socialLinks,
 }: TeamMemberCardProps) {
   return (
-    <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center">
+    <div className="group bg-surface rounded-2xl p-6 shadow-lg border border-border-light hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center">
       {/* 프로필 이미지 */}
       <div className="mb-4 relative">
         <div className="w-32 h-32 mx-auto rounded-full bg-theme-gradient-primary p-1 group-hover:scale-105 transition-transform duration-300">
@@ -41,23 +41,23 @@ export default function TeamMemberCard({
       </div>
 
       {/* 이름 */}
-      <h3 className="text-xl font-bold text-gray-900 mb-1">{name}</h3>
+      <h3 className="text-xl font-bold text-text-primary mb-1">{name}</h3>
 
       {/* 역할 */}
       <p className="text-theme-primary font-medium mb-3">{role}</p>
 
       {/* 설명 */}
       {description && (
-        <p className="text-gray-600 text-sm leading-relaxed mb-4">{description}</p>
+        <p className="text-text-secondary text-sm leading-relaxed mb-4">{description}</p>
       )}
 
       {/* 소셜 링크 */}
       {socialLinks && (
-        <div className="flex items-center justify-center gap-3 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-center gap-3 pt-4 border-t border-border-light">
           {socialLinks.email && (
             <a
               href={`mailto:${socialLinks.email}`}
-              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-theme-primary hover:text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-surface-hover hover:bg-theme-primary hover:text-white flex items-center justify-center transition-colors"
               aria-label="이메일"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@ export default function TeamMemberCard({
               href={socialLinks.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-theme-primary hover:text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-surface-hover hover:bg-theme-primary hover:text-white flex items-center justify-center transition-colors"
               aria-label="LinkedIn"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -83,7 +83,7 @@ export default function TeamMemberCard({
               href={socialLinks.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-900 hover:text-white flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-surface-hover hover:bg-text-primary hover:text-white flex items-center justify-center transition-colors"
               aria-label="GitHub"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

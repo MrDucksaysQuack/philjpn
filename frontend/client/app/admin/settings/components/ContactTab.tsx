@@ -8,14 +8,22 @@ import { useTranslation } from "@/lib/i18n";
 interface ContactTabProps {
   formData: UpdateSiteSettingsDto;
   setFormData: React.Dispatch<React.SetStateAction<UpdateSiteSettingsDto>>;
+  structuredLocale: "ko" | "en" | "ja";
+  setStructuredLocale: (locale: "ko" | "en" | "ja") => void;
 }
 
 export default function ContactTab({
   formData,
   setFormData,
+  structuredLocale,
+  setStructuredLocale,
 }: ContactTabProps) {
   const { locale } = useLocaleStore();
   const { t } = useTranslation(locale);
+
+  const getLanguageLabel = (loc: "ko" | "en" | "ja") => {
+    return loc === "ko" ? t("common.languages.ko") : loc === "en" ? t("common.languages.en") : t("common.languages.ja");
+  };
 
   return (
     <div className="bg-surface rounded-2xl shadow-lg p-8 border border-border-light space-y-8">
@@ -28,6 +36,89 @@ export default function ContactTab({
         >
           {t("admin.siteSettings.contact.viewPage")}
         </Link>
+      </div>
+
+      {/* 언어 선택 */}
+      <div className="border-b border-border pb-4 mb-6">
+        <label className="block text-sm font-semibold text-text-primary mb-2">{t("admin.siteSettings.contact.selectLanguage")}</label>
+        <div className="flex gap-2">
+          {(["ko", "en", "ja"] as const).map((loc) => (
+            <button
+              key={loc}
+              type="button"
+              onClick={() => setStructuredLocale(loc)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                structuredLocale === loc
+                  ? "bg-theme-primary text-button-text"
+                  : "bg-surface-hover text-text-secondary hover:bg-surface-hover"
+              }`}
+            >
+              {getLanguageLabel(loc)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Hero 섹션 */}
+      <div className="border-b border-border pb-6 mb-6">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">{t("admin.siteSettings.contact.heroSection")}</h3>
+        <p className="text-sm text-text-secondary mb-4">{t("admin.siteSettings.contact.heroSectionDescription")}</p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">{t("admin.siteSettings.contact.heroTitle")} ({getLanguageLabel(structuredLocale)})</label>
+            <input
+              type="text"
+              value={formData.aboutContent?.[structuredLocale]?.contact?.hero?.title || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  aboutContent: {
+                    ...formData.aboutContent,
+                    [structuredLocale]: {
+                      ...formData.aboutContent?.[structuredLocale],
+                      contact: {
+                        ...formData.aboutContent?.[structuredLocale]?.contact,
+                        hero: {
+                          ...formData.aboutContent?.[structuredLocale]?.contact?.hero,
+                          title: e.target.value,
+                        },
+                      },
+                    },
+                  },
+                })
+              }
+              className="w-full px-4 py-2 border border-border rounded-lg bg-surface text-text-primary focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+              placeholder={t("admin.siteSettings.contact.heroTitle")}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">{t("admin.siteSettings.contact.heroSubtitle")} ({getLanguageLabel(structuredLocale)})</label>
+            <input
+              type="text"
+              value={formData.aboutContent?.[structuredLocale]?.contact?.hero?.subtitle || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  aboutContent: {
+                    ...formData.aboutContent,
+                    [structuredLocale]: {
+                      ...formData.aboutContent?.[structuredLocale],
+                      contact: {
+                        ...formData.aboutContent?.[structuredLocale]?.contact,
+                        hero: {
+                          ...formData.aboutContent?.[structuredLocale]?.contact?.hero,
+                          subtitle: e.target.value,
+                        },
+                      },
+                    },
+                  },
+                })
+              }
+              className="w-full px-4 py-2 border border-border rounded-lg bg-surface text-text-primary focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+              placeholder={t("admin.siteSettings.contact.heroSubtitle")}
+            />
+          </div>
+        </div>
       </div>
 
       <div>

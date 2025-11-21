@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { UpdateSiteSettingsDto, getLocalizedValue, updateLocalizedValue } from "@/lib/api";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
 import IconPicker from "@/components/admin/IconPicker";
+import { FeatureCardEditable } from "@/components/admin/EditableCards";
 import { useLocaleStore } from "@/lib/store";
 import { useTranslation } from "@/lib/i18n";
 
@@ -26,6 +28,9 @@ export default function ServiceTab({
 }: ServiceTabProps) {
   const { locale } = useLocaleStore();
   const { t } = useTranslation(locale);
+  
+  // 편집 상태 관리
+  const [editingFeatures, setEditingFeatures] = useState<Record<number, boolean>>({});
 
   const getLanguageLabel = (loc: "ko" | "en" | "ja") => {
     return loc === "ko" ? t("common.languages.ko") : loc === "en" ? t("common.languages.en") : t("common.languages.ja");
@@ -85,6 +90,68 @@ export default function ServiceTab({
         <p className="mt-2 text-xs text-text-muted">{t("admin.siteSettings.service.serviceInfoDescription")}</p>
       </div>
 
+      {/* Hero 섹션 */}
+      <div className="border-b border-border pb-6">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">{t("admin.siteSettings.service.heroSection")}</h3>
+        <p className="text-sm text-text-secondary mb-4">{t("admin.siteSettings.service.heroSectionDescription")}</p>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">{t("admin.siteSettings.service.heroTitle")} ({getLanguageLabel(structuredLocale)})</label>
+            <input
+              type="text"
+              value={formData.aboutContent?.[structuredLocale]?.service?.hero?.title || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  aboutContent: {
+                    ...formData.aboutContent,
+                    [structuredLocale]: {
+                      ...formData.aboutContent?.[structuredLocale],
+                      service: {
+                        ...formData.aboutContent?.[structuredLocale]?.service,
+                        hero: {
+                          ...formData.aboutContent?.[structuredLocale]?.service?.hero,
+                          title: e.target.value,
+                        },
+                      },
+                    },
+                  },
+                })
+              }
+              className="w-full px-4 py-2 border border-border rounded-lg bg-surface text-text-primary focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+              placeholder={t("admin.siteSettings.service.heroTitle")}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">{t("admin.siteSettings.service.heroSubtitle")} ({getLanguageLabel(structuredLocale)})</label>
+            <input
+              type="text"
+              value={formData.aboutContent?.[structuredLocale]?.service?.hero?.subtitle || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  aboutContent: {
+                    ...formData.aboutContent,
+                    [structuredLocale]: {
+                      ...formData.aboutContent?.[structuredLocale],
+                      service: {
+                        ...formData.aboutContent?.[structuredLocale]?.service,
+                        hero: {
+                          ...formData.aboutContent?.[structuredLocale]?.service?.hero,
+                          subtitle: e.target.value,
+                        },
+                      },
+                    },
+                  },
+                })
+              }
+              className="w-full px-4 py-2 border border-border rounded-lg bg-surface text-text-primary focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
+              placeholder={t("admin.siteSettings.service.heroSubtitle")}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* 언어 선택 (구조화된 데이터용) */}
       <div className="border-b border-border pb-4 mb-6">
         <label className="block text-sm font-semibold text-text-primary mb-2">{t("admin.siteSettings.service.selectLanguageStructured")}</label>
@@ -108,100 +175,65 @@ export default function ServiceTab({
 
       {/* 서비스 기능 */}
       <div className="border-b border-border pb-6">
-        <h3 className="text-lg font-semibold text-text-primary mb-4">{t("admin.siteSettings.service.serviceFeatures")} - {getLanguageLabel(structuredLocale)}</h3>
-        <p className="text-sm text-text-secondary mb-4">{t("admin.siteSettings.service.serviceFeaturesDescription")}</p>
-        <div className="space-y-4">
-          {(formData.serviceFeatures?.features || []).map((feature, index) => (
-            <div key={index} className="p-4 bg-surface-hover rounded-lg border border-border hover:border-theme-primary transition-colors space-y-3">
-              <div>
-                <label className="block text-xs text-text-secondary mb-1">{t("admin.siteSettings.company.icon")}</label>
-                <IconPicker
-                  value={feature.icon}
-                  onChange={(iconName) => {
-                    const newFeatures = [...(formData.serviceFeatures?.features || [])];
-                    newFeatures[index] = { ...feature, icon: iconName };
-                    setFormData({
-                      ...formData,
-                      serviceFeatures: { features: newFeatures },
-                    });
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-text-secondary mb-1">{t("admin.siteSettings.company.titleField")} * ({getLanguageLabel(structuredLocale)})</label>
-                <input
-                  type="text"
-                  value={getLocalizedValue(feature.title, structuredLocale)}
-                  onChange={(e) => {
-                    const newFeatures = [...(formData.serviceFeatures?.features || [])];
-                    newFeatures[index] = { 
-                      ...feature, 
-                      title: updateLocalizedValue(feature.title, structuredLocale, e.target.value)
-                    };
-                    setFormData({
-                      ...formData,
-                      serviceFeatures: { features: newFeatures },
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface text-text-primary focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                  placeholder={t("admin.siteSettings.company.titleField")}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-text-secondary mb-1">{t("admin.siteSettings.company.description")} * ({getLanguageLabel(structuredLocale)})</label>
-                <textarea
-                  value={getLocalizedValue(feature.description, structuredLocale)}
-                  onChange={(e) => {
-                    const newFeatures = [...(formData.serviceFeatures?.features || [])];
-                    newFeatures[index] = { 
-                      ...feature, 
-                      description: updateLocalizedValue(feature.description, structuredLocale, e.target.value)
-                    };
-                    setFormData({
-                      ...formData,
-                      serviceFeatures: { features: newFeatures },
-                    });
-                  }}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-surface text-text-primary focus:ring-2 focus:ring-theme-primary focus:border-theme-primary"
-                  placeholder={t("admin.siteSettings.company.description")}
-                  required
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const newFeatures = formData.serviceFeatures?.features?.filter((_, i) => i !== index) || [];
-                  setFormData({
-                    ...formData,
-                    serviceFeatures: { features: newFeatures },
-                  });
-                }}
-                className="px-3 py-2 text-error hover:bg-error/10 rounded-lg text-sm transition-colors"
-                title={t("common.delete")}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => {
-              setFormData({
-                ...formData,
-                serviceFeatures: {
-                  features: [...(formData.serviceFeatures?.features || []), { icon: "", title: "", description: "" }],
-                },
-              });
-            }}
-            className="px-4 py-2 bg-surface-hover hover:bg-surface-hover text-text-primary rounded-lg text-sm font-medium"
-          >
-            {t("admin.siteSettings.service.addFeature")}
-          </button>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-text-primary">{t("admin.siteSettings.service.serviceFeatures")} - {getLanguageLabel(structuredLocale)}</h3>
+            <p className="text-sm text-text-secondary mt-1">{t("admin.siteSettings.service.serviceFeaturesDescription")}</p>
+          </div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {(formData.serviceFeatures?.features || []).map((feature, index) => (
+            <FeatureCardEditable
+              key={index}
+              feature={feature}
+              locale={structuredLocale}
+              isEditing={editingFeatures[index] || false}
+              onEdit={() => setEditingFeatures({ ...editingFeatures, [index]: true })}
+              onDelete={() => {
+                const newFeatures = formData.serviceFeatures?.features?.filter((_, i) => i !== index) || [];
+                setFormData({
+                  ...formData,
+                  serviceFeatures: { features: newFeatures },
+                });
+                const newEditing = { ...editingFeatures };
+                delete newEditing[index];
+                setEditingFeatures(newEditing);
+              }}
+              onSave={(updated) => {
+                const newFeatures = [...(formData.serviceFeatures?.features || [])];
+                newFeatures[index] = updated;
+                setFormData({
+                  ...formData,
+                  serviceFeatures: { features: newFeatures },
+                });
+                setEditingFeatures({ ...editingFeatures, [index]: false });
+              }}
+              onCancel={() => {
+                const newEditing = { ...editingFeatures };
+                delete newEditing[index];
+                setEditingFeatures(newEditing);
+              }}
+            />
+          ))}
+        </div>
+        
+        <button
+          type="button"
+          onClick={() => {
+            const newIndex = (formData.serviceFeatures?.features || []).length;
+            setFormData({
+              ...formData,
+              serviceFeatures: {
+                features: [...(formData.serviceFeatures?.features || []), { icon: "", title: "", description: "" }],
+              },
+            });
+            setEditingFeatures({ ...editingFeatures, [newIndex]: true });
+          }}
+          className="mt-4 px-4 py-2 bg-theme-primary text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+        >
+          + {t("admin.siteSettings.service.addFeature")}
+        </button>
       </div>
 
       {/* 서비스 혜택 */}

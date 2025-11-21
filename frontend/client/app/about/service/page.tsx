@@ -88,13 +88,13 @@ export default function ServicePage() {
       >
         <Link
           href="/exams"
-          className="inline-block mt-8 px-8 py-4 bg-white text-theme-primary rounded-xl font-bold text-lg hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl"
+          className="inline-block mt-8 px-8 py-4 bg-surface text-theme-primary rounded-xl font-bold text-lg hover:bg-surface-hover transition-colors shadow-lg hover:shadow-xl"
         >
           {heroContent.startButton}
         </Link>
       </HeroSection>
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         {/* 주요 기능 섹션 */}
         <section className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -119,7 +119,7 @@ export default function ServicePage() {
 
         {/* 혜택 섹션 */}
         {benefits.length > 0 && (
-          <section className="py-16 md:py-24 bg-gray-50">
+          <section className="py-16 md:py-24 bg-surface-hover">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <SectionTitle
                 title={benefitsSection.title}
@@ -154,15 +154,15 @@ export default function ServicePage() {
         )}
 
         {/* 상세 서비스 소개 섹션 */}
-        <section className="py-16 md:py-24 bg-gray-50">
+        <section className="py-16 md:py-24 bg-surface-hover">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionTitle title={introSection.title} />
-            <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 border border-gray-100">
+            <div className="bg-surface rounded-2xl shadow-lg p-8 md:p-12 border border-border-light">
               <div className="prose prose-lg max-w-none">
                 {content.includes("#") || content.includes("*") || content.includes("`") ? (
                   <ReactMarkdown>{content}</ReactMarkdown>
                 ) : (
-                  <div className="text-gray-700 leading-relaxed whitespace-pre-line">{content}</div>
+                  <div className="text-text-secondary leading-relaxed whitespace-pre-line">{content}</div>
                 )}
               </div>
             </div>
