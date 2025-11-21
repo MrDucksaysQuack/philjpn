@@ -643,12 +643,12 @@ export default function SiteSettingsPage() {
             {/* 미리보기 탭 */}
             {activeTab === "preview" && (
               <PreviewTab
-                formData={formData}
+                  formData={formData}
                 contentLocale={contentLocale}
                 setContentLocale={setContentLocale}
-                previewType={previewType}
+                  previewType={previewType}
                 setPreviewType={setPreviewType}
-              />
+                />
             )}
 
             {/* 색상 테마 탭 */}

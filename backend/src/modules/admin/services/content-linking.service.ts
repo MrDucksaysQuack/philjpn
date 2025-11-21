@@ -334,15 +334,16 @@ export class ContentLinkingService {
 
     questions.forEach((q) => {
       if (q.section && q.section.exam) {
-        const examId = q.section.exam.id;
+        const section = q.section;
+        const examId = section.exam.id;
         if (!examMap.has(examId)) {
           examMap.set(examId, {
             exam: {
-              id: q.section.exam.id,
-              title: q.section.exam.title,
-              examType: q.section.exam.examType,
-              status: q.section.exam.status || undefined,
-              createdAt: q.section.exam.createdAt,
+              id: section.exam.id,
+              title: section.exam.title,
+              examType: section.exam.examType,
+              status: section.exam.status || undefined,
+              createdAt: section.exam.createdAt,
             },
             questionCount: 0,
             sections: [],
@@ -352,11 +353,11 @@ export class ContentLinkingService {
         const examData = examMap.get(examId)!;
         examData.questionCount++;
 
-        const sectionIndex = examData.sections.findIndex((s) => s.id === q.section.id);
+        const sectionIndex = examData.sections.findIndex((s) => s.id === section.id);
         if (sectionIndex === -1) {
           examData.sections.push({
-            id: q.section.id,
-            title: q.section.title,
+            id: section.id,
+            title: section.title,
             questionCount: 1,
           });
         } else {

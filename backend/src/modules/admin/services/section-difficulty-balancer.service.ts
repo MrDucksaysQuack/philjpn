@@ -427,7 +427,7 @@ export class SectionDifficultyBalancerService {
       select: { sectionId: true },
     });
 
-    if (question) {
+    if (question && question.sectionId) {
       const originalSection = await this.prisma.section.findUnique({
         where: { id: question.sectionId },
         include: {
@@ -439,7 +439,7 @@ export class SectionDifficultyBalancerService {
         },
       });
 
-      if (originalSection) {
+      if (originalSection && originalSection.questions) {
         // questionNumber 재정렬
         for (let i = 0; i < originalSection.questions.length; i++) {
           await this.prisma.question.update({

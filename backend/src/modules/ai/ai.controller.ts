@@ -7,7 +7,10 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Req,
+  Res,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { AIAnalysisService } from './services/ai-analysis.service';
 import { AIQueueService } from './services/ai-queue.service';
@@ -107,7 +110,7 @@ export class AIController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   async getQueueStats(@Req() request: Request, @Res() response: Response) {
     // CORS 헤더 설정
-    const origin = request.headers.origin;
+    const origin = request.headers.origin as string | undefined;
     if (origin) {
       response.setHeader('Access-Control-Allow-Origin', origin);
       response.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -117,7 +120,7 @@ export class AIController {
     
     try {
       const stats = await this.aiQueueService.getQueueStats();
-      return response.status(200).json(stats);
+      return response.status(HttpStatus.OK).json(stats);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: string })?.code;
@@ -140,7 +143,7 @@ export class AIController {
       );
       
       // 큐가 초기화되지 않은 경우 기본값 반환
-      return response.status(200).json({
+      return response.status(HttpStatus.OK).json({
         waiting: 0,
         active: 0,
         completed: 0,
