@@ -1298,6 +1298,33 @@ export interface SiteSettings {
   };
 }
 
+// 다국어 문자열 타입
+export type LocalizedString = string | { ko?: string; en?: string; ja?: string };
+
+// 다국어 문자열 타입 가드
+export function isLocalizedString(value: unknown): value is { ko?: string; en?: string; ja?: string } {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && ("ko" in value || "en" in value || "ja" in value);
+}
+
+// 다국어 문자열에서 특정 언어 값 가져오기
+export function getLocalizedValue(value: LocalizedString | undefined, locale: "ko" | "en" | "ja"): string {
+  if (!value) return "";
+  if (typeof value === "string") return locale === "ko" ? value : "";
+  return value[locale] || "";
+}
+
+// 다국어 문자열 업데이트
+export function updateLocalizedValue(
+  current: LocalizedString | undefined,
+  locale: "ko" | "en" | "ja",
+  newValue: string
+): { ko?: string; en?: string; ja?: string } {
+  const currentObj = typeof current === "string" 
+    ? { ko: locale === "ko" ? current : "", en: "", ja: "" }
+    : (isLocalizedString(current) ? { ...current } : { ko: "", en: "", ja: "" });
+  return { ...currentObj, [locale]: newValue };
+}
+
 export interface UpdateSiteSettingsDto {
   companyName?: string;
   logoUrl?: string;
@@ -1305,30 +1332,30 @@ export interface UpdateSiteSettingsDto {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
-  aboutCompany?: string;
-  aboutTeam?: string;
+  aboutCompany?: LocalizedString;
+  aboutTeam?: LocalizedString;
   contactInfo?: ContactInfo;
-  serviceInfo?: string;
+  serviceInfo?: LocalizedString;
   companyStats?: {
     stats?: Array<{
       icon?: string;
       value: number | string;
       suffix?: string;
-      label: string;
+      label: LocalizedString;
     }>;
   };
   companyValues?: {
     values?: Array<{
       icon?: string;
-      title: string;
-      description: string;
+      title: LocalizedString;
+      description: LocalizedString;
     }>;
   };
   teamMembers?: {
     members?: Array<{
       name: string;
-      role: string;
-      description?: string;
+      role: LocalizedString;
+      description?: LocalizedString;
       imageUrl?: string;
       socialLinks?: {
         email?: string;
@@ -1340,27 +1367,27 @@ export interface UpdateSiteSettingsDto {
   teamCulture?: {
     culture?: Array<{
       icon?: string;
-      title: string;
-      description: string;
+      title: LocalizedString;
+      description: LocalizedString;
     }>;
   };
   serviceFeatures?: {
     features?: Array<{
       icon?: string;
-      title: string;
-      description: string;
+      title: LocalizedString;
+      description: LocalizedString;
     }>;
   };
   serviceBenefits?: {
     benefits?: Array<{
-      text: string;
+      text: LocalizedString;
     }>;
   };
   serviceProcess?: {
     steps?: Array<{
       step: number;
-      title: string;
-      description: string;
+      title: LocalizedString;
+      description: LocalizedString;
     }>;
   };
   homeContent?: {

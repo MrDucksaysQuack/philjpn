@@ -232,7 +232,7 @@ function QuestionModal({
       if (question) {
         await questionAPI.updateQuestion(question.id, data);
       } else {
-        await questionAPI.createQuestion(sectionId, data);
+        await questionAPI.createQuestionInSection(sectionId, data);
       }
     },
     onSuccess: () => {

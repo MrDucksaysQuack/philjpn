@@ -10,7 +10,7 @@ import TeamMemberCard from "@/components/about/TeamMemberCard";
 import BenefitList from "@/components/about/BenefitList";
 import ProcessStep from "@/components/about/ProcessStep";
 import { getIconComponent } from "@/components/about/iconMapper";
-import { UpdateSiteSettingsDto } from "@/lib/api";
+import { UpdateSiteSettingsDto, getLocalizedValue } from "@/lib/api";
 
 interface SettingsPreviewProps {
   formData: UpdateSiteSettingsDto;
@@ -131,7 +131,7 @@ export default function SettingsPreview({
                     <StatCard
                       key={index}
                       value={stat.value || "0"}
-                      label={stat.label || ""}
+                      label={getLocalizedValue(stat.label, previewLocale)}
                       icon={IconComponent}
                     />
                   );
