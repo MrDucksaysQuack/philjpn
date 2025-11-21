@@ -65,7 +65,7 @@
 | | borderDark | ✅ | 구현됨 |
 | | linkHover | ✅ | 구현됨 |
 
-**결과**: 22개 중 19개 구현 (86%), **3개 누락**:
+**결과**: 22개 중 18개 구현 (82%), **4개 누락**:
 - `backgroundSecondary` (HIGH)
 - `buttonText` (HIGH)
 - `textInverse` (MEDIUM)
